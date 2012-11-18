@@ -115,3 +115,28 @@
 
 (defmethod serialize-value ((serializer (eql :xml)) value stream)
   (cxml:text (prin1-to-string value)))
+
+;; SEXP serializer
+
+(defmethod serialize-element ((serializer (eql :sexp)) element stream)
+  (format stream "(~s (" (name element))
+  (mapcar (lambda (attribute)
+            (serialize attribute serializer stream))
+          (attributes element))
+  (format stream ")"))
+
+(defmethod serialize-elements-list ((serializer (eql :sexp)) elements-list stream)
+  (format stream "(")
+  (mapcar (lambda (element)
+            (serialize element serializer stream)
+            (format stream " "))
+          (list-elements elements-list))
+  (format stream ")"))
+
+(defmethod serialize-attribute ((serializer (eql :sexp)) attribute stream)
+  (format stream "(~S . " (name attribute))
+  (serialize (value attribute) serializer stream)
+  (format stream ")"))
+
+(defmethod serialize-value ((serializer (eql :sexp)) value stream)
+  (format stream "~A" value))

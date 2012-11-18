@@ -18,3 +18,7 @@
   (with-serializer-output t
     (with-serializer :xml
       (serialize *element*))))
+
+(with-serializer-output t
+  (with-serializer :sexp
+    (serialize *element*)))
