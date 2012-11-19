@@ -3,26 +3,80 @@
 (defparameter *apis* nil)
 (defparameter *api* nil "The current api")
 
-(defun start-api (api port)
-  (hunchentoot:start
-   (make-instance 'hunchentoot:acceptor
-		  :port port
-		  :request-dispatcher
-		  (lambda (request)
-		    (api-request-dispatcher api request)))))
+(defun request-uri-prefix (request-uri)
+  (or
+   (ppcre:register-groups-bind (prefix) ("(.*)\\?.*" request-uri)
+     prefix)
+   request-uri))
 
-(defun api-request-dispatcher (api request)
-  (loop for definition being the hash-values of (defintions api)
-       when (definition-matches definition request)
-       do (return-from api-request-dispatcher
-	    (funcall definition request))))
+(defun request-uri-parameters (request-uri)
+  (ppcre:register-groups-bind (arguments)
+      (".*\\?(.*)$" request-uri)
+    (when arguments
+      (loop for argument-and-value in
+           (split-sequence:split-sequence #\& arguments)
+           collect
+           (let ((argument-and-value-split
+                  (split-sequence:split-sequence #\= argument-and-value)))
+             (cons (intern (string-upcase (car argument-and-value-split)))
+                   (cadr argument-and-value-split)))))))             
+
+(defun uri-match-p (uri-prefix request-uri)
+  (cl-ppcre:scan 
+   (list :sequence :start-anchor uri-prefix)
+   request-uri))
+
+(defclass api-acceptor (hunchentoot:acceptor)
+  ((api :initarg :api
+        :accessor api
+        :initform (error "Provide the api"))
+   (api-implementation-package :initarg :api-implementation-package
+                       :accessor api-implementation-package
+                       :initform *package*))
+  (:documentation "Accepts api requests"))
+
+(defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
+  (loop for api-function in (functions (api acceptor))
+     when (api-function-matches-request-p request)
+       return (execute-api-function-implementation (api acceptor)
+                                                   api-function
+                                                   (find-api-function-implementation (name api-function) acceptor)
+                                                   request)
+       finally (call-next-method)))
+
+(defun find-api-function-implementation (name acceptor)
+  (or (ignore-errors (symbol-function (intern name (api-implementation-package acceptor))))
+      (error "Api function ~A not implemented in package ~A" name (api-implementation-package acceptor))))
+
+(defun execute-api-function-implementation (api api-function function-implementation request)
+  (let ((args (extract-function-arguments api api-function request)))
+    (apply function-implementation args)))
+
+(defclass api-definition ()
+  ((name :accessor name :initarg :name)
+   (functions :accessor functions :initarg :functions :initform nil)
+   (options :accessor options :initarg :options :initform nil)
+   (documentation :accessor api-documentation :initarg :documentation :initform nil)))
+
+(defun start-api (api address port &optional (api-implementation-package *package*))
+  (hunchentoot:start
+   (make-instance 'hunchentoot:api-acceptor
+                  :address address
+		  :port port
+                  :api api
+                  :api-implementation-package api-implementation-package)))
+
+(defun api-function-matches-request-p (api api-function request)
+  (and (equalp (hunchentoot:request-uri*) (uri-prefix api-function))
+       (equalp (request-method api-function) (hunchentoot:request-method*))
+       (member (hunchentoot:content-type*) (content-types api-function))))  
 
 (defclass api-function ()
   ((name :initarg :name
 	 :accessor name
 	 :initform (error "Provide the name"))
-   (url-prefix :initarg :url-prefix
-               :accessor url-prefix
+   (uri-prefix :initarg :uri-prefix
+               :accessor uri-prefix
                :initform nil)
    (request-method :initarg :request-method
 		   :accessor request-method
@@ -90,12 +144,11 @@
   `(with-api ,api
      (make-api-function ,name ,method ,options ,args)))
 
-(defun parse-api-method-definition (
-  
-
-;; example:
-
-;; (
+(defun parse-api-method-definition (method-spec)
+  (destructuring-bind (name options args) method-spec
+    (make-api-function name (getf options :method)
+                       options
+                       args)))
 
 (defun replace-vars-in-url (url plist)
   (labels ((do-replace (url plist)
@@ -114,12 +167,7 @@
 			(format nil "~A" val))
 		     (cddr plist))))))
     (do-replace url plist)))
- 
-(defclass api-definition ()
-  ((name :accessor name :initarg :name)
-   (functions :accessor functions :initarg :functions :initform nil)
-   (options :accessor options :initarg :options :initform nil)
-   (documentation :accessor api-documentation :initarg :documentation :initform nil)))
+
 
 (defmethod print-object ((api-definition api-definition) stream)
   (print-unreadable-object (api-definition stream :type t :identity t)
