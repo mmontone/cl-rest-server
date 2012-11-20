@@ -4,10 +4,9 @@
 (defparameter *api* nil "The current api")
 
 (defun request-uri-prefix (request-uri)
-  (or
-   (ppcre:register-groups-bind (prefix) ("(.*)\\?.*" request-uri)
-     prefix)
-   request-uri))
+  (if (find #\? request-uri)
+      (subseq request-uri 0 (position #\? request-uri))
+      request-uri))
 
 (defun request-uri-parameters (request-uri)
   (ppcre:register-groups-bind (arguments)
@@ -23,11 +22,11 @@
 
 (defun uri-match-p (uri-prefix request-uri)
   (cl-ppcre:scan 
-   (list :sequence :start-anchor uri-prefix)
+   (parse-uri-prefix uri-prefix)
    request-uri))
 
 (defun url-pattern (api-function)
-  (gen-regexp (uri-prefix api-function)))
+  (parse-uri-prefix (uri-prefix api-function)))
 
 (defclass api-acceptor (hunchentoot:acceptor)
   ((api :initarg :api
@@ -103,6 +102,12 @@
 (defmethod initialize-instance :after ((api-function api-function) &rest initargs)
   (declare (ignore initargs))
 
+  ;; Parse the uri to obtain the required parameters
+  (multiple-value-bind (scanner vars)
+      (parse-api-url (uri-prefix api-function))
+    (declare (ignore scanner))
+    (setf (required-arguments api-function) vars))
+  
   ;; Validate first
   (validate api-function)
 
@@ -191,10 +196,7 @@
 
 (defun parse-api-url (request-string)
   (multiple-value-bind (scanner vars)
-	(gen-regexp
-	 (if (find #\? request-string)
-	     (subseq request-string 0 (position #\? request-string))
-	     request-string))
+	(parse-uri-prefix (request-uri-prefix request-string))
     (let ((parameters 
 	   (when (find #\? request-string)
 	     (parse-parameters 
@@ -202,7 +204,7 @@
 	      ))))
       (values scanner vars parameters))))
 
-(defun gen-regexp (string)
+(defun parse-uri-prefix (string)
   (let* ((vars nil)
 	 (scanner
 	  `(:sequence
@@ -230,8 +232,7 @@
 			    (push (parse-api-function-var x)
 				  vars)
 			    `(:register (:NON-GREEDY-REPETITION 1 nil (:INVERTED-CHAR-CLASS #\/)))))))))
-	    :END-ANCHOR)
-	   ))
+	    :END-ANCHOR)))
     (values scanner 
 	    vars)))
 
@@ -246,8 +247,8 @@
                                   parsed-type))
           (and default-value t)))))
 
-(parse-api-function-var "x :boolean true")
-(parse-api-function-var "y :integer 222")
+;; (parse-api-function-var "x :boolean true")
+;; (parse-api-function-var "y :integer 222")
 
 (defun parse-var-value (string type)
   (case type
@@ -433,8 +434,8 @@
 						 ((eq k :posted-content)
                                                   (when (hunchentoot:raw-post-data :external-format :utf8)
                                                     (hunchentoot:raw-post-data :external-format :utf8)))
-						 ((position k ',vars)
-						  (let ((pos (position k ',(reverse vars))))
+						 ((position k ',vars :key #'car)
+						  (let ((pos (position k ',(reverse vars) :key #'car)))
                                                     (subseq 
 						     (hunchentoot:script-name request)
 						     (aref starts pos)
