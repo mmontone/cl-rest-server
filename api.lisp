@@ -1,6 +1,6 @@
 (in-package :rest-server)
 
-(defparameter *apis* nil)
+(defparameter *apis* (make-hash-table :test #'equalp))
 (defparameter *api* nil "The current api")
 
 (defun request-uri-prefix (request-uri)
@@ -25,6 +25,9 @@
   (cl-ppcre:scan 
    (list :sequence :start-anchor uri-prefix)
    request-uri))
+
+(defun url-pattern (api-function)
+  (gen-regexp (uri-prefix api-function)))
 
 (defclass api-acceptor (hunchentoot:acceptor)
   ((api :initarg :api
@@ -54,13 +57,13 @@
 
 (defclass api-definition ()
   ((name :accessor name :initarg :name)
-   (functions :accessor functions :initarg :functions :initform nil)
+   (functions :accessor functions :initarg :functions :initform (make-hash-table :test #'equalp))
    (options :accessor options :initarg :options :initform nil)
    (documentation :accessor api-documentation :initarg :documentation :initform nil)))
 
 (defun start-api (api address port &optional (api-implementation-package *package*))
   (hunchentoot:start
-   (make-instance 'hunchentoot:api-acceptor
+   (make-instance 'api-acceptor
                   :address address
 		  :port port
                   :api api
@@ -105,7 +108,7 @@
 
   ;; Install the api function
   (let ((api (or *api* (error "Specify the api"))))
-    (setf (gethash api (name api-function))
+    (setf (gethash (name api-function) (functions api))
           api-function)))
 
 ;; (defmethod initialize-instance :after ((api-function api-function) &rest args)
@@ -134,10 +137,10 @@
 	  args)))
 
 (defmacro with-api (api &body body)
-  `(call-with-api ,api (lambda () ,@body)))
+  `(call-with-api ',api (lambda () ,@body)))
 
 (defun call-with-api (api function)
-  (let ((*api* api))
+  (let ((*api* (if (symbolp api) (find-api api)  api)))
     (funcall function)))
 
 (defmacro define-api-function (api name method options args)
@@ -168,10 +171,13 @@
 		     (cddr plist))))))
     (do-replace url plist)))
 
-
 (defmethod print-object ((api-definition api-definition) stream)
   (print-unreadable-object (api-definition stream :type t :identity t)
     (format stream "~A" (name api-definition))))
+
+(defmethod initialize-instance :after ((api-definition api-definition) &rest initargs)
+  (declare (ignore initargs))
+  (setf (gethash (name api-definition) *apis*) api-definition))
 
 (defun parse-parameter (string)
   (cl-ppcre:register-groups-bind (query-param var)
@@ -182,6 +188,19 @@
   (assert (char= (char string 0) #\?))
   (mapcar #'parse-parameter
 	  (cl-ppcre:split "&" (subseq string 1))))
+
+(defun parse-api-url (request-string)
+  (multiple-value-bind (scanner vars)
+	(gen-regexp
+	 (if (find #\? request-string)
+	     (subseq request-string 0 (position #\? request-string))
+	     request-string))
+    (let ((parameters 
+	   (when (find #\? request-string)
+	     (parse-parameters 
+	      (subseq request-string (position #\? request-string))
+	      ))))
+      (values scanner vars parameters))))
 
 (defun gen-regexp (string)
   (let* ((vars nil)
@@ -208,7 +227,7 @@
 			   ((string= x "{")
 			    (error "Parse error"))
 			   (t 
-			    (push (intern (string-upcase x) :keyword)
+			    (push (parse-api-function-var x)
 				  vars)
 			    `(:register (:NON-GREEDY-REPETITION 1 nil (:INVERTED-CHAR-CLASS #\/)))))))))
 	    :END-ANCHOR)
@@ -216,18 +235,28 @@
     (values scanner 
 	    vars)))
 
-(defun parse-api-url (request-string)
-  (multiple-value-bind (scanner vars)
-	(gen-regexp
-	 (if (find #\? request-string)
-	     (subseq request-string 0 (position #\? request-string))
-	     request-string))
-    (let ((parameters 
-	   (when (find #\? request-string)
-	     (parse-parameters 
-	      (subseq request-string (position #\? request-string))
-	      ))))
-      (values scanner vars parameters))))
+(defun parse-api-function-var (spec)
+  (destructuring-bind (var-name var-type &optional default-value)
+      (split-sequence:split-sequence #\ (string-trim (list #\ ) spec))
+    (let ((parsed-type (read-from-string (string-trim (list #\ ) var-type))))
+      (list (intern (string-upcase (string-trim (list #\ ) var-name)))
+            parsed-type
+            (and default-value
+                 (parse-var-value (string-trim (list #\ ) default-value)
+                                  parsed-type))
+          (and default-value t)))))
+
+(parse-api-function-var "x :boolean true")
+(parse-api-function-var "y :integer 222")
+
+(defun parse-var-value (string type)
+  (case type
+    (:boolean (cond
+                ((equalp string "NIL") nil)
+                ((equalp string "false") nil)
+                ((equalp string "true") t)
+                ((equalp string "t") t)))
+    (:integer (parse-integer string))))
 
 (defun backend-var (backend)
   (intern (format nil "*BACKEND-URL-~A*" backend) :rest-server))
@@ -425,14 +454,15 @@
     ,@body))
 
 (defun find-api (name)
-  (find name *apis* :key #'name))
+  (gethash name *apis*))
 
 (defmethod find-api-function ((api symbol) function-name)
   (find-api-function (find-api api) function-name))
 
 (defmethod find-api-function ((api api-definition) function-name)
-  (find function-name (functions api) :key #'name))
+  (gethash function-name (functions api)))
 
 (defun format-api-url (api function-name &rest args)
   (let ((api-function (find-api-function api function-name)))
     (replace-vars-in-url (url-pattern api-function) args)))
+
