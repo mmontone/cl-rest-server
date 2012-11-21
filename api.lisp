@@ -92,12 +92,50 @@
    (content-types :initarg :content-types
                   :accessor content-types
                   :initform :all)
+   (options :initarg :options
+            :accessor options
+            :initform nil)
    (documentation :accessor api-documentation
 		  :initarg :documentation))
   (:metaclass sb-mop:funcallable-standard-class))
 
 (defmethod validate ((api-function api-function))
   )
+
+(defun add-wrapping-function (api-function function)
+  )
+
+(defmethod configure-api-function ((api-function api-function))
+  (loop for option in (options api-function)
+       do
+       (configure-api-function-option (car option) option api-function)))
+
+(defmethod configure-api-function-option ((option (eql :logging)) option-value api-function)
+  (add-wrapping-function api-function
+                         (lambda (next-function)
+                           (if (cadr option-value)
+                               (progn
+                                 (log5:log-for (rest-server) "API: Handling ~A ~A by ~A"
+                                               (hunchentoot:request-method*)
+                                               (hunchentoot:request-uri*) (name api-function))
+                                 (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
+                                                         (hunchentoot:raw-post-data :external-format :utf8))))
+                                   (when posted-content (log5:log-for (rest-server) "Posted content: ~A" posted-content)))
+                                 (let ((result (funcall next-function)))
+                                   (log5:log-for (rest-server) "Response: ~A" result)
+                                   result))
+                               ;; else
+                               (funcall next-function)))))
+
+(defun authenticate-key (token)
+  )
+  
+(defmethod configure-api-function-option ((option (eql :authenticate)) option-value api-function)
+  (add-wrapping-function api-function
+                         (lambda (next-function)
+                           (when (not (authenticate-key (getf hunchentoot:*request* :token)))
+                             (error "Authentication error"))
+                           (funcall next-function))))
 
 (defmethod initialize-instance :after ((api-function api-function) &rest initargs)
   (declare (ignore initargs))
@@ -108,8 +146,10 @@
     (declare (ignore scanner))
     (setf (required-arguments api-function) vars))
   
-  ;; Validate first
+  ;; Validate the function
   (validate api-function)
+
+  (configure-api-function api-function)
 
   ;; Install the api function
   (let ((api (or *api* (error "Specify the api"))))
