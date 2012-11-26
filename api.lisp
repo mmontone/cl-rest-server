@@ -106,9 +106,13 @@
   )
 
 (defmethod configure-api-function ((api-function api-function))
-  (loop for option in (options api-function)
+  (let ((options (alexandria:plist-alist (options api-function))))
+    (loop for option in options
        do
-       (configure-api-function-option (car option) option api-function)))
+         (configure-api-function-option (car option) option api-function))))
+
+(defmethod configure-api-function-option (option option-value api-function)
+  )
 
 (defmethod configure-api-function-option ((option (eql :logging)) option-value api-function)
   (add-wrapping-function api-function
@@ -137,6 +141,8 @@
                              (error "Authentication error"))
                            (funcall next-function))))
 
+(defvar *register-api-function* t)
+
 (defmethod initialize-instance :after ((api-function api-function) &rest initargs)
   (declare (ignore initargs))
 
@@ -152,9 +158,10 @@
   (configure-api-function api-function)
 
   ;; Install the api function
-  (let ((api (or *api* (error "Specify the api"))))
-    (setf (gethash (name api-function) (functions api))
-          api-function)))
+  (when *register-api-function*
+    (let ((api (or *api* (error "Specify the api"))))
+      (setf (gethash (name api-function) (functions api))
+            api-function))))
 
 ;; (defmethod initialize-instance :after ((api-function api-function) &rest args)
 ;;   (sb-mop:set-funcallable-instance-function
@@ -170,16 +177,37 @@
 	    (name api-function)
 	    (request-method api-function))))
 
+(defun parse-api-function-arguments (arguments-spec)
+  (loop with required-arguments = '()
+     with optional-arguments ='()
+     with optional = nil
+     for argument in arguments-spec
+     do
+     (if (equalp argument '&optional)
+         (setf optional t)
+         ;; else
+         (if optional
+             (push argument optional-arguments)
+             (push argument required-arguments)))
+     finally (return (values (reverse required-arguments)
+                             (reverse optional-arguments)))))
+
 (defun make-api-function (name method options args)
-  (apply #'make-instance
-	 'api-function
-	 (append
-	  (list
-	   :name name
-	   :request-method method
-	   :url-pattern url-pattern
-	   :documentation documentation)
-	  args)))
+  (multiple-value-bind (required-arguments optional-arguments)
+      (parse-api-function-arguments args)
+    (apply #'make-instance
+           'api-function
+           (list
+            :name name
+            :request-method method
+            :documentation (getf options :documentation)
+            :options options
+            :required-arguments (append (multiple-value-bind (scanner vars)
+                                            (parse-uri-prefix (getf options :uri-prefix))
+                                          (declare (ignore scanner))
+                                          vars)
+                                        required-arguments)
+            :optional-arguments optional-arguments))))
 
 (defmacro with-api (api &body body)
   `(call-with-api ',api (lambda () ,@body)))
@@ -188,15 +216,14 @@
   (let ((*api* (if (symbolp api) (find-api api)  api)))
     (funcall function)))
 
-(defmacro define-api-function (api name method options args)
-  `(with-api ,api
-     (make-api-function ,name ,method ,options ,args)))
+(defmacro define-api-function (name method options args)
+  `(make-api-function ',name ',method ',options ',args))
 
 (defun parse-api-method-definition (method-spec)
   (destructuring-bind (name options args) method-spec
-    (make-api-function name (getf options :method)
-                       options
-                       args)))
+    `(define-api-function ,name ,(getf options :method)
+                       ,options
+                       ,args)))
 
 (defun replace-vars-in-url (url plist)
   (labels ((do-replace (url plist)
@@ -220,9 +247,12 @@
   (print-unreadable-object (api-definition stream :type t :identity t)
     (format stream "~A" (name api-definition))))
 
+(defun register-api-definition (api-definition)
+  (setf (gethash (name api-definition) *apis*) api-definition))
+
 (defmethod initialize-instance :after ((api-definition api-definition) &rest initargs)
   (declare (ignore initargs))
-  (setf (gethash (name api-definition) *apis*) api-definition))
+  (register-api-definition api-definition))
 
 (defun parse-parameter (string)
   (cl-ppcre:register-groups-bind (query-param var)
@@ -305,20 +335,25 @@
 (defmacro with-backend (backend url &body body)
   `(let ((,(backend-var backend) ,url)) ,@body))
   
-(defmacro define-api (name &body methods)
+(defmacro define-api (name options &body functions)
   `(progn
-     ,@(loop for x in methods
-	 for fdef = (apply #'parse-api-method-definition x)
-	  collect (client-stub name fdef))
-     (pushnew
-      (make-instance 
-       'api-definition 
-       :name ,name
-       :functions
-       (loop for x in ',methods
-	  collect (apply #'parse-api-method-definition x)))
-      *apis*
-      :key #'name)))
+     (make-instance 
+      'api-definition 
+      :name ,name
+      :options ',options)
+     (with-api ,name
+      ,@(loop for x in functions
+         collect (parse-api-method-definition x)))
+     ,@(let ((*register-api-function* nil))
+            (loop for x in functions
+               collect (client-stub
+                        name
+                        (destructuring-bind (name options args) x
+                          (make-api-function
+                           name
+                           (getf options :method)
+                           options
+                           args)))))))
 
 (defvar *rest-server-proxy* nil)
 
@@ -327,7 +362,7 @@
         (response (gensym "RESPONSE-")))
     (multiple-value-bind 
           (scanner vars params)      
-        (parse-api-url (url-pattern api-function))
+        (parse-api-url (uri-prefix api-function))
       (declare (ignore scanner))
       `(progn
          (defvar ,(backend-var api-name) nil)

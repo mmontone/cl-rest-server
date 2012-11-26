@@ -29,26 +29,34 @@
 (in-package :api-test)
 
 (define-api api-test
-  (:content-types (list :json :xml))
+  (:version 1
+   :uri-prefix "v1/"
+     :documentation "This is an api test"
+     :content-types (list :json :xml))
   (get-users (:method :get
-               :content-types (list :json)
-               :uri-prefix "users")       
+              :content-types (list :json)
+              :uri-prefix "users/{id :integer}"
+              :documentation "Retrive the users list")       
              (&optional (expand-groups :boolean nil)))
   (get-user (:method :get
-              :content-types (list :json)
-              :uri-prefix "users/{id}")
+             :content-types (list :json)
+             :uri-prefix "users/{id :integer}"
+             :documentation "Retrive an user")
             ((id :string) &optional (expand-groups :boolean nil)))
   (create-user (:method :post
-                 :content-types (list :json)
-                 :uri-prefix "users")
+                :content-types (list :json)
+                :uri-prefix "users"
+                :documentation "Create a user")
                ())
   (update-user (:method :put
                  :content-types (list :json)
-                 :uri-prefix "users/{id}")
+                 :uri-prefix "users/{id :integer}"
+                 :documentation "Update a user")
                ((id :string)))
   (delete-user (:method :delete
                  :content-types (list :json)
-                 :uri-prefix "users/{id}")
+                 :uri-prefix "users/{id :integer}"
+                 :documentation "Delete a user")
                ((id :string))))
 
 (defpackage :api-test-implementation
