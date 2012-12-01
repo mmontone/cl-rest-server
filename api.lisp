@@ -147,10 +147,12 @@
   (declare (ignore initargs))
 
   ;; Parse the uri to obtain the required parameters
-  (multiple-value-bind (scanner vars)
-      (parse-api-url (uri-prefix api-function))
-    (declare (ignore scanner))
-    (setf (required-arguments api-function) vars))
+  (let ((args-in-uri (multiple-value-bind (scanner vars)
+                         (parse-uri-prefix (uri-prefix api-function))
+                       (declare (ignore scanner))
+                       vars)))
+    (setf (required-arguments api-function)
+          (append args-in-uri (required-arguments api-function))))
   
   ;; Validate the function
   (validate api-function)
@@ -195,19 +197,14 @@
 (defun make-api-function (name method options args)
   (multiple-value-bind (required-arguments optional-arguments)
       (parse-api-function-arguments args)
-    (apply #'make-instance
-           'api-function
-           (list
-            :name name
-            :request-method method
-            :documentation (getf options :documentation)
-            :options options
-            :required-arguments (append (multiple-value-bind (scanner vars)
-                                            (parse-uri-prefix (getf options :uri-prefix))
-                                          (declare (ignore scanner))
-                                          vars)
-                                        required-arguments)
-            :optional-arguments optional-arguments))))
+    (make-instance 'api-function
+                   :name name
+                   :request-method method
+                   :uri-prefix (getf options :uri-prefix)
+                   :documentation (getf options :documentation)
+                   :options options
+                   :required-arguments required-arguments
+                   :optional-arguments optional-arguments)))
 
 (defmacro with-api (api &body body)
   `(call-with-api ',api (lambda () ,@body)))
@@ -234,6 +231,7 @@
 			(pattern `(:sequence 
 				   "{" 
 				   ,(string-downcase (symbol-name var))
+                                   (:greedy-repetition 0 nil (:inverted-char-class #\{ #\}))
 				   "}")))
 		   (do-replace 
 		       (cl-ppcre:regex-replace 
@@ -310,12 +308,11 @@
   (destructuring-bind (var-name var-type &optional default-value)
       (split-sequence:split-sequence #\ (string-trim (list #\ ) spec))
     (let ((parsed-type (read-from-string (string-trim (list #\ ) var-type))))
-      (list (intern (string-upcase (string-trim (list #\ ) var-name)))
-            parsed-type
-            (and default-value
-                 (parse-var-value (string-trim (list #\ ) default-value)
-                                  parsed-type))
-          (and default-value t)))))
+      `(,(intern (string-upcase (string-trim (list #\ ) var-name)))
+         ,parsed-type
+         ,@(when default-value
+                 (list (parse-var-value (string-trim (list #\ ) default-value)
+                                        parsed-type)))))))
 
 ;; (parse-api-function-var "x :boolean true")
 ;; (parse-api-function-var "y :integer 222")
@@ -327,7 +324,9 @@
                 ((equalp string "false") nil)
                 ((equalp string "true") t)
                 ((equalp string "t") t)))
-    (:integer (parse-integer string))))
+    (:integer (parse-integer string))
+    (:string (string-trim (list #\") string))
+    (t string)))
 
 (defun backend-var (backend)
   (intern (format nil "*BACKEND-URL-~A*" backend) :rest-server))
@@ -339,7 +338,7 @@
   `(progn
      (make-instance 
       'api-definition 
-      :name ,name
+      :name ',name
       :options ',options)
      (with-api ,name
       ,@(loop for x in functions
@@ -360,8 +359,7 @@
 (defun client-stub (api-name api-function)
   (let ((request-url (gensym "REQUEST-URL-"))
         (response (gensym "RESPONSE-")))
-    (multiple-value-bind 
-          (scanner vars params)      
+    (multiple-value-bind (scanner vars params)      
         (parse-api-url (uri-prefix api-function))
       (declare (ignore scanner))
       `(progn
@@ -372,7 +370,7 @@
                 (if (member (request-method api-function) '(:post :put))
                     (list 'posted-content)
                     nil)
-                (loop for x in vars collect (intern (symbol-name x)))
+                (loop for x in vars collect (intern (symbol-name (car x))))
                 (if params
                     (cons '&key (loop for x in params collect (intern (symbol-name (car x))))))))
            ,(api-documentation api-function)
@@ -384,8 +382,8 @@
                                         ,(url-pattern-noparams api-function)
                                         (list
                                          ,@(loop for x in vars 
-                                              collect x
-                                              collect (intern (symbol-name x))))))))
+                                              collect (make-keyword (car x))
+                                              collect (intern (symbol-name (car x)))))))))
              (log5:log-for (rest-server)  "Request: ~A ~A" ,(request-method api-function) ,request-url)
              ,(when (member (request-method api-function) 
                             '(:post :put))
@@ -417,7 +415,7 @@
 
 (defgeneric url-pattern-noparams (api-function))
 (defmethod url-pattern-noparams ((api-function api-function))
-  (let* ((pattern (url-pattern api-function))
+  (let* ((pattern (uri-prefix api-function))
 	(pos (position #\? pattern)))
     (if pos
 	(subseq pattern 0 pos)
@@ -450,7 +448,7 @@
 		(format str "API methods:~%~%")
 		(loop for x in (functions api)
 		   do (format str "~A~%  ~A~%~%" 
-			      (url-pattern x)
+			      (uri-prefix x)
 			      (api-documentation x))))
 	      )))
 	hunchentoot:*dispatch-table*)
@@ -541,4 +539,3 @@
 (defun format-api-url (api function-name &rest args)
   (let ((api-function (find-api-function api function-name)))
     (replace-vars-in-url (url-pattern api-function) args)))
-
