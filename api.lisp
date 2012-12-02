@@ -40,22 +40,49 @@
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
   (loop for api-function being the hash-value of (functions (api acceptor))
      when (api-function-matches-request-p (api acceptor) api-function request)
-     return (prin1-to-string (execute-api-function-implementation (api acceptor)
-                                                                          api-function
-                                                                          (find-api-function-implementation (name api-function) acceptor)
-                                                                          request))
+     return (prin1-to-string 
+	     (execute-api-function-implementation 
+	      api-function
+              (find-api-function-implementation (name api-function) acceptor)
+	      request))
      finally (call-next-method)))
 
 (defun find-api-function-implementation (name acceptor)
   (or (ignore-errors (symbol-function (intern (symbol-name name) (api-implementation-package acceptor))))
       (error "Api function ~A not implemented in package ~A" name (api-implementation-package acceptor))))
 
-(defun execute-api-function-implementation (api api-function function-implementation request)
-  (let ((args (extract-function-arguments api api-function request)))
+(defun execute-api-function-implementation (api-function function-implementation request)
+  (let ((args (extract-function-arguments api-function request)))
     (apply function-implementation args)))
 
-(defun extract-function-arguments (api api-function request)
-  )
+(defun find-optional-argument (name api-function)
+  (or
+   (find name (optional-arguments api-function)
+	 :key (alexandria:compose #'make-keyword #'first))
+   (error "Optional argument ~A not found in ~A ~A" 
+	  name 
+	  api-function 
+	  (optional-arguments api-function))))
+
+(defun extract-function-arguments (api-function request)
+  (multiple-value-bind (scanner vars)
+    (parse-uri-prefix (uri-prefix api-function))
+    (multiple-value-bind (replaced-uri args) 
+	(ppcre:scan-to-strings scanner (hunchentoot:request-uri request))
+      (declare (ignore replaced-uri))
+      (let ((required-args
+	     (loop 
+		for var in vars
+		for arg across args
+		collect (parse-var-value var (cadr arg))))
+	    (optional-args
+	     (loop 
+		for (var . string) in (request-uri-parameters (hunchentoot:request-uri request))
+		for arg = (find-optional-argument (make-keyword var) api-function)
+		appending 
+		  (list (make-keyword (symbol-name (first arg)))
+                        (parse-var-value string (second arg))))))
+	(append required-args optional-args)))))
 
 (defclass api-definition ()
   ((name :accessor name :initarg :name)
@@ -148,19 +175,40 @@
 
 (defvar *register-api-function* t)
 
+(defmethod validate ((api-function api-function))
+  ; Ensure uri parameters have been declared
+  (let ((args-in-uri (multiple-value-bind (scanner vars)
+                         (parse-uri-prefix (uri-prefix api-function))
+                       (declare (ignore scanner))
+                       vars)))
+    (loop for arg in args-in-uri
+	 do
+	 (assert (member arg (mapcar #'first (required-arguments api-function)))
+		 nil
+		 "Argument ~a not declared in ~a" arg api-function))))
+
 (defmethod initialize-instance :after ((api-function api-function) &rest initargs)
   (declare (ignore initargs))
 
   ;; Parse the uri to obtain the required parameters
-  (let ((args-in-uri (multiple-value-bind (scanner vars)
+  #+nil(let ((args-in-uri (multiple-value-bind (scanner vars)
                          (parse-uri-prefix (uri-prefix api-function))
                        (declare (ignore scanner))
                        vars)))
     (setf (required-arguments api-function)
           (append args-in-uri (required-arguments api-function))))
+
+  ;; Parse the optional parameters
+  #+nil(setf (optional-arguments api-function)
+	(mapcar (lambda (arg)
+		  (setf (first arg)
+			(make-keyword (symbol-name (first arg))))
+		  arg)
+		(alexandria:copy-sequence '(or cons null)
+					  (optional-arguments api-function))))
   
   ;; Validate the function
-  (validate api-function)
+  ;(validate api-function)
 
   (configure-api-function api-function)
 
@@ -279,12 +327,9 @@
 
 (defun parse-uri-prefix (string)
   (let* ((vars nil)
-	 (scanner
-	  `(:sequence
-	     :START-ANCHOR
-	    ,@(remove 
+	 (uri-prefix-regex (remove 
 	       nil
-	       (loop for x in (cl-ppcre:split '(:register (:CHAR-CLASS #\{ #\})) string :with-registers-p t)
+	       (loop for x in (cl-ppcre:split '(:register (:char-class #\{ #\})) string :with-registers-p t)
 		  with status = :norm
 		  collect 
 		  (case status
@@ -302,25 +347,22 @@
 			   ((string= x "{")
 			    (error "Parse error"))
 			   (t 
-			    (push (parse-api-function-var x)
+			    (push (make-symbol (string-upcase x))
 				  vars)
-			    `(:register (:NON-GREEDY-REPETITION 1 nil (:INVERTED-CHAR-CLASS #\/)))))))))
-	    :END-ANCHOR)))
+			    `(:register (:non-greedy-repetition 1 nil (:inverted-char-class #\/))))))))))
+	 (scanner
+	  `(:sequence
+	    :start-anchor
+	    (:alternation
+	     (:sequence
+	      ,@uri-prefix-regex)
+	     (:sequence
+	      ,@uri-prefix-regex
+	      #\?
+	      (:non-greedy-repetition 0 nil :everything)))
+	    :end-anchor)))
     (values scanner 
 	    vars)))
-
-(defun parse-api-function-var (spec)
-  (destructuring-bind (var-name var-type &optional default-value)
-      (split-sequence:split-sequence #\ (string-trim (list #\ ) spec))
-    (let ((parsed-type (read-from-string (string-trim (list #\ ) var-type))))
-      `(,(intern (string-upcase (string-trim (list #\ ) var-name)))
-         ,parsed-type
-         ,@(when default-value
-                 (list (parse-var-value (string-trim (list #\ ) default-value)
-                                        parsed-type)))))))
-
-;; (parse-api-function-var "x :boolean true")
-;; (parse-api-function-var "y :integer 222")
 
 (defun parse-var-value (string type)
   (case type
@@ -364,21 +406,22 @@
 (defun client-stub (api-name api-function)
   (let ((request-url (gensym "REQUEST-URL-"))
         (response (gensym "RESPONSE-")))
-    (multiple-value-bind (scanner vars params)      
-        (parse-api-url (uri-prefix api-function))
-      (declare (ignore scanner))
+    (let ((required-args (required-arguments api-function))
+	  (optional-args (optional-arguments api-function)))
       `(progn
          (defvar ,(backend-var api-name) nil)
          (defun ,(name api-function)
-             ,(progn
-               (append
+             ,(append
                 (if (member (request-method api-function) '(:post :put))
                     (list 'posted-content)
                     nil)
-                (loop for x in vars collect (intern (symbol-name (car x))))
-                (if params
-                    (cons '&key (loop for x in params collect (intern (symbol-name (car x))))))))
-           ,(api-documentation api-function)
+                (loop for x in required-args collect 
+		     (intern (symbol-name (car x))))
+                (if optional-args
+                    (cons '&key (loop for x in optional-args collect 
+				     (list (intern (symbol-name (first x))) 
+					   (third x))))))
+	   ,(api-documentation api-function)
            (log5:log-for (rest-server) "Client stub: ~A" ',(name api-function))
            (assert ,(backend-var api-name) nil "Error: this is an API function. No api backend selected. Wrap this function call with with-backend")
            (let ((,request-url (format nil "~A~A" 
@@ -386,7 +429,7 @@
                                        (replace-vars-in-url 
                                         ,(url-pattern-noparams api-function)
                                         (list
-                                         ,@(loop for x in vars 
+                                         ,@(loop for x in required-args 
                                               collect (make-keyword (car x))
                                               collect (intern (symbol-name (car x)))))))))
              (log5:log-for (rest-server)  "Request: ~A ~A" ,(request-method api-function) ,request-url)
@@ -402,11 +445,11 @@
                                                      '(:post :put))
                                              `(sb-ext:string-to-octets posted-content))
                                :parameters (list 
-                                            ,@(loop for x in params
+                                            ,@(loop for x in optional-args
                                                  collect
                                                  (progn
                                                    `(cons 
-                                                     ,(cdr x)
+                                                     ,(make-keyword (symbol-name (car x)))
                                                      (format nil "~A" ,(intern (symbol-name 
                                                                                 (car x)))))))))))
                (log5:log-for (rest-server) "Response: ~A" (sb-ext:octets-to-string

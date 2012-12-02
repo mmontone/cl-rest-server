@@ -40,7 +40,7 @@
              (&optional (expand-groups :boolean nil)))
   (get-user (:method :get
              :content-types (list :json)
-             :uri-prefix "/users/{id :integer}"
+             :uri-prefix "/users/{id}"
              :documentation "Retrive an user")
             ((id :string) &optional (expand-groups :boolean nil)))
   (create-user (:method :post
@@ -50,12 +50,12 @@
                ())
   (update-user (:method :put
                  :content-types (list :json)
-                 :uri-prefix "/users/{id :integer}"
+                 :uri-prefix "/users/{id}"
                  :documentation "Update a user")
                ((id :string)))
   (delete-user (:method :delete
                  :content-types (list :json)
-                 :uri-prefix "/users/{id :integer}"
+                 :uri-prefix "/users/{id}"
                  :documentation "Delete a user")
                ((id :string))))
 
@@ -64,7 +64,7 @@
 
 (in-package :api-test-implementation)
 
-(defun get-users ()
+(defun get-users (&key (expand-groups nil))
   (list "user1" "user2" "user3"))
 
 (defun get-user (id)

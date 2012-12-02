@@ -37,6 +37,8 @@ OTHER DEALINGS IN THE SOFTWARE."
   :long-description "REST APIs servers in Common Lisp"
   :components
   ((:file "package")
-   (:file "rest-server"))
+   (:file "rest-server")
+   (:file "serialization")
+   (:file "api"))
   :serial t
   :depends-on (:hunchentoot :alexandria :log5 :cl-json :cxml :local-time :split-sequence :drakma))
