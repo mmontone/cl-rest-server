@@ -14,6 +14,11 @@
   (with-serializer :json
     (serialize *element*)))
 
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :json
+      (serialize *element*))))
+
 (cxml:with-xml-output (cxml:make-character-stream-sink t :indentation nil :omit-xml-declaration-p t)
   (with-serializer-output t
     (with-serializer :xml
@@ -67,8 +72,11 @@
 (defun get-users (&key (expand-groups nil))
   (list "user1" "user2" "user3" expand-groups))
 
-(defun get-user (id &key (expand-groups nil))
-  (format nil "user~a" id))
+(implement-api-function (get-user :serialization t)
+    (id &key (expand-groups nil))
+  (declare (ignore expand-groups))
+  (element "user"
+	   (attribute "id" id)))
 
 (defun create-user (posted-content)
   (format nil "Create user: ~A" posted-content))

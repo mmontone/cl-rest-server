@@ -40,11 +40,12 @@
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
   (loop for api-function being the hash-value of (functions (api acceptor))
      when (api-function-matches-request-p (api acceptor) api-function request)
-     return (prin1-to-string 
-	     (execute-api-function-implementation 
-	      api-function
-              (find-api-function-implementation (name api-function) acceptor)
-	      request))
+     return (let ((result 
+		   (execute-api-function-implementation 
+		    api-function
+		    (find-api-function-implementation (name api-function) acceptor)
+		    request)))
+	      (if (stringp result) result (prin1-to-string result)))
      finally (call-next-method)))
 
 (defun find-api-function-implementation (name acceptor)
@@ -501,3 +502,24 @@
 (defun format-api-url (api function-name &rest args)
   (let ((api-function (find-api-function api function-name)))
     (replace-vars-in-url (url-pattern api-function) args)))
+
+(defmacro implement-api-function (name-and-options args &body body)
+  (multiple-value-bind (name options)
+      (if (listp name-and-options)
+	  (values (first name-and-options)
+		  (alexandria:plist-alist (rest name-and-options)))
+	  (values name-and-options nil))
+    (let ((parsed-lambda-list (multiple-value-list (sb-int:parse-lambda-list args))))
+      `(defgeneric ,name (,@(first parsed-lambda-list) &key ,@(mapcar #'first (nth 5 parsed-lambda-list)))
+	 (:method-combination method-combination-utilities:lax)
+	 (:method ,args
+	   ,@body)
+	 ,@(loop for (option . val) in options
+	      collect (%expand-api-function-wrapping option val name args))))))
+
+(defun %expand-api-function-wrapping (option value name args)
+  (declare (ignore name))
+  (let ((wrapper (expand-api-function-wrapping option value args)))
+    (when wrapper
+      `(:method :around ,option ,args
+		,wrapper))))

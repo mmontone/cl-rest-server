@@ -42,4 +42,12 @@ OTHER DEALINGS IN THE SOFTWARE."
    (:file "api")
    (:file "test"))
   :serial t
-  :depends-on (:hunchentoot :alexandria :log5 :cl-json :cxml :local-time :split-sequence :drakma))
+  :depends-on (:hunchentoot 
+	       :alexandria 
+	       :log5 
+	       :cl-json 
+	       :cxml 
+	       :local-time 
+	       :split-sequence 
+	       :drakma
+	       :method-combination-utilities))

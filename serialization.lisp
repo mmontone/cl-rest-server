@@ -2,7 +2,7 @@
 
 (defvar *serializers* nil)
 (defvar *serializer* nil)
-(defvar *serializer-ouput* t)
+(defvar *serializer-output* t)
 
 ;; Serializer api
 
@@ -64,13 +64,13 @@
 
 ;; Serializer format plug
 
-(defmethod serialize ((element element) &optional (serializer *serializer*) (stream *serializer-ouput*))
+(defmethod serialize ((element element) &optional (serializer *serializer*) (stream *serializer-output*))
   (serialize-element serializer element stream))
 
-(defmethod serialize ((elements-list elements-list) &optional (serializer *serializer*) (stream *serializer-ouput*))
+(defmethod serialize ((elements-list elements-list) &optional (serializer *serializer*) (stream *serializer-output*))
   (serialize-elements-list serializer elements-list stream))
 
-(defmethod serialize ((attribute attribute) &optional (serializer *serializer*) (stream *serializer-ouput*))
+(defmethod serialize ((attribute attribute) &optional (serializer *serializer*) (stream *serializer-output*))
   (serialize-attribute serializer attribute stream))
 
 (defmethod serialize ((value t) &optional (serializer *serializer*) (stream *serializer-output*))
@@ -140,3 +140,12 @@
 
 (defmethod serialize-value ((serializer (eql :sexp)) value stream)
   (format stream "~A" value))
+
+(defmethod expand-api-function-wrapping ((option (eql :serialization)) enabled args)
+  (declare (ignore args))
+  (when enabled
+    (let ((default-serializer :json))
+      `(with-output-to-string (s)
+	 (with-serializer-output s
+	   (with-serializer ,default-serializer
+	     (serialize (call-next-method))))))))
