@@ -65,10 +65,10 @@
 (in-package :api-test-implementation)
 
 (defun get-users (&key (expand-groups nil))
-  (list "user1" "user2" "user3"))
+  (list "user1" "user2" "user3" expand-groups))
 
-(defun get-user (id)
-  "user1")
+(defun get-user (id &key (expand-groups nil))
+  (format nil "user~a" id))
 
 (defun create-user (posted-content)
   (break "Create user: ~A" posted-content))
