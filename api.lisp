@@ -367,11 +367,15 @@
 (defun parse-var-value (string type)
   (case type
     (:boolean (cond
-                ((equalp string "NIL") nil)
+                ((equalp string "nil") nil)
                 ((equalp string "false") nil)
                 ((equalp string "true") t)
-                ((equalp string "t") t)))
-    (:integer (parse-integer string))
+		((equalp string "yes") t)
+		((equalp string "no") nil)
+                ((equalp string "t") t)
+		(t (error "Cannot parse ~s as boolean" string))))
+    (:integer (or (parse-integer string :junk-allowed t)
+		  (error "Cannot parse ~s as integer" string))) 
     (:string (string-trim (list #\") string))
     (t string)))
 
