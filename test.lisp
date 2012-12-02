@@ -71,10 +71,10 @@
   (format nil "user~a" id))
 
 (defun create-user (posted-content)
-  (break "Create user: ~A" posted-content))
+  (format nil "Create user: ~A" posted-content))
 
-(defun update-user (id posted-content)
-  (break "Update user: ~A ~A" id posted-content))
+(defun update-user (posted-content id)
+  (format nil "Update user: ~A ~A" id posted-content))
 
 (defun delete-user (id)
-  (break "Delete user: ~A" id))
+  (format nil "Delete user: ~A" id))

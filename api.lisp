@@ -53,7 +53,13 @@
 
 (defun execute-api-function-implementation (api-function function-implementation request)
   (let ((args (extract-function-arguments api-function request)))
-    (apply function-implementation args)))
+    (apply function-implementation (append 
+				    (when (member (request-method api-function) (list :put :post))
+				      (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
+							      (hunchentoot:raw-post-data :external-format :utf8))))
+					(log5:log-for (rest-server) "Posted content: ~A" posted-content)
+					(list posted-content)))
+				      args))))
 
 (defun find-optional-argument (name api-function)
   (or
@@ -473,103 +479,6 @@
     (if pos
 	(subseq pattern 0 pos)
 	pattern)))
-
-(defmacro implement-api (name uri-prefix &body methods)
-  (check-type name keyword)
-  (check-type uri-prefix string)
-  (labels ((api-def (fname)
-	     (let ((api (find name *apis* :key #'name)))
-	       (or (find fname (functions api)
-			 :key #'name)
-		   (error "Function ~A not found in ~A"
-			  fname name)))))
-    `(let ((api (find ,name *apis* :key #'name)))
-       (unless api
-	 (error "API ~A not found" ,name))
-       (push 
-	(lambda (request)
-	  (when			   
-	      (and (eql (hunchentoot:request-method request) 
-			:get)
-		   (cl-ppcre:scan 
-		    (list :sequence :start-anchor ,uri-prefix)
-		    (hunchentoot:script-name request)
-		    ))
-	    (lambda ()
-	      (setf (hunchentoot:content-type*) "text/plain")
-              (with-output-to-string (str)
-		(format str "API methods:~%~%")
-		(loop for x in (functions api)
-		   do (format str "~A~%  ~A~%~%" 
-			      (uri-prefix x)
-			      (api-documentation x))))
-	      )))
-	hunchentoot:*dispatch-table*)
-       (list
-	  ,@(loop for (name args . body) in methods
-	       collect 
-	       (multiple-value-bind (scanner vars parameters)
-		   (parse-api-url (format nil "~A~A" 
-					  uri-prefix 
-					  (url-pattern (api-def name))))
-		 ;(declare (ignore vars parameters))
-		 (let ((func (api-def name)))
-		   `(push 
-		       (lambda (request)
-			 (when			   
-			     (and (eql (hunchentoot:request-method request) 
-				       ,(request-method func))
-				  (cl-ppcre:scan 
-				   ',scanner 
-				   (hunchentoot:script-name request)))
-			   (lambda ()
-                             (log5:log-for (rest-server) "API: Handling ~A ~A by ~A"
-                                           (hunchentoot:request-method request)
-                                           (hunchentoot:request-uri request) ',(name func))
-                             (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
-                                                     (hunchentoot:raw-post-data :external-format :utf8))))
-                               (when posted-content (log5:log-for (rest-server) "Posted content: ~A" posted-content)))
-                             (multiple-value-bind 
-				     (start end starts ends)
-				   (cl-ppcre:scan 
-				      ',scanner 
-				      (hunchentoot:script-name request))
-				   (declare (ignore start end))
-				   (setf
-				    (hunchentoot:header-out 
-				     "Cache-Control")
-				    (if (and (hunchentoot:get-parameter "max-age")
-					     (eql (hunchentoot:request-method request) 
-						  :get))
-					(format nil "public, max-age=~A"
-						(hunchentoot:get-parameter "max-age"))
-					"public, max-age=0"))
-				   (apply
-				    (lambda (,@args)
-				      (let ((res
-					     (progn
-					       ,@body)))
-                                        (log5:log-for (rest-server) "Response: ~A" res)
-                                        ;(setf (hunchentoot:content-type*) "application/json")
-                                        (sb-ext:string-to-octets
-                                         res
-                                         :external-format :utf8)))
-				    (loop for x in ',args
-				       for k = (intern (symbol-name x) :keyword)
-				       collect (cond 
-						 ((eq k :posted-content)
-                                                  (when (hunchentoot:raw-post-data :external-format :utf8)
-                                                    (hunchentoot:raw-post-data :external-format :utf8)))
-						 ((position k ',vars :key #'car)
-						  (let ((pos (position k ',(reverse vars) :key #'car)))
-                                                    (subseq 
-						     (hunchentoot:script-name request)
-						     (aref starts pos)
-						     (aref ends pos))))
-						 (t (hunchentoot:get-parameter (cdr (assoc k ',parameters)) request)))))))))
-		       hunchentoot:*dispatch-table*
-		       )))))
-       )))
 
 (defmacro with-api-backend (&body body)
   `(rest-server::with-backend :bonanza2 
