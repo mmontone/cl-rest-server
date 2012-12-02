@@ -35,27 +35,27 @@
      :content-types (list :json :xml))
   (get-users (:method :get
               :content-types (list :json)
-              :uri-prefix "users/{id :integer}"
+              :uri-prefix "/users"
               :documentation "Retrive the users list")       
              (&optional (expand-groups :boolean nil)))
   (get-user (:method :get
              :content-types (list :json)
-             :uri-prefix "users/{id :integer}"
+             :uri-prefix "/users/{id :integer}"
              :documentation "Retrive an user")
             ((id :string) &optional (expand-groups :boolean nil)))
   (create-user (:method :post
                 :content-types (list :json)
-                :uri-prefix "users"
+                :uri-prefix "/users"
                 :documentation "Create a user")
                ())
   (update-user (:method :put
                  :content-types (list :json)
-                 :uri-prefix "users/{id :integer}"
+                 :uri-prefix "/users/{id :integer}"
                  :documentation "Update a user")
                ((id :string)))
   (delete-user (:method :delete
                  :content-types (list :json)
-                 :uri-prefix "users/{id :integer}"
+                 :uri-prefix "/users/{id :integer}"
                  :documentation "Delete a user")
                ((id :string))))
 

@@ -38,21 +38,24 @@
   (:documentation "Accepts api requests"))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
-  (loop for api-function in (functions (api acceptor))
-     when (api-function-matches-request-p request)
-       return (execute-api-function-implementation (api acceptor)
-                                                   api-function
-                                                   (find-api-function-implementation (name api-function) acceptor)
-                                                   request)
-       finally (call-next-method)))
+  (loop for api-function being the hash-value of (functions (api acceptor))
+     when (api-function-matches-request-p (api acceptor) api-function request)
+     return (prin1-to-string (execute-api-function-implementation (api acceptor)
+                                                                          api-function
+                                                                          (find-api-function-implementation (name api-function) acceptor)
+                                                                          request))
+     finally (call-next-method)))
 
 (defun find-api-function-implementation (name acceptor)
-  (or (ignore-errors (symbol-function (intern name (api-implementation-package acceptor))))
+  (or (ignore-errors (symbol-function (intern (symbol-name name) (api-implementation-package acceptor))))
       (error "Api function ~A not implemented in package ~A" name (api-implementation-package acceptor))))
 
 (defun execute-api-function-implementation (api api-function function-implementation request)
   (let ((args (extract-function-arguments api api-function request)))
     (apply function-implementation args)))
+
+(defun extract-function-arguments (api api-function request)
+  )
 
 (defclass api-definition ()
   ((name :accessor name :initarg :name)
@@ -65,13 +68,15 @@
    (make-instance 'api-acceptor
                   :address address
 		  :port port
-                  :api api
+                  :api (if (symbolp api)
+                           (find-api api)
+                           api)
                   :api-implementation-package api-implementation-package)))
 
 (defun api-function-matches-request-p (api api-function request)
-  (and (equalp (hunchentoot:request-uri*) (uri-prefix api-function))
-       (equalp (request-method api-function) (hunchentoot:request-method*))
-       (member (hunchentoot:content-type*) (content-types api-function))))  
+  (let ((scanner (parse-uri-prefix (uri-prefix api-function))))
+    (and (cl-ppcre:scan scanner (hunchentoot:request-uri request)) 
+         (equalp (request-method api-function) (hunchentoot:request-method request)))))
 
 (defclass api-function ()
   ((name :initarg :name
