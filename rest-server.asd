@@ -39,6 +39,7 @@ OTHER DEALINGS IN THE SOFTWARE."
   ((:file "package")
    (:file "rest-server")
    (:file "serialization")
-   (:file "api"))
+   (:file "api")
+   (:file "test"))
   :serial t
   :depends-on (:hunchentoot :alexandria :log5 :cl-json :cxml :local-time :split-sequence :drakma))
