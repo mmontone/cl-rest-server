@@ -82,7 +82,15 @@
     (id &key (expand-groups nil))
   (declare (ignore expand-groups))
   (element "user"
-	   (attribute "id" id)))
+	   (attribute "id" id)
+           (attribute "groups"
+                      (elements "groups"
+                                (element "group"
+                                         (attribute "id" 22)
+                                         (attribute "name" "Group 1"))
+                                (element "group"
+                                         (attribute "id" 33)
+                                         (attribute "name" "Group 2"))))))
 
 (defun create-user (posted-content)
   (format nil "Create user: ~A" posted-content))

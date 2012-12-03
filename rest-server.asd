@@ -50,4 +50,5 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :local-time 
 	       :split-sequence 
 	       :drakma
-	       :method-combination-utilities))
+	       :method-combination-utilities
+               :cl-who))

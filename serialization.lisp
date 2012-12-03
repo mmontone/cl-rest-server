@@ -147,6 +147,37 @@
 (defmethod serialize-value ((serializer (eql :sexp)) value stream)
   (format stream "~A" value))
 
+;; HTML serializer
+
+(defmethod serialize-element ((serializer (eql :html)) element stream)
+  (cl-who:with-html-output (html stream)
+    (:div :class "element"
+          (:h1 (cl-who:str (name element)))
+          (:div :class "attributes"
+                (mapcar (lambda (attribute)
+                          (cl-who:htm
+                           (serialize attribute serializer stream)))
+                  (attributes element))))))
+
+(defmethod serialize-elements-list ((serializer (eql :html)) elements-list stream)
+  (cl-who:with-html-output (html stream)
+    (:ol :class "elements"
+         (mapcar (lambda (element)
+                   (cl-who:htm
+                    (:li (serialize element serializer stream))))
+          (list-elements elements-list)))))
+
+(defmethod serialize-attribute ((serializer (eql :html)) attribute stream)
+  (cl-who:with-html-output (html stream)
+    (:div :class "attribute-name"
+          (cl-who:str (name attribute)))
+    (:div :class "attribute-value"
+          (cl-who:str (serialize (value attribute) serializer stream)))))
+
+(defmethod serialize-value ((serializer (eql :html)) value stream)
+  (cl-who:with-html-output (html stream)
+    (cl-who:fmt "~A" value)))
+
 (defvar *default-serializer* :json "The default api serializer")
 
 (defmethod expand-api-function-wrapping ((option (eql :serialization)) enabled args)
@@ -159,7 +190,7 @@
                                      ((member (hunchentoot:header-in* "accept") (list "text/xml" "application/xml")
                                               :test #'equalp)
                                       :xml)
-                                     ((equalp (hunchentoot:header-in "accept") "text/html") :html)))
+                                     ((equalp (hunchentoot:header-in* "accept") "text/html") :html)))
                               *default-serializer*)))
          (with-output-to-string (s)
            (with-serializer-output s
