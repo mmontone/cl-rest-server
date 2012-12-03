@@ -61,6 +61,12 @@
                  :name name
                  :elements elements))
 
+(defmethod serialize-toplevel ((serializer t) stream function)
+  (funcall function))
+
+(defmethod serialize-toplevel ((serializer (eql :xml)) stream function)
+  (cxml:with-xml-output (cxml:make-character-stream-sink stream :indentation nil :omit-xml-declaration-p t)
+    (funcall function)))
 
 ;; Serializer format plug
 
@@ -141,11 +147,23 @@
 (defmethod serialize-value ((serializer (eql :sexp)) value stream)
   (format stream "~A" value))
 
+(defvar *default-serializer* :json "The default api serializer")
+
 (defmethod expand-api-function-wrapping ((option (eql :serialization)) enabled args)
   (declare (ignore args))
   (when enabled
-    (let ((default-serializer :json))
-      `(with-output-to-string (s)
-	 (with-serializer-output s
-	   (with-serializer ,default-serializer
-	     (serialize (call-next-method))))))))
+    (let ((serializer (gensym "SERIALIZER-")))
+      `(let ((,serializer (or (and (hunchentoot:header-in* "accept")
+                                   (cond
+                                     ((equalp (hunchentoot:header-in* "accept") "application/json") :json)
+                                     ((member (hunchentoot:header-in* "accept") (list "text/xml" "application/xml")
+                                              :test #'equalp)
+                                      :xml)
+                                     ((equalp (hunchentoot:header-in "accept") "text/html") :html)))
+                              *default-serializer*)))
+         (with-output-to-string (s)
+           (with-serializer-output s
+             (with-serializer ,serializer
+               (serialize-toplevel ,serializer s
+                                   (lambda ()
+                                     (serialize (call-next-method)))))))))))

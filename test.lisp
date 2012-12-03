@@ -24,6 +24,12 @@
     (with-serializer :xml
       (serialize *element*))))
 
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :xml
+      (cxml:with-xml-output (cxml:make-character-stream-sink s :indentation nil :omit-xml-declaration-p t)
+        (serialize *element*)))))
+
 (with-serializer-output t
   (with-serializer :sexp
     (serialize *element*)))
