@@ -40,6 +40,7 @@ OTHER DEALINGS IN THE SOFTWARE."
    (:file "rest-server")
    (:file "serialization")
    (:file "api")
+   (:file "api-documentation")
    (:file "test"))
   :serial t
   :depends-on (:hunchentoot 
