@@ -96,7 +96,12 @@
 (defclass api-definition ()
   ((name :accessor name :initarg :name)
    (functions :accessor functions :initarg :functions :initform (make-hash-table :test #'equalp))
-   (options :accessor options :initarg :options :initform nil)
+   (content-types :initarg :content-types
+                  :initform nil
+                  :accessor content-types)
+   (version :initarg :version
+            :initform nil
+            :accessor version)
    (documentation :accessor api-documentation :initarg :documentation :initform nil)))
 
 (defun start-api (api address port &optional (api-implementation-package *package*))
@@ -312,6 +317,8 @@
 
 (defmethod initialize-instance :after ((api-definition api-definition) &rest initargs)
   (declare (ignore initargs))
+  
+  
   (register-api-definition api-definition))
 
 (defun parse-parameter (string)
@@ -398,7 +405,7 @@
      (make-instance 
       'api-definition 
       :name ',name
-      :options ',options)
+      ,@options)
      (with-api ,name
       ,@(loop for x in functions
          collect (parse-api-method-definition x)))

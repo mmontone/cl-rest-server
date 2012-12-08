@@ -30,7 +30,7 @@
   (loop for api-function being the hash-value of (functions (api acceptor))
      when (equalp (format nil "/~A" (name api-function)) (hunchentoot:request-uri*))
      return (with-documentation-toplevel (api acceptor)
-                (document-api-function acceptor api-function))
+              (document-api-function acceptor api-function))
      finally (return (api-toplevel-documentation acceptor))))
 
 (defun api-toplevel-documentation (acceptor)
@@ -42,30 +42,34 @@
       (:div :class "api-functions"
             (loop for api-function being the hash-value of (functions api)
                  do
-                 (cl-who:htm
-                  (:div :class "api-function"
-                        (:div :class "name"
-                              (:a :href (format nil "http://~A:~A/~A"
-                                                (hunchentoot:acceptor-address acceptor)
-                                                (hunchentoot:acceptor-port acceptor)
-                                                (name api-function))
-                                  (cl-who:str (name api-function))))
-                        (:div :class "method"
-                              (cl-who:str (request-method api-function)))
-                        (:div :class "documentation"
-                              (cl-who:str (api-documentation api-function))))))))))
+                 (document-api-function acceptor api-function))))))
       
 (defun document-api-function (acceptor api-function)
   (cl-who:with-html-output (*standard-output*)
     (cl-who:htm
-     (:div :class "api-function"
-           (:div :class "name"
-                 (:a :href (format nil "~A:~A/~A"
-                                   (hunchentoot:acceptor-address acceptor)
-                                   (hunchentoot:acceptor-port acceptor)
-                                   (name api-function))
-                     (cl-who:str (name api-function))))
-           (:div :class "method"
-                 (cl-who:str (request-method api-function)))
-           (:div :class "documentation"
-                 (cl-who:str (api-documentation api-function)))))))
+   (:div :class "api-function"
+         (:div :class "name"
+               (:a :href (format nil "http://~A:~A/~A"
+                                 (hunchentoot:acceptor-address acceptor)
+                                 (hunchentoot:acceptor-port acceptor)
+                                 (name api-function))
+                   (cl-who:str (name api-function))))
+         (:div :class "method"
+               (cl-who:str (request-method api-function)))
+         (:div :class "documentation"
+               (cl-who:str (api-documentation api-function)))
+         (:div :class "signature"
+               (cl-who:str (uri-prefix api-function)))
+         (:div :class "arguments"
+               (:ul
+                (loop for arg in (required-arguments api-function)
+                   do
+                   (cl-who:htm
+                    (:li (cl-who:fmt "~a : ~a. REQUIRED" (first arg) (second arg)))))
+                (loop for arg in (optional-arguments api-function)
+                   do
+                   (cl-who:htm
+                    (:li (cl-who:fmt "~a : ~a. DEFAULT: ~a"
+                                     (first arg)
+                                     (second arg)
+                                     (third arg)))))))))))

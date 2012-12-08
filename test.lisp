@@ -40,10 +40,8 @@
 (in-package :api-test)
 
 (define-api api-test
-  (:version 1
-   :uri-prefix "v1/"
-     :documentation "This is an api test"
-     :content-types (list :json :xml))
+  (:documentation "This is an api test"
+   :content-types (list :json :xml))
   (get-users (:method :get
               :content-types (list :json)
               :uri-prefix "/users"
