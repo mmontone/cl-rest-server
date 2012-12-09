@@ -65,11 +65,12 @@
                 (loop for arg in (required-arguments api-function)
                    do
                    (cl-who:htm
-                    (:li (cl-who:fmt "~a : ~a. REQUIRED" (first arg) (second arg)))))
+                    (:li (cl-who:fmt "~a : ~a. ~a." (first arg) (second arg) (third arg)))))
                 (loop for arg in (optional-arguments api-function)
                    do
                    (cl-who:htm
-                    (:li (cl-who:fmt "~a : ~a. DEFAULT: ~a"
+                    (:li (cl-who:fmt "~a : ~a. ~A. Default: ~a"
                                      (first arg)
                                      (second arg)
-                                     (third arg)))))))))))
+                                     (third arg)
+                                     (nth 3 arg)))))))))))
