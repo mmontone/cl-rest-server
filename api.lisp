@@ -2,6 +2,7 @@
 
 (defparameter *apis* (make-hash-table :test #'equalp))
 (defparameter *api* nil "The current api")
+(defvar *api-function-arguments-types* (list :boolean :integer :string))
 
 (defun request-uri-prefix (request-uri)
   (if (find #\? request-uri)
@@ -190,6 +191,34 @@
 (defvar *register-api-function* t)
 
 (defmethod validate ((api-function api-function))
+  ;; Check api-function arguments have the right format
+  (loop for arg in (required-arguments api-function)
+       do
+       (assert (and (listp arg)
+                    (symbolp (first arg))
+                    (keywordp (second arg))
+                    (member (second arg) *api-function-arguments-types*)
+                    (or (not (third arg))
+                        (stringp (third arg))))
+               nil
+               "The argument is not in the right format ~A.
+                Right format: (<name> <type> <documentation>)"
+               arg))
+
+    (loop for arg in (optional-arguments api-function)
+       do
+       (assert (and (listp arg)
+                    (symbolp (first arg))
+                    (keywordp (second arg))
+                    (member (second arg) *api-function-arguments-types*)
+                    ;(api-function-typep (third arg) (second arg))
+                    (or (not (nth 3 arg))
+                        (stringp (nth 3 arg))))
+               nil
+               "The argument is not in the right format ~A.
+                Right format: (<name> <type> <default-value> <documentation>)"
+               arg))
+  
   ; Ensure uri parameters have been declared
   (let ((args-in-uri (multiple-value-bind (scanner vars)
                          (parse-uri-prefix (uri-prefix api-function))
@@ -222,7 +251,7 @@
 					  (optional-arguments api-function))))
   
   ;; Validate the function
-  ;(validate api-function)
+  (validate api-function)
 
   (configure-api-function api-function)
 
