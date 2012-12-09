@@ -46,12 +46,13 @@
               :content-types (list :json)
               :uri-prefix "/users"
               :documentation "Retrive the users list")       
-             (&optional (expand-groups :boolean nil)))
+             (&optional (expand-groups :boolean nil "Expand groups if true")))
   (get-user (:method :get
              :content-types (list :json)
              :uri-prefix "/users/{id}"
              :documentation "Retrive an user")
-            ((id :string) &optional (expand-groups :boolean nil)))
+            ((id :string "The user id")
+             &optional (expand-groups :boolean nil "Expand groups if true")))
   (create-user (:method :post
                 :content-types (list :json)
                 :uri-prefix "/users"
@@ -61,12 +62,12 @@
                  :content-types (list :json)
                  :uri-prefix "/users/{id}"
                  :documentation "Update a user")
-               ((id :string)))
+               ((id :string "The user id")))
   (delete-user (:method :delete
                  :content-types (list :json)
                  :uri-prefix "/users/{id}"
                  :documentation "Delete a user")
-               ((id :string))))
+               ((id :string "The user id"))))
 
 (defpackage :api-test-implementation
   (:use :cl :rest-server))
