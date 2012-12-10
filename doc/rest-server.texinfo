@@ -1,0 +1,373 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename rest-server.info
+@settitle rest-server - A configuration library for Common Lisp
+
+@set VERSION 0.1
+@set DATE January 2011
+
+@c Version and Contact Info
+@set MAINTAINERSITE @uref{https://github.com/mmontone, maintainers webpage}
+@set AUTHOR Mariano Montone
+@set MAINTAINER Mariano Montone
+@set MAINTAINEREMAIL @email{marianomontone at gmail dot com}
+@set MAINTAINERCONTACT @uref{mailto:marianomontone at gmail dot com,contact the maintainer}
+@c %**end of header
+
+@ifinfo
+@format
+START-INFO-DIR-ENTRY
+* rest-server: (rest-server.info). A configuration library for Common Lisp.
+END-INFO-DIR-ENTRY
+@end format
+@end ifinfo
+
+@c Subheadings inside a table.
+@macro tsubheading{text}
+@ifinfo
+@subsubheading \text\
+@end ifinfo
+@ifnotinfo
+@item @b{\text\}
+@end ifnotinfo
+@end macro
+
+@copying
+
+This manual is for rest-server version @value{VERSION}.
+
+Copyright @copyright{} 2012 Mariano Montone
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License.''
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
+developing GNU and promoting software freedom.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
+@end quotation
+@end copying
+
+@titlepage
+@title rest-server
+@subtitle A library for providing REST APIs
+@subtitle Release @value{VERSION}
+@author by Mariano Montone
+
+@c Output the table of contents at the beginning.
+@contents
+
+@c The following two commands start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@ifnottex
+@node Top
+@top rest-server - A configuration library for Common Lisp
+
+This is rest-server Common Lisp library documentation
+
+@end ifnottex
+
+@menu
+* Introduction::                        What is rest-server?
+* Overview::                            A rest-server overview
+* Example::                             An api example
+* System reference::                    The system reference
+* References::                          Related work
+* Index::                               Complete index.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Introduction
+
+* Summary::                     A brief summary of what rest-server is
+* Installation::                How to install rest-server
+* Feedback::                    Bug reports, ideas, patches etc.
+* Conventions::                 Type-setting conventions in the manual
+
+Overview
+
+Example
+
+System References
+
+References
+
+Index
+
+@end detailmenu
+@end menu
+
+@node Introduction
+@chapter Introduction
+@cindex introduction
+
+rest-server is a Common Lisp library for implementing REST APIs providers
+
+@menu
+* Summary::                     A brief summary of what rest-server is
+* Installation::                How to install rest-server
+* Feedback::                    Bug reports, ideas, patches etc.
+* Conventions::                 Type-setting conventions in the manual
+@end menu
+
+@node Summary
+@section Summary
+@cindex summary
+
+rest-server is a Common Lisp library for implementing REST APIs providers
+
+@node Installation
+@section Installation
+@cindex installation
+
+@node Feedback
+@section Feedback
+@cindex feedback
+
+Mail marianomontone at gmail dot com with feedback
+
+@node Conventions
+@section Conventions
+@cindex conventions
+
+Hear are some coding conventions we'd like to follow:
+
+@itemize @bullet
+
+@item
+We @emph{do} believe in documentation. Document your dynamic variables, functions, macros and classes. Besides, provide a documentation from a wider perspective. Provide diagrams and arquitecture documentation; examples and tutorials, too.
+
+@item
+Use widely known Common Lisp coding guidelines: @url{http://web.archive.org/web/20050305123711/www.lisp.org/table/style.htm}
+
+@end itemize
+
+@node Overview
+@chapter Overview
+@cindex overview 
+
+REST-SERVER is a Common Lisp library for implementing REST APIs servers.
+
+Purpose of the library:
+
+* Method matching
+- Based on HTTP method (GET, PUT, POST, DELETE)
+- Based on Accept request header
+- URL parsing (argument types)
+- Matching based on "extension": i.e. /users.json or /users.xml, etc
+- Method combinations?
+
+* Serialization
+- Different serialization types (JSON, XML, S-expressions)
+
+* Materialization (unserialization)
+- Types
+
+* Error handling
+- Condition serialization
+- Error codes configuration
+
+* Validation
+- Types
+- Schemas (JSON, XML schemas)
+
+* Versioning
+Support for api versioning?
+
+* Logging
+
+* Cache handling
+
+* Extensible
+- Backends (JSON, XML, etc)
+- Types
+- Validation
+
+* Authentication
+- Different methods (token based, oauth)
+- Avoid changing the api interface spec because of this
+
+* Modes
+- Debugging mode -> outputs full error serialization/backtrace
+- Production -> 500 internal server error
+
+* Documentation
+- For the (lisp) developer
+- For the api consumer:
+https://github.com/mashery/iodocs
+http://swagger.wordnik.com/
+
+* Resources
+- Good source of ideas:
+http://django-rest-framework.org/
+http://www.restlet.org/
+
+@node Example
+@chapter Example
+
+@example
+
+(in-package :rest-server)
+
+(defparameter *element*
+  (element "user"
+           (attribute "id" 22)
+           (attribute "realname" "Mike")
+           (attribute "groups"
+                      (elements "groups"
+                                (element "group"
+                                         (attribute "id" 33)
+                                         (attribute "title" "My group"))))))
+
+(with-serializer-output t
+  (with-serializer :json
+    (serialize *element*)))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :json
+      (serialize *element*))))
+
+(cxml:with-xml-output (cxml:make-character-stream-sink t :indentation nil :omit-xml-declaration-p t)
+  (with-serializer-output t
+    (with-serializer :xml
+      (serialize *element*))))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :xml
+      (cxml:with-xml-output (cxml:make-character-stream-sink s :indentation nil :omit-xml-declaration-p t)
+        (serialize *element*)))))
+
+(with-serializer-output t
+  (with-serializer :sexp
+    (serialize *element*)))
+
+(defpackage :api-test
+  (:use :rest-server :cl))
+
+(in-package :api-test)
+
+(define-api api-test
+  (:documentation "This is an api test"
+   :content-types (list :json :xml))
+  (get-users (:method :get
+              :content-types (list :json)
+              :uri-prefix "/users"
+              :documentation "Retrive the users list")       
+             (&optional (expand-groups :boolean nil "Expand groups if true")))
+  (get-user (:method :get
+             :content-types (list :json)
+             :uri-prefix "/users/{id}"
+             :documentation "Retrive an user")
+            ((id :string "The user id")
+             &optional (expand-groups :boolean nil "Expand groups if true")))
+  (create-user (:method :post
+                :content-types (list :json)
+                :uri-prefix "/users"
+                :documentation "Create a user")
+               ())
+  (update-user (:method :put
+                 :content-types (list :json)
+                 :uri-prefix "/users/{id}"
+                 :documentation "Update a user")
+               ((id :string "The user id")))
+  (delete-user (:method :delete
+                 :content-types (list :json)
+                 :uri-prefix "/users/{id}"
+                 :documentation "Delete a user")
+               ((id :string "The user id"))))
+
+(defpackage :api-test-implementation
+  (:use :cl :rest-server))
+
+(in-package :api-test-implementation)
+
+(defun get-users (&key (expand-groups nil))
+  (list "user1" "user2" "user3" expand-groups))
+
+(implement-api-function (get-user :serialization t)
+    (id &key (expand-groups nil))
+  (declare (ignore expand-groups))
+  (element "user"
+	   (attribute "id" id)
+           (attribute "groups"
+                      (elements "groups"
+                                (element "group"
+                                         (attribute "id" 22)
+                                         (attribute "name" "Group 1"))
+                                (element "group"
+                                         (attribute "id" 33)
+                                         (attribute "name" "Group 2"))))))
+
+(defun create-user (posted-content)
+  (format nil "Create user: ~A" posted-content))
+
+(defun update-user (posted-content id)
+  (format nil "Update user: ~A ~A" id posted-content))
+
+(defun delete-user (id)
+  (format nil "Delete user: ~A" id))
+
+@end example
+
+@node System reference
+@chapter System reference
+
+@include references.texinfo
+
+@node References
+@chapter References
+@cindex reference
+
+ [Common Lisp Directory]
+ [Common Lisp Wiki]
+
+ [Common Lisp Directory]: http://common-lisp.net
+ [Common Lisp Wiki]: http://www.cliki.net
+
+@node Index
+@chapter Index
+@menu
+* Concept Index::          The concept index
+* Class Index::            The classes index
+* Function / Macro Index:: The functions and macros index
+* Variable Index::         The variables index
+@end menu
+
+@node Concept Index
+@section Concept Index
+
+@printindex cp
+
+@node Class Index
+@section Class Index
+
+@printindex tp
+
+@node Function / Macro Index
+@section Function / Macro Index
+     
+@printindex fn
+
+@node Variable Index
+@section Variable Index
+     
+@printindex vr
+
+@bye
+

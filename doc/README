@@ -1,0 +1,11 @@
+To build the manual:
+
+To generate from scratch, customize make.lisp and the do:
+sudo sbcl --load make.lisp
+
+To build the manual that comes in the distribution:
+HTML: texi2html --css-include=rest-server.css rest-server.texinfo
+PDF:  texi2pdf rest-server.texinfo
+INFO: makeinfo rest-server.texinfo
+      sudo ginstall-info --info-dir=/usr/share/info rest-server.info
+TXT:  makeinfo --plaintext rest-server.texinfo -o rest-server.txt
