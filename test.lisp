@@ -34,6 +34,32 @@
   (with-serializer :sexp
     (serialize *element*)))
 
+;; Streaming api test
+
+(with-serializer-output t
+  (with-serializer :json
+    (with-element ("user")
+      (with-attribute ("realname")
+	(serialize "hola")))))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :xml
+      (cxml:with-xml-output (cxml:make-character-stream-sink s :indentation nil :omit-xml-declaration-p t)
+	(with-element ("user")
+	  (with-attribute ("realname")
+	    (serialize "hola")))))))
+
+(with-serializer-output t
+  (with-serializer :html
+    (with-element ("user")
+      (set-attribute "realname" "Hola"))))
+
+(with-serializer-output t
+  (with-serializer :sexp
+    (with-element ("user")
+      (set-attribute "realname" "Hola"))))
+
 (defpackage :api-test
   (:use :rest-server :cl))
 

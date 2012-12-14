@@ -1,24 +1,54 @@
 (in-package :rest-server)
 
-(defvar *serializers* nil)
-(defvar *serializer* nil)
-(defvar *serializer-output* t)
+(eval-when (:compile-toplevel :load-toplevel :execute)
 
-;; Serializer api
+  (defvar *serializers* nil)
+  (defvar *serializer-output* t)
+  (defvar *default-serializer* :json "The default api serializer")
+  (defvar *serializer* nil)
 
-(defun call-with-serializer (serializer function)
-  (let ((*serializer* serializer))
-    (funcall function)))
+  ;; Serializer api
 
-(defmacro with-serializer (serializer &body body)
-  `(call-with-serializer ,serializer (lambda () ,@body)))
+  (defun call-with-serializer (serializer function)
+    (let ((*serializer* serializer))
+      (funcall function)))
 
-(defun call-with-serializer-output (serializer-output function)
-  (let ((*serializer-output* serializer-output))
-    (funcall function)))
+  (defmacro with-serializer (serializer &body body)
+    `(call-with-serializer ,serializer (lambda () ,@body)))
 
-(defmacro with-serializer-output (serializer-output &body body)
-  `(call-with-serializer-output ,serializer-output (lambda () ,@body)))
+  (defun call-with-serializer-output (serializer-output function)
+    (let ((*serializer-output* serializer-output))
+      (funcall function)))
+
+  (defmacro with-serializer-output (serializer-output &body body)
+    `(call-with-serializer-output ,serializer-output (lambda () ,@body)))
+
+  ;; Generic streaming serialization api
+
+  (defmacro with-element ((name
+			   &key (serializer '*serializer*)
+			   (stream '*serializer-output*))
+			  &body body)
+    `(call-with-element ,serializer ,name (lambda () ,@body) ,stream))
+
+  (defmacro with-attribute ((name &key (serializer '*serializer*)
+				  (stream '*serializer-output*))
+			    &body body)
+    `(call-with-attribute ,serializer ,name (lambda () ,@body) ,stream))
+
+  (defmacro with-elements-list 
+      ((name &key (serializer '*serializer*)
+	     (stream '*serializer-output*)) 
+       &body body)
+    `(call-with-elements-list ,serializer ,name (lambda () ,@body) ,stream))
+
+  (defmacro with-list-member ((name 
+			       &key (serializer '*serializer*)
+			       (stream '*serializer-output*))
+			      &body body)
+    `(call-with-list-member ,serializer ,name (lambda () ,@body) ,stream))
+  )
+
 
 ;; Intermediate representation
 
@@ -178,7 +208,102 @@
   (cl-who:with-html-output (html stream)
     (cl-who:fmt "~A" value)))
 
-(defvar *default-serializer* :json "The default api serializer")
+;; Streaming api implementation
+
+(defmethod call-with-element ((serializer (eql :json)) name body stream)
+  (declare (ignore name))
+  (json:with-object (stream)
+    (funcall body)))
+
+(defmethod call-with-element ((serializer (eql :xml)) name body stream)
+  (declare (ignore stream))
+  (cxml:with-element name
+      (funcall body)))
+
+(defmethod call-with-element ((serializer (eql :html)) name body stream)
+  (cl-who:with-html-output (html stream)
+    (:div :class "element"
+          (:h1 (cl-who:str name))
+          (:div :class "attributes"
+		(funcall body)))))
+
+(defmethod call-with-element ((serializer (eql :sexp)) name body stream)
+  (format stream "(~s (" name)
+  (funcall body)
+  (format stream ")"))
+
+(defmethod call-with-attribute ((serializer (eql :json)) name body stream)
+  (json:as-object-member (name stream)
+    (funcall body)))
+
+(defmethod call-with-attribute ((serializer (eql :xml)) name body stream)
+  (declare (ignore stream))
+  (cxml:with-element name
+    (funcall body)))
+
+(defmethod call-with-attribute ((serializer (eql :html)) name body stream)
+  (cl-who:with-html-output (html stream)
+    (:div :class "attribute-name"
+          (cl-who:str name))
+    (:div :class "attribute-value"
+	  (funcall body))))
+
+(defmethod call-with-attribute ((serializer (eql :sexp)) name body stream)
+  (format stream "(~S . " name)
+  (funcall body)
+  (format stream ")"))
+
+(defun set-attribute (name value &key (serializer *serializer*)
+		      (stream *serializer-output*))
+  (with-attribute (name :serializer serializer
+			:stream stream)
+    (serialize value serializer stream)))
+
+(defmethod call-with-elements-list ((serializer (eql :json)) name body stream)
+  (declare (ignore name))
+  (json:with-array (stream)
+    (funcall body)))
+
+(defmethod call-with-elements-list ((serializer (eql :xml)) name body stream)
+  (declare (ignore name stream))
+  (funcall body))
+
+(defmethod call-with-elements-list ((serializer (eql :html)) name body stream)
+  (cl-who:with-html-output (html stream)
+    (:ol :class "elements"
+         (funcall body))))
+
+(defmethod call-with-elements-list ((serializer (eql :sexp)) name body stream)
+  (format stream "(")
+  (funcall body)
+  (format stream ")"))
+
+(defmethod call-with-list-member ((serializer (eql :json)) name body stream)
+  (declare (ignore name))
+  (json:as-array-member (stream)
+    (funcall body)))
+
+(defmethod call-with-list-member ((serializer (eql :xml)) name body stream)
+  (with-element (name :serializer serializer
+		      :stream stream)
+    (funcall body)))
+
+(defmethod call-with-list-member ((serializer (eql :html)) name body stream)
+  (declare (ignore name))
+  (cl-who:with-html-output (html stream)
+    (:li 
+     (funcall body))))
+
+(defmethod call-with-list-member ((serializer (eql :sexp)) name body stream)
+  (declare (ignore name))
+  (funcall body)
+  (format stream " "))
+
+(defun add-list-member (name value &key (serializer *serializer*)
+			(stream *serializer-output*))
+  (with-list-member (name :serializer serializer
+				 :stream stream)
+    (serialize value serializer stream)))
 
 (defmethod expand-api-function-wrapping ((option (eql :serialization)) enabled args)
   (declare (ignore args))
