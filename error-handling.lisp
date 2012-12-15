@@ -2,8 +2,10 @@
 
 ;; Error handling configuration
 
-(defvar *catch-conditions-p* t)
 (defvar *development-mode* :production "Api development mode. One of :development, :testing, :production. Influences how errors are handled from the api")
+
+;; We have to disable hunchentoot handler and enable ours
+(setf hunchentoot:*catch-errors-p* nil)
 
 ;; Conditions
 
@@ -77,20 +79,25 @@
 	       ((typep condition 'http-error) (status-code condition))
                ((typep condition 'error) hunchentoot:+http-internal-server-error+)
                (t hunchentoot:+http-ok+)))
+	   (serialize-condition (condition)
+	     (with-output-to-string (s)
+	       (with-serializer-output s
+		 (with-serializer *default-serializer*
+		   (serialize condition)))))
            (handle-condition (condition)
-             (if (typep condition 'harmless-condition)
-                 (serialize condition)
-		 (progn
-                   (setf (hunchentoot:return-code*) (http-return-code condition))
-                   (when (not (equalp *development-mode* :production))
-                     (serialize condition))))))
-    (if *catch-conditions-p* 
-        (handler-case (funcall function)
-          (condition (c)
-            (handle-condition c)))
+             (if (equalp *development-mode* :production)
+		 (setf (hunchentoot:return-code*) (http-return-code condition))
+					; else, we are in :testing, serialize the condition
+		 (serialize-condition condition))))
+    (if (equalp *development-mode* :development)
 	(handler-case (funcall function)
 	  (harmless-condition (c)
-	    (serialize c))))))
+	    (serialize-condition c)))
+        (handler-case (funcall function)
+	  (harmless-condition (c)
+	    (serialize-condition c))
+          (condition (c)
+            (handle-condition c))))))
 
 (defmethod serialize-value ((serializer (eql :json)) (error simple-error) stream) 
   "Serialize error condition"
