@@ -1,4 +1,7 @@
-(in-package :rest-server)
+(defpackage :rest-server-tests
+  (:use :cl :rest-server))
+
+(in-package :rest-server-tests)
 
 (defparameter *element*
   (element "user"

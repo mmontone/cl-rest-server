@@ -6,4 +6,11 @@
 	   #:with-serializer-output
 	   #:element
 	   #:attribute
-	   #:elements))
+	   #:elements
+	   #:serialize
+	   #:with-element
+	   #:with-attribute
+	   #:with-elements-list
+	   #:with-list-member
+	   #:add-list-member
+	   #:set-attribute))

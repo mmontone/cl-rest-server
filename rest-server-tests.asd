@@ -1,12 +1,5 @@
-(in-package :cl-user)
-
-(defpackage rest-server-system
-  (:use :cl :asdf))
-  
-(in-package :rest-server-system)
-
-(defsystem rest-server
-  :name "rest-server"
+(defsystem rest-server-tests
+  :name "rest-server-tests"
   :author "Mariano Montone <marianomontone@gmail.com>"
   :version "0.1"
   :maintainer "Mariano Montone <marianomontone@gmail.com>"
@@ -33,23 +26,9 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE."
-  :description "REST APIs servers in Common Lisp."
-  :long-description "REST APIs servers in Common Lisp"
+  :description "rest-server tests"
+  :long-description "rest-server tests"
   :components
-  ((:file "package")
-   (:file "rest-server")
-   (:file "serialization")
-   (:file "api")
-   (:file "api-documentation")
-   (:file "error-handling"))
+  ((:file "test"))
   :serial t
-  :depends-on (:hunchentoot 
-	       :alexandria 
-	       :log5 
-	       :cl-json 
-	       :cxml 
-	       :local-time 
-	       :split-sequence 
-	       :drakma
-	       :method-combination-utilities
-               :cl-who))
+  :depends-on (:rest-server))
