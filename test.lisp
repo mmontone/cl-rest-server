@@ -204,4 +204,69 @@
 
 (in-package :rest-server-tests)
 
-(start-api 
+(start-api 'api-test::api-test "localhost" 8181 (find-package :api-test-implementation))
+
+(test api-setup-test
+  (multiple-value-bind (result status-code)
+      (drakma:http-request "http://localhost:8181/users" :method :get)
+    (is (equalp status-code 200))
+    (is (equalp (read-from-string result) (list "user1" "user2" "user3" nil)))))
+
+(test basic-parameters-test
+  (multiple-value-bind (result status-code)
+      (drakma:http-request "http://localhost:8181/users?expand-groups=true" :method :get)
+    (is (equalp status-code 200))
+    (is (equalp (read-from-string result) (list "user1" "user2" "user3" t)))))
+
+(test boolean-parameters-test
+  (setf *development-mode* :production)
+  (multiple-value-bind (result status-code)
+      (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
+    (declare (ignore result))
+    (is (equalp status-code 500)))
+  (multiple-value-bind (result status-code)
+      (drakma:http-request "http://localhost:8181/users?expand-groups=true" :method :get)
+    (is (equalp status-code 200))
+    (is (equalp (read-from-string result) (list "user1" "user2" "user3" t)))))
+
+(test error-handling-test
+  (setf *development-mode* :production)
+  (multiple-value-bind (result status-code)
+      (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
+    (declare (ignore result))
+    (is (equalp status-code 500)))
+  (setf *development-mode* :testing)
+  (multiple-value-bind (result status-code)
+      (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
+    (is (equalp status-code 200))
+    (let ((condition (json:decode-json-from-string result)))
+      (is (equalp (cdr (assoc :condition condition)) "simpleError"))))
+  ;; We can not test development mode like this. We are in a different thread.
+  #+nil(setf *development-mode* :development)
+  #+nil(signals simple-error
+      (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get))
+  )
+
+(test accept-content-test
+  (let ((result
+	 (drakma:http-request "http://localhost:8181/users/22"
+			      :method :get
+			      :additional-headers '(("Accept" .  "application/json")))))
+    (finishes (json:decode-json-from-string result)))
+  (let ((result
+	 (drakma:http-request "http://localhost:8181/users/22"
+			      :method :get
+			      :additional-headers '(("Accept" . "application/xml")))))
+    (finishes (cxml:parse result (cxml-xmls:make-xmls-builder))))
+  (let ((result
+	 (drakma:http-request "http://localhost:8181/users/22"
+			      :method :get
+			      :additional-headers '(("Accept" . "text/html")))))
+    (multiple-value-bind (html error)
+	(html5-parser:parse-html5 result :strictp t)
+      (is (null error))))
+  (let ((result
+	 (drakma:http-request "http://localhost:8181/users/22"
+			      :method :get
+			      :additional-headers '(("Accept" . "text/lisp")))))
+    (finishes (read-from-string result))))

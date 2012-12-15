@@ -31,4 +31,4 @@ OTHER DEALINGS IN THE SOFTWARE."
   :components
   ((:file "test"))
   :serial t
-  :depends-on (:rest-server :fiveam))
+  :depends-on (:rest-server :fiveam :cl-html5-parser))
