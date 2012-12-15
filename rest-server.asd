@@ -38,8 +38,8 @@ OTHER DEALINGS IN THE SOFTWARE."
   :components
   ((:file "package")
    (:file "rest-server")
-   (:file "error-handling")
    (:file "serialization")
+   (:file "error-handling")
    (:file "api")
    (:file "api-documentation"))
   :serial t

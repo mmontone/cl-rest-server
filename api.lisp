@@ -30,9 +30,15 @@
   "Helper macro to define an api function"
   `(make-api-function ',name ',method ',options ',args))
 
-(defmacro with-backend (backend url &body body)
+(defvar *api-backend* nil "API backend address") 
+
+(defmacro with-api-backend (backend &body body)
   "Execute the client api function calling backend"
-  `(let ((,(backend-var backend) ,url)) ,@body))
+  `(call-with-api-backend ,backend (lambda () ,@body)))
+
+(defun call-with-api-backend (backend function)
+  (let ((*api-backend* backend))
+    (funcall function)))
 
 (defmacro define-api (name options &body functions)
   "Define an api"
@@ -520,8 +526,7 @@
     (let ((required-args (required-arguments api-function))
 	  (optional-args (optional-arguments api-function)))
       `(progn
-         (defvar ,(backend-var api-name) nil)
-         (defun ,(name api-function)
+	 (defun ,(name api-function)
              ,(append
                 (if (member (request-method api-function) '(:post :put))
                     (list 'posted-content)
@@ -534,9 +539,9 @@
 					   (third x))))))
 	   ,(api-documentation api-function)
            (log5:log-for (rest-server) "Client stub: ~A" ',(name api-function))
-           (assert ,(backend-var api-name) nil "Error: this is an API function. No api backend selected. Wrap this function call with with-backend")
+           (assert *api-backend* nil "Error: this is an API function. No api backend selected. Wrap this function call with with-api-backend")
            (let ((,request-url (format nil "~A~A" 
-                                       ,(backend-var api-name) 
+                                       *api-backend* 
                                        (replace-vars-in-url 
                                         ,(url-pattern-noparams api-function)
                                         (list
@@ -560,17 +565,11 @@
                                                  collect
                                                  (progn
                                                    `(cons 
-                                                     ,(make-keyword (symbol-name (car x)))
+                                                     ,(symbol-name (car x))
                                                      (format nil "~A" ,(intern (symbol-name 
                                                                                 (car x)))))))))))
-               (log5:log-for (rest-server) "Response: ~A" (sb-ext:octets-to-string
-                 ,response
-                 :external-format :utf8
-                 ))
-               (sb-ext:octets-to-string
-                ,response
-                :external-format :utf8
-                ))))))))
+               (log5:log-for (rest-server) "Response: ~A" ,response)
+               ,response)))))))
 
 (defgeneric url-pattern-noparams (api-function))
 (defmethod url-pattern-noparams ((api-function api-function))
