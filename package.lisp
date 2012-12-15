@@ -13,4 +13,7 @@
 	   #:with-elements-list
 	   #:with-list-member
 	   #:add-list-member
-	   #:set-attribute))
+	   #:set-attribute
+	   #:name
+	   #:attributes
+	   #:value))
