@@ -23,7 +23,7 @@
 					 (attribute "id" 33)
 					 (attribute "title" "My group"))))))
 
- (test intermediate-representation-test
+(test intermediate-representation-test
   (is (equalp (name *element*) "user"))
   (is (equalp (value (find "realname" (attributes *element*)  :key #'name :test #'equalp))
 	      "Mike")))
@@ -134,6 +134,8 @@
 ;;     (with-element ("user")
 ;;       (set-attribute "realname" "Hola"))))
 
+;; API tests
+
 (defpackage :api-test
   (:use :rest-server :cl))
 
@@ -199,3 +201,7 @@
 
 (defun delete-user (id)
   (format nil "Delete user: ~A" id))
+
+(in-package :rest-server-tests)
+
+(start-api 
