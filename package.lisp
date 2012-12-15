@@ -16,4 +16,10 @@
 	   #:set-attribute
 	   #:name
 	   #:attributes
-	   #:value))
+	   #:value
+	   #:find-api
+	   #:with-api
+	   #:define-api-function
+	   #:make-api-function
+	   #:with-backend
+	   #:start-api))
