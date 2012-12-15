@@ -38,10 +38,10 @@ OTHER DEALINGS IN THE SOFTWARE."
   :components
   ((:file "package")
    (:file "rest-server")
+   (:file "error-handling")
    (:file "serialization")
    (:file "api")
-   (:file "api-documentation")
-   (:file "error-handling"))
+   (:file "api-documentation"))
   :serial t
   :depends-on (:hunchentoot 
 	       :alexandria 
