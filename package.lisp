@@ -23,4 +23,5 @@
 	   #:make-api-function
 	   #:with-api-backend
 	   #:start-api
+	   #:start-api-documentation
 	   #:*development-mode*))
