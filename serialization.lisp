@@ -92,11 +92,16 @@
                  :elements elements))
 
 (defmethod serialize-toplevel ((serializer t) stream function)
-  (funcall function))
+    (funcall function))
 
 (defmethod serialize-toplevel ((serializer (eql :xml)) stream function)
   (cxml:with-xml-output (cxml:make-character-stream-sink stream :indentation nil :omit-xml-declaration-p t)
     (funcall function)))
+
+(defmethod serialize-toplevel ((serialize (eql :html)) stream function)
+  (let ((cl-who::*html-mode* :html5))
+    (cl-who:with-html-output (html stream :prologue t)
+      (funcall function))))
 
 ;; Serializer format plug
 
@@ -124,7 +129,9 @@
 (defmethod serialize-elements-list ((serializer (eql :json)) elements-list stream)
   (json:with-array (stream)
     (loop for element in (list-elements elements-list)
-         do (serialize element serializer stream))))
+         do
+	 (json:as-array-member (stream)
+	   (serialize element serializer stream)))))
 
 (defmethod serialize-attribute ((serializer (eql :json)) attribute stream)
   (json:as-object-member ((name attribute) stream)
@@ -308,14 +315,24 @@
 (defmethod expand-api-function-wrapping ((option (eql :serialization)) enabled args)
   (declare (ignore args))
   (when enabled
-    (let ((serializer (gensym "SERIALIZER-")))
+    (let ((serializer (gensym "SERIALIZER-"))
+	  (accepts (gensym "ACCEPTS-")))
       `(let ((,serializer (or (and (hunchentoot:header-in* "accept")
+				   (let ((,accepts (split-sequence:split-sequence #\, (hunchentoot:header-in* "accept"))))
                                    (cond
-                                     ((equalp (hunchentoot:header-in* "accept") "application/json") :json)
-                                     ((member (hunchentoot:header-in* "accept") (list "text/xml" "application/xml")
-                                              :test #'equalp)
+                                     ((intersection (list "application/json")
+						    ,accepts :test #'equalp)
+				      :json)
+                                     ((intersection (list "text/xml" "application/xml")
+						    ,accepts :test #'equalp)
                                       :xml)
-                                     ((equalp (hunchentoot:header-in* "accept") "text/html") :html)))
+                                     ((intersection (list "text/html")
+						    ,accepts :test #'equalp)
+				      :html)
+				     ((intersection (list "text/lisp")
+						    ,accepts :test #'equalp)
+				      :sexp)
+				     )))
                               *default-serializer*)))
          (with-output-to-string (s)
            (with-serializer-output s
