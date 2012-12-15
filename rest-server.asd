@@ -41,6 +41,7 @@ OTHER DEALINGS IN THE SOFTWARE."
    (:file "serialization")
    (:file "api")
    (:file "api-documentation")
+   (:file "error-handling")
    (:file "test"))
   :serial t
   :depends-on (:hunchentoot 
