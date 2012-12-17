@@ -480,7 +480,7 @@
 	      (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
 				      (hunchentoot:raw-post-data :external-format :utf8))))
 		(log5:log-for (rest-server) "Posted content: ~A" posted-content)
-		(list posted-content)))
+		(list (parse-posted-content posted-content))))
 	    args))))
 
 (defun find-optional-argument (name api-function)
