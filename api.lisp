@@ -446,6 +446,32 @@
   (or (ignore-errors (symbol-function (intern (symbol-name name) (api-implementation-package acceptor))))
       (error "Api function ~A not implemented in package ~A" name (api-implementation-package acceptor))))
 
+(defvar *parse-posted-content* :use-request-content-type
+  "How to parse the posted content type. One of:
+   * :use-request-content-type: parse posted content using the format specified in the request's content type
+   * :infer: Try different methods of parsing the content type until success
+   * :raw: Leave the posted content unparsed. Just pass the string.")
+
+(defun parse-posted-content (posted-content &optional (method *parse-posted-content*))
+  (ecase method
+    (:use-request-content-type
+     ;; Use the request content type to parse the posted content
+     (let ((content-type (hunchentoot:content-type*)))
+       (cond
+	 ((member content-type (list "text/xml" "application/xml"))
+	  (cxml:parse posted-content (cxml-xmls:make-xmls-builder)))
+	 ((member content-type (list "application/json"))
+	  (json:decode-json-from-string posted-content))
+	 ((member content-type (list "application/lisp" "text/lisp"))
+	  (read-from-string posted-content))
+	 (t (error 'http-unsupported-media-type-error "Content type not supported ~A" content-type)))))
+    (:infer
+     (error "Not implemented"))
+     
+    ;; Infer the posted content format. Try parsing with different
+    ;; methods until success
+    (:raw posted-content)))
+
 (defun execute-api-function-implementation (api-function function-implementation request)
   (let ((args (extract-function-arguments api-function request)))
     (apply function-implementation
