@@ -24,4 +24,9 @@
 	   #:with-api-backend
 	   #:start-api
 	   #:start-api-documentation
-	   #:*development-mode*))
+	   #:*development-mode*
+	   #:http-error
+	   #:http-not-found-error
+	   #:http-internal-server-error
+	   #:http-authorization-required-error
+	   #:http-forbidden-error))
