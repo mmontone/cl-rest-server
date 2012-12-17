@@ -39,11 +39,17 @@
   (:default-initargs
    :status-code 403))
 
+(define-condition http-unsupported-media-type-error (http-error)
+  ()
+  (:default-initargs
+   :status-code 415))
+
 (defparameter *http-status-codes-conditions*
   '((404 . http-not-found-error)
     (401 . http-authorization-required-error)
     (403 . http-forbidden-error)
-    (500 . http-internal-server-error)))
+    (500 . http-internal-server-error)
+    (415 . http-unsupported-media-type-error)))
 
 (defvar *conditions-mapping* nil "Assoc list mapping application conditions to HTTP conditions. (.i.e. permission-denied-error to http-forbidden-error)")
 
