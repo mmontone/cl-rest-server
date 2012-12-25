@@ -171,27 +171,67 @@
                  :documentation "Delete a user")
                ((id :string "The user id"))))
 
+(defpackage :model-test
+  (:use :cl)
+  (:export :get-user
+	   :all-users
+	   :add-user
+	   :update-user))
+
+(in-package :model-test)
+
+(defvar *users* nil)
+
+(defun make-user (id realname)
+  (list (cons :id id)
+	(cons :realname realname)))
+
+(defun add-user (user)
+  (push (cons (cdr (assoc :id user))
+	      user)
+	*users*))
+
+(defun update-user (user)
+  (let ((user-id (cdr (assoc :id user))))
+    (delete-user user-id)
+    (add-user user)))
+
+(defun get-user (id)
+  (cdr (assoc id *users*)))
+
+(defun delete-user (id)
+  (setf *users* (delete id *users* :test #'equalp :key #'first)))
+
+(defun all-users ()
+  (mapcar #'cdr *users*))
+
 (defpackage :api-test-implementation
   (:use :cl :rest-server))
 
 (in-package :api-test-implementation)
 
-(defun get-users (&key (expand-groups nil))
-  (list "user1" "user2" "user3" expand-groups))
+(implement-api-function get-users (&key (expand-groups nil))
+  (declare (ignore expand-groups))
+  (with-output-to-string (s)
+    (with-serializer-output s
+      (with-serializer (rest-server::accept-serializer)
+	(with-elements-list ("users")
+	  (loop for user in (model-test:all-users)
+	     do
+	       (with-element ("user")
+		 (set-attribute "id" (cdr (assoc :id user)))
+		 (set-attribute "realname" (cdr (assoc :realname user))))))))))       
 
 (implement-api-function (get-user :serialization t)
     (id &key (expand-groups nil))
   (declare (ignore expand-groups))
-  (element "user"
-	   (attribute "id" id)
-           (attribute "groups"
-                      (elements "groups"
-                                (element "group"
-                                         (attribute "id" 22)
-                                         (attribute "name" "Group 1"))
-                                (element "group"
-                                         (attribute "id" 33)
-                                         (attribute "name" "Group 2"))))))
+  (let ((user (model-test:get-user id)))
+    (if (not user)
+	(error 'http-not-found-error)
+	; else
+	(element "user"
+		 (attribute "id" (cdr (assoc :id user)))
+		 (attribute "realname" (cdr (assoc :realname user)))))))
 
 (defun create-user (posted-content)
   (format nil "Create user: ~A" posted-content))
@@ -270,3 +310,120 @@
 			      :method :get
 			      :additional-headers '(("Accept" . "text/lisp")))))
     (finishes (read-from-string result))))
+
+(test client-api-access-test
+  (let ((response
+	 (with-api-backend "http://localhost:8181"
+	   (api-test::get-user 345 :expand-groups t))))
+    (finishes (json:decode-json-from-string response)))
+  (let ((response
+	 (with-api-backend "http://localhost:8181"
+	   (api-test::get-user 22))))
+    (finishes (json:decode-json-from-string response))))
+
+(test content-type-test
+  "Specify the content type we are sending explicitly"
+  (setf *development-mode* :production)
+  (multiple-value-bind (result status-code)
+      (drakma:http-request "http://localhost:8181/users" :method :post
+			   :content "<user><realname>Mariano</realname></user>"
+			   :content-type "text/xml"
+			   :additional-headers '(("Accept" . "text/lisp")))
+    (declare (ignore result))
+    (is (equalp status-code 200))
+    (drakma:http-request "http://localhost:8181/users/" :method :post
+			   :content "<user><realname>Mariano</realname></user>"
+			   :content-type "text/xml")
+    )
+  (multiple-value-bind (result status-code)
+      (drakma:http-request "http://localhost:8181/users?expand-groups=true" :method :get)
+    (is (equalp status-code 200))
+    (is (equalp (read-from-string result) (list "user1" "user2" "user3" t)))))
+
+(in-package :rest-server-tests)
+
+(defparameter *schema* 
+  (rest-server::schema
+   (user
+    ((id :integer)
+     (realname :string)
+     (age :integer)
+     (groups ((group
+	       ((id :integer)
+		(name :string))))
+	     :optional t)))))
+
+(define-schema user-schema
+    (user
+     ((id :integer)
+      (realname :string)
+      (age :integer)
+      (groups (group-schema)
+	      :optional t
+	      :switch :include-user-groups))))
+
+(define-schema minimal-user-schema
+    (user
+     ((id :integer)
+      (realname :string))))
+      
+
+(define-schema group-schema
+    (group
+     ((id :integer)
+      (name :string)
+      (users (user-schema) 
+	     :optional t
+	     :switch :include-group-users))))
+
+(defclass user ()
+  ((id :initarg :id
+       :accessor id
+       :initform (error "Provide the id"))
+   (realname :initarg :realname
+	     :accessor realname
+	     :initform (error "Provide the realname"))
+   (age :initarg :age
+	:accessor age
+	:initform (error "Provide the age"))
+   (groups :initarg :groups
+	   :accessor groups
+	   :initform nil)))
+
+(defclass group ()
+  ((id :initarg :id
+       :accessor id
+       :initform (error "Provide the id"))
+   (name :initarg :name
+	 :accessor name
+	 :initform (error "Provide the name"))
+   (users :initarg :users
+	  :accessor users
+	  :initform nil)))
+
+(defparameter *user* 
+  (make-instance 'user
+		 :realname "Mariano"
+		 :id 2
+		 :age 30
+		 :groups (list (make-instance 'group
+					      :name "My group"
+					      :id 3))))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :json
+      (serialize-with-schema 
+       *schema* *user*))))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :json
+      (serialize-with-schema 
+       (find-schema 'user-schema) *user*))))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :json
+      (serialize-with-schema 
+       (find-schema 'minimal-user-schema) *user*))))

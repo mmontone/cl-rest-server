@@ -29,4 +29,8 @@
 	   #:http-not-found-error
 	   #:http-internal-server-error
 	   #:http-authorization-required-error
-	   #:http-forbidden-error))
+	   #:http-forbidden-error
+	   #:serialize-with-schema
+	   #:find-schema
+	   #:schema
+	   #:define-schema))
