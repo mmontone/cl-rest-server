@@ -348,6 +348,10 @@
     ((id :integer)
      (realname :string)
      (age :integer)
+     (best-friend (:schema
+		    (user 
+		     ((id :integer)
+		      (realname :string)))))
      (groups ((group
 	       ((id :integer)
 		(name :string))))
@@ -358,6 +362,7 @@
      ((id :integer)
       (realname :string)
       (age :integer)
+      (best-friend user-schema)
       (groups (group-schema)
 	      :optional t
 	      :switch :include-user-groups))))
@@ -388,7 +393,11 @@
 	:initform (error "Provide the age"))
    (groups :initarg :groups
 	   :accessor groups
-	   :initform nil)))
+	   :initform nil)
+   (best-friend :initarg :best-friend
+		:accessor best-friend
+		:initform nil)))
+		
 
 (defclass group ()
   ((id :initarg :id
@@ -408,7 +417,12 @@
 		 :age 30
 		 :groups (list (make-instance 'group
 					      :name "My group"
-					      :id 3))))
+					      :id 3))
+		 :best-friend (make-instance 'user 
+					     :id 3
+					     :realname "Fernando"
+					     :age 31
+					     )))
 
 (with-output-to-string (s)
   (with-serializer-output s
@@ -425,5 +439,23 @@
 (with-output-to-string (s)
   (with-serializer-output s
     (with-serializer :json
+      (serialize-with-schema 
+       (find-schema 'minimal-user-schema) *user*))))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :xml
+      (serialize-with-schema 
+       *schema* *user*))))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :xml
+      (serialize-with-schema 
+       (find-schema 'user-schema) *user*))))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :xml
       (serialize-with-schema 
        (find-schema 'minimal-user-schema) *user*))))

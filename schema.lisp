@@ -34,17 +34,21 @@
 				      :stream stream)
 	(cond 
 	  ((keywordp attribute-type)
-	     
 	   (serialize attribute-value serializer stream))
 	  ((symbolp attribute-type)
 	   ;; It is a schema reference
 	   (let ((attribute-schema (find-schema attribute-type)))
-	     (%serialize-with-schema serializer attribute-schema input stream)))
+	     (%serialize-with-schema attribute-schema serializer attribute-value stream)))
 	  ((listp attribute-type)
-	   (serialize-schema-list attribute-type
-				  serializer
-				  attribute-value
-				  stream)))))))
+	   (if (equalp (first attribute-type) :schema)
+	       (%serialize-with-schema (second attribute-type)
+				       serializer
+				       attribute-value
+				       stream)
+	       (serialize-schema-list attribute-type
+				      serializer
+				      attribute-value
+				      stream))))))))
 
 (defun serialize-schema-list (schema-list serializer input stream)
   (let ((list-type (first schema-list)))
@@ -57,6 +61,13 @@
 	      (add-list-member "item" elem serializer stream)))
 	((symbolp list-type)
 	 (let ((schema (find-schema list-type)))
+	   (loop for elem in input
+		do
+		(with-list-member ("item" :serializer serializer
+					  :stream stream)
+		  (%serialize-with-schema schema serializer elem stream)))))
+	((listp list-type)
+	 (let ((schema list-type))
 	   (loop for elem in input
 		do
 		(with-list-member ("item" :serializer serializer
