@@ -11,7 +11,9 @@
 
   (defun call-with-serializer (serializer function)
     (let ((*serializer* serializer))
-      (funcall function)))
+      (serialize-toplevel serializer 
+			  *serializer-output*
+			  function)))
 
   (defmacro with-serializer (serializer &body body)
     `(call-with-serializer ,serializer (lambda () ,@body)))
