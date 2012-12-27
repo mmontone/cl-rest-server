@@ -343,41 +343,40 @@
 (in-package :rest-server-tests)
 
 (defparameter *schema* 
-  (rest-server::schema
-   (user
+  (schema
+   (:element user
     ((id :integer)
      (realname :string)
      (age :integer)
-     (best-friend (:schema
-		    (user 
+     (best-friend (:element user 
+			    ((id :integer)
+			     (realname :string))))
+     (groups (:list (:element group
 		     ((id :integer)
-		      (realname :string)))))
-     (groups ((group
-	       ((id :integer)
-		(name :string))))
+		      (name :string))))
 	     :optional t)))))
 
 (define-schema user-schema
-    (user
+    (:element user
      ((id :integer)
       (realname :string)
       (age :integer)
-      (best-friend user-schema)
-      (groups (group-schema)
+      (best-friend user-schema
+		   :optional t)
+      (groups (:list group-schema)
 	      :optional t
 	      :switch :include-user-groups))))
 
 (define-schema minimal-user-schema
-    (user
+    (:element user
      ((id :integer)
       (realname :string))))
-      
 
 (define-schema group-schema
-    (group
+    (:element group
      ((id :integer)
       (name :string)
-      (users (user-schema) 
+      (users (:list user-schema) 
 	     :optional t
 	     :switch :include-group-users))))
 
@@ -396,8 +395,7 @@
 	   :initform nil)
    (best-friend :initarg :best-friend
 		:accessor best-friend
-		:initform nil)))
-		
+		:initform nil)))		
 
 (defclass group ()
   ((id :initarg :id
