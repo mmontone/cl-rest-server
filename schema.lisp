@@ -120,10 +120,14 @@
 	       (destructuring-bind (schema-attribute-name schema-attribute-type) schema-attribute
 		 (schema-typep input-attribute-value schema-attribute-type))))))))
 
-(flexi-streams:with-input-from-sequence (s (sb-ext:string-to-octets "<hola><a>asdf</a><b>ff</b></hola>"))
-  (cxml:parse s (cxml-xmls:make-xmls-builder)))
+(defgeneric parse-api-input (format string)
+  )
 
-(json:decode-json-from-string "{\"a\":\"asdf\",\"b\":\"ff\"}")
+(defmethod parse-api-input ((format (eql :json)) string)
+  (json:decode-json-from-string string)) 
 
-(read-from-string "(\"hola\" (a \"asdf\") (b \"ff\"))")
+(defmethod parse-api-input ((format (eql :xml)) string)
+  (cxml:parse string (cxml-xmls:make-xmls-builder)))
 
+(defmethod parse-api-input ((format (eql :sexp)) string)
+  (read-from-string string))

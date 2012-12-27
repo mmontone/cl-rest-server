@@ -457,3 +457,16 @@
     (with-serializer :xml
       (serialize-with-schema 
        (find-schema 'minimal-user-schema) *user*))))
+
+(test parse-api-input-test
+  (let ((input-1 "{\"id\":2,\"realname\":\"Mariano\",\"age\":30,\"bestFriend\":{\"id\":3,\"realname\":\"Fernando\"},\"groups\":[{\"id\":3,\"name\":\"My group\"}]}")
+	(input-2 "<user><id>2</id><realname>Mariano</realname><age>30</age><best-friend><id>3</id><realname>Fernando</realname></best-friend><groups><group><id>3</id><name>My group</name></group></groups></user>")
+	(input-3 "(user ((id . 2) (realname . \"Mariano\") (age . 30) (best-friend . ((id . 3) (realname . \"Fernando\"))) (groups . ((group ((id . 3) (name . \"My group\")))))))"))
+  (let ((parsed-input-1 (rest-server::parse-api-input :json input-1))
+	(parsed-input-2 (rest-server::parse-api-input :xml input-2))
+	(parsed-input-3 (rest-server::parse-api-input :sexp input-3)))
+    (is (and
+	 (equalp (prin1-to-string parsed-input-1)
+		 (prin1-to-string parsed-input-2))
+	 (equalp (prin1-to-string parsed-input-2)
+		 (prin1-to-string parsed-input-3)))))))

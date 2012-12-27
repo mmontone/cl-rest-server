@@ -457,14 +457,16 @@
     (:use-request-content-type
      ;; Use the request content type to parse the posted content
      (let ((content-type (hunchentoot:content-type*)))
-       (cond
-	 ((member content-type (list "text/xml" "application/xml"))
-	  (cxml:parse posted-content (cxml-xmls:make-xmls-builder)))
-	 ((member content-type (list "application/json"))
-	  (json:decode-json-from-string posted-content))
-	 ((member content-type (list "application/lisp" "text/lisp"))
-	  (read-from-string posted-content))
-	 (t (error 'http-unsupported-media-type-error "Content type not supported ~A" content-type)))))
+       (let ((format
+	      (cond
+		((member content-type (list "text/xml" "application/xml"))
+		 :xml)
+		((member content-type (list "application/json"))
+		 :json)
+		((member content-type (list "application/lisp" "text/lisp"))
+		 :sexp)
+		(t (error 'http-unsupported-media-type-error "Content type not supported ~A" content-type)))))
+	 (parse-api-input format posted-content))))
     (:infer
      (error "Not implemented"))
      
