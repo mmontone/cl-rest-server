@@ -31,8 +31,7 @@
   (destructuring-bind 
 	(attribute-name attribute-type &rest options)
       schema-attribute
-    (let* ((accessor (or (getf options :accessor)
-			 (symbol-function attribute-name)))
+    (let* ((accessor (symbol-function (or (getf options :accessor) attribute-name)))
 	   (attribute-value (funcall accessor input)))
       (when (not (and (getf options :optional) (not attribute-value)))
 	(with-attribute (attribute-name :serializer serializer

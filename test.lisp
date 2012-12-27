@@ -358,7 +358,7 @@
 
 (define-schema user-schema
     (:element user
-     ((id :integer)
+     ((identity :integer :accessor id)
       (realname :string)
       (age :integer)
       (best-friend user-schema
