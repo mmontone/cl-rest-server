@@ -54,4 +54,5 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :split-sequence 
 	       :drakma
 	       :method-combination-utilities
-               :cl-who))
+               :cl-who
+	       :ironclad))
