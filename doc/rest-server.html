@@ -1171,6 +1171,238 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 <h2 class="chapter">4 System reference</h2>
 
+<p><a name="Class-rest_002dserver_003aattribute"></a>
+
+<div class="defun">
+&mdash; Class: <b>rest-server:attribute</b><var><a name="index-rest_002dserver_003aattribute-7"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aattribute-8"></a>Class precedence list: <code>attribute<!-- /@w -->, standard-object<!-- /@w -->, t<!-- /@w --></code>
+
+        <p>Serializer intermediate representation element attribute class
+</p></blockquote></div>
+
+   <p><a name="Class-rest_002dserver_003aelement"></a>
+
+<div class="defun">
+&mdash; Class: <b>rest-server:element</b><var><a name="index-rest_002dserver_003aelement-9"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aelement-10"></a>Class precedence list: <code>element<!-- /@w -->, standard-object<!-- /@w -->, t<!-- /@w --></code>
+
+        <p>Serializer intermediate representation element class
+</p></blockquote></div>
+
+   <p><a name="Class-rest_002dserver_003aserializable_002dclass"></a>
+
+<div class="defun">
+&mdash; Class: <b>rest-server:serializable-class</b><var><a name="index-rest_002dserver_003aserializable_002dclass-11"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aserializable_002dclass-12"></a>Class precedence list: <code>serializable-class<!-- /@w -->, standard-class<!-- /@w -->, class<!-- /@w -->, specializer<!-- /@w -->, metaobject<!-- /@w -->, standard-object<!-- /@w -->, t<!-- /@w --></code>
+
+        <p>Metaclass for serializable objects
+</p></blockquote></div>
+
+   <p><a name="Function-rest_002dserver_003aadd_002dlist_002dmember"></a>
+
+<div class="defun">
+&mdash; Function: <b>rest-server:add-list-member</b><var> name value &amp;key serializer stream<a name="index-rest_002dserver_003aadd_002dlist_002dmember-13"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aadd_002dlist_002dmember-14"></a>Serializes a list member
+</p></blockquote></div>
+
+   <p><a name="Function-rest_002dserver_003aattribute"></a>
+
+<div class="defun">
+&mdash; Function: <b>rest-server:attribute</b><var> name value<a name="index-rest_002dserver_003aattribute-15"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aattribute-16"></a>Build an element attribute to be serialized
+</p></blockquote></div>
+
+   <p><a name="Function-rest_002dserver_003aelement"></a>
+
+<div class="defun">
+&mdash; Function: <b>rest-server:element</b><var> name &amp;rest attributes<a name="index-rest_002dserver_003aelement-17"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aelement-18"></a>Build an element to be serialized
+</p></blockquote></div>
+
+   <p><a name="Function-rest_002dserver_003aelements"></a>
+
+<div class="defun">
+&mdash; Function: <b>rest-server:elements</b><var> name &amp;rest elements<a name="index-rest_002dserver_003aelements-19"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aelements-20"></a>Build a list of elements to be serialized
+</p></blockquote></div>
+
+   <p><a name="Function-rest_002dserver_003afind_002dapi"></a>
+
+<div class="defun">
+&mdash; Function: <b>rest-server:find-api</b><var> name<a name="index-rest_002dserver_003afind_002dapi-21"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003afind_002dapi-22"></a>Find api by name
+</p></blockquote></div>
+
+   <p><a name="Function-rest_002dserver_003afind_002dschema"></a>
+
+<div class="defun">
+&mdash; Function: <b>rest-server:find-schema</b><var> name &amp;optional errorp<a name="index-rest_002dserver_003afind_002dschema-23"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003afind_002dschema-24"></a>Find a schema definition by name
+</p></blockquote></div>
+
+   <p><a name="Function-rest_002dserver_003amake_002dapi_002dfunction"></a>
+
+<div class="defun">
+&mdash; Function: <b>rest-server:make-api-function</b><var> name method options args<a name="index-rest_002dserver_003amake_002dapi_002dfunction-25"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003amake_002dapi_002dfunction-26"></a>Make an api function. 
+</p></blockquote></div>
+
+   <p><a name="Function-rest_002dserver_003aserializable_002dclass_002dschema"></a>
+
+<div class="defun">
+&mdash; Function: <b>rest-server:serializable-class-schema</b><var> serializable-class<a name="index-rest_002dserver_003aserializable_002dclass_002dschema-27"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aserializable_002dclass_002dschema-28"></a>Generate a schema using the serializable class meta info
+</p></blockquote></div>
+
+   <p><a name="Generic_002dFunction-rest_002dserver_003aserialize_002dwith_002dschema"></a>
+
+<div class="defun">
+&mdash; Generic Function: <b>rest-server:serialize-with-schema</b><var> schema input &amp;optional serializer stream<a name="index-rest_002dserver_003aserialize_002dwith_002dschema-29"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aserialize_002dwith_002dschema-30"></a>Serialize input using schema
+</p></blockquote></div>
+
+   <p><a name="Generic_002dFunction-rest_002dserver_003aserialize"></a>
+
+<div class="defun">
+&mdash; Generic Function: <b>rest-server:serialize</b><var> element &amp;optional serializer stream<a name="index-rest_002dserver_003aserialize-31"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aserialize-32"></a>Main serialization function. Takes the element to serialize, the serializer and the output stream
+</p></blockquote></div>
+
+   <p><a name="Function-rest_002dserver_003aset_002dattribute"></a>
+
+<div class="defun">
+&mdash; Function: <b>rest-server:set-attribute</b><var> name value &amp;key serializer stream<a name="index-rest_002dserver_003aset_002dattribute-33"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aset_002dattribute-34"></a>Serializes an element attribute and value
+</p></blockquote></div>
+
+   <p><a name="Function-rest_002dserver_003astart_002dapi_002ddocumentation"></a>
+
+<div class="defun">
+&mdash; Function: <b>rest-server:start-api-documentation</b><var> api address port<a name="index-rest_002dserver_003astart_002dapi_002ddocumentation-35"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003astart_002dapi_002ddocumentation-36"></a>Start a web documentation application on the given api. 
+</p></blockquote></div>
+
+   <p><a name="Function-rest_002dserver_003astart_002dapi"></a>
+
+<div class="defun">
+&mdash; Function: <b>rest-server:start-api</b><var> api address port &amp;optional api-implementation-package<a name="index-rest_002dserver_003astart_002dapi-37"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003astart_002dapi-38"></a>Start an api at address and port. 
+   api-implementation-package: is the package where the api-functions are implemented. 
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003adefine_002dapi_002dfunction"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:define-api-function</b><var> name method options args<a name="index-rest_002dserver_003adefine_002dapi_002dfunction-39"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003adefine_002dapi_002dfunction-40"></a>Helper macro to define an api function
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003adefine_002dapi"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:define-api</b><var> name options &amp;body functions<a name="index-rest_002dserver_003adefine_002dapi-41"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003adefine_002dapi-42"></a>Define an api. 
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003adefine_002dschema"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:define-schema</b><var> name schema<a name="index-rest_002dserver_003adefine_002dschema-43"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003adefine_002dschema-44"></a>Define a schema
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003adefine_002dserializable_002dclass"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:define-serializable-class</b><var> name direct-superclasses direct-slots &amp;rest options<a name="index-rest_002dserver_003adefine_002dserializable_002dclass-45"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003adefine_002dserializable_002dclass-46"></a>Helper macro to define serializable classes
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003aimplement_002dapi_002dfunction"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:implement-api-function</b><var> name-and-options args &amp;body body<a name="index-rest_002dserver_003aimplement_002dapi_002dfunction-47"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003aimplement_002dapi_002dfunction-48"></a>Define an api function implementation
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003awith_002dapi_002dbackend"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:with-api-backend</b><var> backend &amp;body body<a name="index-rest_002dserver_003awith_002dapi_002dbackend-49"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003awith_002dapi_002dbackend-50"></a>Execute the client api function calling backend
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003awith_002dapi"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:with-api</b><var> api &amp;body body<a name="index-rest_002dserver_003awith_002dapi-51"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003awith_002dapi-52"></a>Execute body under api scope. 
+   Example:
+   (with-api test-api
+      (define-api-function get-user :get (:url-prefix "users/{id}")
+                                    '((:id :integer))))
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003awith_002dattribute"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:with-attribute</b><var> name &amp;body body<a name="index-rest_002dserver_003awith_002dattribute-53"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003awith_002dattribute-54"></a>Serializes an element attribute
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003awith_002delement"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:with-element</b><var> name &amp;body body<a name="index-rest_002dserver_003awith_002delement-55"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003awith_002delement-56"></a>Serializes a serializing element. 
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003awith_002delements_002dlist"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:with-elements-list</b><var> name &amp;body body<a name="index-rest_002dserver_003awith_002delements_002dlist-57"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003awith_002delements_002dlist-58"></a>Serializes an list of elements
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003awith_002dlist_002dmember"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:with-list-member</b><var> name &amp;body body<a name="index-rest_002dserver_003awith_002dlist_002dmember-59"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003awith_002dlist_002dmember-60"></a>Serializes a list member
+</p></blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003awith_002dserializer_002doutput"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:with-serializer-output</b><var> serializer-output &amp;body body<a name="index-rest_002dserver_003awith_002dserializer_002doutput-61"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003awith_002dserializer_002doutput-62"></a>Defines the serializer output when executing body.
+
+          <dl>
+<dt><em>Example:</em><dt><em>(with-serializer-output s</em><dd>        (with-serializer :json
+           (serialize user)))
+</dl>
+
+        </blockquote></div>
+
+   <p><a name="Macro-rest_002dserver_003awith_002dserializer"></a>
+
+<div class="defun">
+&mdash; Macro: <b>rest-server:with-serializer</b><var> serializer &amp;body body<a name="index-rest_002dserver_003awith_002dserializer-63"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003awith_002dserializer-64"></a>Execute body in serializer scope. Binds *serializer* to serializer.
+
+          <dl>
+<dt><em>Example:</em><dt><em>(with-serializer :json</em><dd>      (serialize user))
+</dl>
+
+        </blockquote></div>
+
+   <p><a name="Variable-rest_002dserver_003a_002adevelopment_002dmode_002a"></a>
+
+<div class="defun">
+&mdash; Variable: <b>rest-server:*development-mode*</b><var><a name="index-rest_002dserver_003a_002adevelopment_002dmode_002a-65"></a></var><br>
+<blockquote><p><a name="index-rest_002dserver_003a_002adevelopment_002dmode_002a-66"></a>Api development mode. One of :development, :testing, :production. Influences how errors are handled from the api
+</p></blockquote></div>
+
 <div class="node">
 <a name="References"></a>
 <p><hr>
@@ -1182,7 +1414,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 <h2 class="chapter">5 References</h2>
 
-<p><a name="index-reference-7"></a>
+<p><a name="index-reference-67"></a>
  [Common Lisp Directory]
  [Common Lisp Wiki]
 
@@ -1222,7 +1454,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Index">Index</a>
 <li><a href="#index-installation-3">installation</a>: <a href="#Installation">Installation</a></li>
 <li><a href="#index-introduction-1">introduction</a>: <a href="#Introduction">Introduction</a></li>
 <li><a href="#index-overview-6">overview</a>: <a href="#Overview">Overview</a></li>
-<li><a href="#index-reference-7">reference</a>: <a href="#References">References</a></li>
+<li><a href="#index-reference-67">reference</a>: <a href="#References">References</a></li>
 <li><a href="#index-summary-2">summary</a>: <a href="#Summary">Summary</a></li>
 </ul><div class="node">
 <a name="Class-Index"></a>
@@ -1238,6 +1470,9 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Index">Index</a>
 
 
 <ul class="index-tp" compact>
+<li><a href="#index-rest_002dserver_003aattribute-7"><code>rest-server:attribute</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003aelement-9"><code>rest-server:element</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003aserializable_002dclass-11"><code>rest-server:serializable-class</code></a>: <a href="#System-reference">System reference</a></li>
    </ul><div class="node">
 <a name="Function-%2f-Macro-Index"></a>
 <a name="Function-_002f-Macro-Index"></a>
@@ -1253,6 +1488,32 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Index">Index</a>
 
 
 <ul class="index-fn" compact>
+<li><a href="#index-rest_002dserver_003aadd_002dlist_002dmember-13"><code>rest-server:add-list-member</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003aattribute-15"><code>rest-server:attribute</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003adefine_002dapi-41"><code>rest-server:define-api</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003adefine_002dapi_002dfunction-39"><code>rest-server:define-api-function</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003adefine_002dschema-43"><code>rest-server:define-schema</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003adefine_002dserializable_002dclass-45"><code>rest-server:define-serializable-class</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003aelement-17"><code>rest-server:element</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003aelements-19"><code>rest-server:elements</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003afind_002dapi-21"><code>rest-server:find-api</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003afind_002dschema-23"><code>rest-server:find-schema</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003aimplement_002dapi_002dfunction-47"><code>rest-server:implement-api-function</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003amake_002dapi_002dfunction-25"><code>rest-server:make-api-function</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003aserializable_002dclass_002dschema-27"><code>rest-server:serializable-class-schema</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003aserialize-31"><code>rest-server:serialize</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003aserialize_002dwith_002dschema-29"><code>rest-server:serialize-with-schema</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003aset_002dattribute-33"><code>rest-server:set-attribute</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003astart_002dapi-37"><code>rest-server:start-api</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003astart_002dapi_002ddocumentation-35"><code>rest-server:start-api-documentation</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003awith_002dapi-51"><code>rest-server:with-api</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003awith_002dapi_002dbackend-49"><code>rest-server:with-api-backend</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003awith_002dattribute-53"><code>rest-server:with-attribute</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003awith_002delement-55"><code>rest-server:with-element</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003awith_002delements_002dlist-57"><code>rest-server:with-elements-list</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003awith_002dlist_002dmember-59"><code>rest-server:with-list-member</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003awith_002dserializer-63"><code>rest-server:with-serializer</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003awith_002dserializer_002doutput-61"><code>rest-server:with-serializer-output</code></a>: <a href="#System-reference">System reference</a></li>
    </ul><div class="node">
 <a name="Variable-Index"></a>
 <p><hr>
@@ -1266,5 +1527,6 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Index">Index</a>
 
 
 <ul class="index-vr" compact>
+<li><a href="#index-rest_002dserver_003a_002adevelopment_002dmode_002a-65"><code>rest-server:*development-mode*</code></a>: <a href="#System-reference">System reference</a></li>
    </ul></body></html>
 
