@@ -39,6 +39,7 @@ OTHER DEALINGS IN THE SOFTWARE."
   ((:file "package")
    (:file "rest-server")
    (:file "serialization")
+   (:file "mop")
    (:file "schema")
    (:file "error-handling")
    (:file "api")

@@ -113,6 +113,7 @@
 	 for schema-attribute in schema-attributes
 	 for input-attribute = (find (first schema-attribute) input-attributes :key #'first
 				     :test #'equalp)
+	   do
 	   (progn 
 	     (when (not input-attribute)
 	       (validation-error "Attribute ~a not found in ~a attributes" schema-attribute input))
