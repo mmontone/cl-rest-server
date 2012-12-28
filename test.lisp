@@ -529,3 +529,8 @@
        (serializable-class-schema 
 	(find-class 'serializable-user))
        *serializable-user*))))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :json
+      (serialize *serializable-user*))))

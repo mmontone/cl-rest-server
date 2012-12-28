@@ -207,3 +207,10 @@
 			   (list :toggle toggle-option))
 		   ,@(when serialization-optional
 			   (list :optional t))))))))
+
+(defmethod serialize ((object serializable-object) &optional (serializer *serializer*)
+		      (stream *serializer-output*))
+  (serialize-with-schema (serializable-class-schema (class-of object))
+			 object
+			 serializer
+			 stream))
