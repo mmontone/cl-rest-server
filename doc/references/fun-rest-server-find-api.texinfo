@@ -1,0 +1,5 @@
+@anchor{Function rest-server:find-api}
+@deffn {Function} rest-server:find-api name
+@findex rest-server:find-api
+Find api by name
+@end deffn

@@ -1,0 +1,5 @@
+@anchor{Function rest-server:elements}
+@deffn {Function} rest-server:elements name &rest elements
+@findex rest-server:elements
+Build a list of elements to be serialized
+@end deffn

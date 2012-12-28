@@ -41,7 +41,7 @@
     (funcall function)))
 
 (defmacro define-api (name options &body functions)
-  "Define an api"
+  "Define an api."
   `(progn
      (make-instance 
       'api-definition 
@@ -400,6 +400,7 @@
 		 "Argument ~a not declared in ~a" arg api-function))))
 
 (defun make-api-function (name method options args)
+  "Make an api function."
   (multiple-value-bind (required-arguments optional-arguments)
       (parse-api-function-arguments args)
     (make-instance 'api-function
@@ -422,6 +423,7 @@
     (replace-vars-in-url (url-pattern api-function) args)))
 
 (defmacro implement-api-function (name-and-options args &body body)
+  "Define an api function implementation"
   (multiple-value-bind (name options)
       (if (listp name-and-options)
 	  (values (first name-and-options)

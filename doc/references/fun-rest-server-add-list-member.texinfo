@@ -1,0 +1,5 @@
+@anchor{Function rest-server:add-list-member}
+@deffn {Function} rest-server:add-list-member name value &key serializer stream
+@findex rest-server:add-list-member
+Serializes a list member
+@end deffn

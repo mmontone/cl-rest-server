@@ -1,0 +1,5 @@
+@anchor{Function rest-server:set-attribute}
+@deffn {Function} rest-server:set-attribute name value &key serializer stream
+@findex rest-server:set-attribute
+Serializes an element attribute and value
+@end deffn

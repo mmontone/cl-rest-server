@@ -1,0 +1,5 @@
+@anchor{Generic-Function rest-server:serialize-with-schema}
+@deffn {Generic Function} rest-server:serialize-with-schema schema input &optional serializer stream
+@findex rest-server:serialize-with-schema
+Serialize input using schema
+@end deffn

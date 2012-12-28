@@ -1,0 +1,5 @@
+@anchor{Generic-Function rest-server:serialize}
+@deffn {Generic Function} rest-server:serialize element &optional serializer stream
+@findex rest-server:serialize
+Main serialization function. Takes the element to serialize, the serializer and the output stream
+@end deffn

@@ -1,0 +1,5 @@
+@anchor{Function rest-server:find-schema}
+@deffn {Function} rest-server:find-schema name &optional errorp
+@findex rest-server:find-schema
+Find a schema definition by name
+@end deffn

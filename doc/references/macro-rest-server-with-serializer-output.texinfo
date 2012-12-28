@@ -1,0 +1,15 @@
+@anchor{Macro rest-server:with-serializer-output}
+@deffn {Macro} rest-server:with-serializer-output serializer-output &body body
+@findex rest-server:with-serializer-output
+Defines the serializer output when executing body.
+ 
+
+@table @emph
+
+@item      Example: 
+@itemx      (with-serializer-output s
+        (with-serializer :json
+           (serialize user)))
+@end table
+
+@end deffn

@@ -86,6 +86,7 @@
 (defvar *schemas* (make-hash-table))
 
 (defmacro define-schema (name schema)
+  "Define a schema"
   `(setf (gethash ',name *schemas*)
 	 (schema ,schema)))
 
@@ -93,13 +94,14 @@
   `(quote ,schema-def))
 
 (defun find-schema (name &optional (errorp t))
+  "Find a schema definition by name"
   (multiple-value-bind (schema foundp)
       (gethash name *schemas*)
     (if (not foundp)
 	(if errorp
 	    (error "Schema ~a not found" name)
 	    nil)
-	schema))))
+	schema)))
 
 (defgeneric validate-with-schema (schema input)
   (:documentation "Validate input using schema")

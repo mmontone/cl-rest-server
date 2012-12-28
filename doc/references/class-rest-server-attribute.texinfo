@@ -1,0 +1,7 @@
+@anchor{Class rest-server:attribute}
+@deftp {Class} rest-server:attribute
+@tindex rest-server:attribute
+Class precedence list: @code{@w{attribute}, @w{standard-object}, @w{t}}
+
+Serializer intermediate representation element attribute class
+@end deftp

@@ -1,0 +1,5 @@
+@anchor{Macro rest-server:with-element}
+@deffn {Macro} rest-server:with-element name &body body
+@findex rest-server:with-element
+Serializes a serializing element.
+@end deffn

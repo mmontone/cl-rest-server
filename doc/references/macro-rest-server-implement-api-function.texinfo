@@ -1,0 +1,5 @@
+@anchor{Macro rest-server:implement-api-function}
+@deffn {Macro} rest-server:implement-api-function name-and-options args &body body
+@findex rest-server:implement-api-function
+Define an api function implementation
+@end deffn

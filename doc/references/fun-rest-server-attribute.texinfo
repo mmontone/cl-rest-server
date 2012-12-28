@@ -1,0 +1,5 @@
+@anchor{Function rest-server:attribute}
+@deffn {Function} rest-server:attribute name value
+@findex rest-server:attribute
+Build an element attribute to be serialized
+@end deffn

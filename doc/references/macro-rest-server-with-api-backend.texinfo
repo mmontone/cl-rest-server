@@ -1,0 +1,5 @@
+@anchor{Macro rest-server:with-api-backend}
+@deffn {Macro} rest-server:with-api-backend backend &body body
+@findex rest-server:with-api-backend
+Execute the client api function calling backend
+@end deffn

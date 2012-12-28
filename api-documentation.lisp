@@ -18,6 +18,7 @@
   (:documentation "Acceptor for api documentation application"))
 
 (defun start-api-documentation (api address port)
+  "Start a web documentation application on the given api."
   (hunchentoot:start
    (make-instance 'api-documentation-acceptor
                   :address address

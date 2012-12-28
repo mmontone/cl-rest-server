@@ -16,6 +16,11 @@
 			  function)))
 
   (defmacro with-serializer (serializer &body body)
+    "Execute body in serializer scope. Binds *serializer* to serializer.
+
+     Example:
+     (with-serializer :json
+      (serialize user))"
     `(call-with-serializer ,serializer (lambda () ,@body)))
 
   (defun call-with-serializer-output (serializer-output function)
@@ -23,6 +28,13 @@
       (funcall function)))
 
   (defmacro with-serializer-output (serializer-output &body body)
+    "Defines the serializer output when executing body.
+ 
+     Example: 
+     (with-serializer-output s
+        (with-serializer :json
+           (serialize user)))"
+  
     `(call-with-serializer-output ,serializer-output (lambda () ,@body)))
 
   ;; Generic streaming serialization api
@@ -31,23 +43,27 @@
 			   &key (serializer '*serializer*)
 			   (stream '*serializer-output*))
 			  &body body)
+    "Serializes a serializing element."
     `(call-with-element ,serializer ,name (lambda () ,@body) ,stream))
 
   (defmacro with-attribute ((name &key (serializer '*serializer*)
 				  (stream '*serializer-output*))
 			    &body body)
+    "Serializes an element attribute"
     `(call-with-attribute ,serializer ,name (lambda () ,@body) ,stream))
 
   (defmacro with-elements-list 
       ((name &key (serializer '*serializer*)
 	     (stream '*serializer-output*)) 
        &body body)
+    "Serializes an list of elements"
     `(call-with-elements-list ,serializer ,name (lambda () ,@body) ,stream))
 
   (defmacro with-list-member ((name 
 			       &key (serializer '*serializer*)
 			       (stream '*serializer-output*))
 			      &body body)
+    "Serializes a list member"
     `(call-with-list-member ,serializer ,name (lambda () ,@body) ,stream))
   )
 
@@ -60,7 +76,8 @@
          :initform (error "Provide a name for the element"))
    (attributes :initarg :attributes
                :accessor attributes
-               :initform nil)))
+               :initform nil))
+  (:documentation "Serializer intermediate representation element class"))
 
 (defclass attribute ()
   ((name :initarg :name
@@ -68,7 +85,8 @@
          :initform (error "Provide the attribute name"))
    (value :initarg :value
           :accessor value
-          :initform (error "Provide the attribute value"))))
+          :initform (error "Provide the attribute value")))
+  (:documentation "Serializer intermediate representation element attribute class"))
 
 (defclass elements-list ()
   ((name :initarg :name
@@ -76,19 +94,23 @@
          :initform (error "Provide the list name"))
    (elements :initarg :elements
              :accessor list-elements
-             :initform nil)))
+             :initform nil))
+  (:documentation "Serializer intermediate representation list of elements class"))
 
 (defun element (name &rest attributes)
+  "Build an element to be serialized"
   (make-instance 'element
                  :name name
                  :attributes attributes))
 
 (defun attribute (name value)
+  "Build an element attribute to be serialized"
   (make-instance 'attribute
                  :name name
                  :value value))
 
 (defun elements (name &rest elements)
+  "Build a list of elements to be serialized"
   (make-instance 'elements-list
                  :name name
                  :elements elements))
@@ -106,6 +128,9 @@
       (funcall function))))
 
 ;; Serializer format plug
+
+(DEFGENERIC SERIALIZE (ELEMENT &OPTIONAL (REST-SERVER::SERIALIZER) (STREAM))
+  (:documentation "Main serialization function. Takes the element to serialize, the serializer and the output stream"))
 
 (defmethod serialize ((element element) &optional (serializer *serializer*) (stream *serializer-output*))
   (serialize-element serializer element stream))
@@ -264,6 +289,7 @@
 
 (defun set-attribute (name value &key (serializer *serializer*)
 		      (stream *serializer-output*))
+  "Serializes an element attribute and value"
   (with-attribute (name :serializer serializer
 			:stream stream)
     (serialize value serializer stream)))
@@ -310,6 +336,7 @@
 
 (defun add-list-member (name value &key (serializer *serializer*)
 			(stream *serializer-output*))
+  "Serializes a list member"
   (with-list-member (name :serializer serializer
 				 :stream stream)
     (serialize value serializer stream)))

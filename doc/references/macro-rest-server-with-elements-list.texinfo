@@ -1,0 +1,5 @@
+@anchor{Macro rest-server:with-elements-list}
+@deffn {Macro} rest-server:with-elements-list name &body body
+@findex rest-server:with-elements-list
+Serializes an list of elements
+@end deffn

@@ -1,0 +1,9 @@
+@anchor{Macro rest-server:with-api}
+@deffn {Macro} rest-server:with-api api &body body
+@findex rest-server:with-api
+Execute body under api scope.
+   Example:
+   (with-api test-api
+      (define-api-function get-user :get (:url-prefix "users/@{id@}")
+                                    '((:id :integer))))
+@end deffn

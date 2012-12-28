@@ -7,7 +7,8 @@
   ((serialization-name :initarg :serialization-name
 		       :accessor serialization-name
 		       :type symbol
-		       :initform nil)))
+		       :initform nil))
+  (:documentation "Metaclass for serializable objects"))
 
 (defclass serializable-slot-definition (standard-slot-definition)
   ((serializable
@@ -177,6 +178,7 @@
 	(serializable-slots object)))
 
 (defmacro define-serializable-class (name direct-superclasses direct-slots &rest options)
+  "Helper macro to define serializable classes"
   `(defclass ,name ,direct-superclasses
      ,direct-slots
      (:metaclass serializable-class)
