@@ -491,7 +491,13 @@
    (best-friend :initarg :best-friend
 		:accessor best-friend
 		:initform nil
-		:serialization-type user-schema))
+		:serialization-type user-schema
+		:serialization-optional t)
+   (another-friend :initarg :another-friend
+		   :accessor another-friend
+		   :initform nil
+		   :serialization-type serializable-user
+		   :serialization-optional t))
   (:metaclass serializable-class)
   (:serialization-name user))
 
@@ -505,9 +511,14 @@
 		 :groups (list (make-instance 'group
 					      :name "My group"
 					      :id 3))
-		 :best-friend (make-instance 'user 
+		 :best-friend (make-instance 'serializable-user 
 					     :id 3
 					     :realname "Fernando"
+					     :age 31
+					     )
+		 :another-friend (make-instance 'serializable-user 
+					     :id 3
+					     :realname "Julio"
 					     :age 31
 					     )))
 

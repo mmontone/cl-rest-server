@@ -40,9 +40,18 @@
 	    ((keywordp attribute-type)
 	     (serialize attribute-value serializer stream))
 	    ((symbolp attribute-type)
-	     ;; It is a schema reference
-	     (let ((attribute-schema (find-schema attribute-type)))
-	       (%serialize-with-schema attribute-schema serializer attribute-value stream)))
+	     ;; It is a schema reference or a serializable class reference
+	     (let ((attribute-schema (find-schema attribute-type nil)))
+	       (if attribute-schema
+		   (%serialize-with-schema attribute-schema serializer attribute-value stream)
+		   ; else, try with a serializable class reference
+		   (let ((serializable-class (find-class attribute-type nil)))
+		     (if (and serializable-class
+			      (typep serializable-class 'serializable-class))
+			 (%serialize-with-schema (serializable-class-schema serializable-class)
+						 serializer attribute-value stream)
+			 ; else
+			 (error "Could not resolve reference ~A when serializing" attribute-type))))))
 	    ((listp attribute-type)
 	     (%serialize-with-schema attribute-type
 				     serializer
@@ -83,12 +92,14 @@
 (defmacro schema (schema-def)
   `(quote ,schema-def))
 
-(defun find-schema (name)
+(defun find-schema (name &optional (errorp t))
   (multiple-value-bind (schema foundp)
       (gethash name *schemas*)
     (if (not foundp)
-	(error "Schema ~a not found" name)
-	schema)))
+	(if errorp
+	    (error "Schema ~a not found" name)
+	    nil)
+	schema))))
 
 (defgeneric validate-with-schema (schema input)
   (:documentation "Validate input using schema")

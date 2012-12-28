@@ -29,6 +29,11 @@
     :type (or string symbol)
     :accessor serialization-name
     :initarg :serialization-name)
+   (serialization-optional
+    :initform nil
+    :type boolean
+    :accessor serialization-optional
+    :initarg :serialization-optional)
    (toggle-option
     :initform nil
     :type symbol
@@ -77,10 +82,11 @@
 	    (serialization-type direct-slot)
 	    (serialization-accessor effective-slot) 
 	    (serialization-accessor direct-slot)
+	    (serialization-optional effective-slot)
+	    (serialization-optional direct-slot)
 	    (toggle-option effective-slot)
 	    (toggle-option direct-slot)))
     effective-slot))
-
 
 ;; Inheritance
 
@@ -191,10 +197,13 @@
 					     (slot-definition-name slot)))
 		     (serialization-accessor (serialization-accessor slot))
 		     (toggle-option (toggle-option slot))
-		     (serialization-type (serialization-type slot)))
+		     (serialization-type (serialization-type slot))
+		     (serialization-optional (serialization-optional slot)))
 		 `(,serialization-name 
 		   ,serialization-type
 		   ,@(when serialization-accessor
 			   (list :accessor serialization-accessor))
 		   ,@(when toggle-option
-			   (list :toggle toggle-option))))))))
+			   (list :toggle toggle-option))
+		   ,@(when serialization-optional
+			   (list :optional t))))))))
