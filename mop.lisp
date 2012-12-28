@@ -4,7 +4,10 @@
   ())
 
 (defclass serializable-class (standard-class)
-  ())
+  ((serialization-name :initarg :serialization-name
+		       :accessor serialization-name
+		       :type symbol
+		       :initform nil)))
 
 (defclass serializable-slot-definition (standard-slot-definition)
   ((serializable
@@ -16,10 +19,10 @@
     :initform nil
     :accessor serialization-type
     :initarg :serialization-type)
-   (serialize-accessor
+   (serialization-accessor
     :initform nil
     :type function
-    :accessor serialize-accessor
+    :accessor serialization-accessor
     :initarg :serialize-accessor)
    (serialization-name
     :initform nil
@@ -48,6 +51,36 @@
 (defmethod effective-slot-definition-class ((class serializable-class) &rest initargs)
   (declare (ignore initargs))
   (find-class 'serializable-effective-slot-definition))
+
+(defmethod initialize-instance :after ((serializable-slot serializable-direct-slot-definition) &rest initargs)
+  (declare (ignore initargs))
+  (assert (or (not (serializable-slot-p serializable-slot))
+	      (serialization-type serializable-slot))
+	  nil
+	  "Provide the serialization type for slot ~A" serializable-slot))
+
+(defmethod compute-effective-slot-definition ((class serializable-class)
+                                              slot-name direct-slots)
+  (declare (ignore slot-name))
+  (let ((effective-slot (call-next-method))
+	(direct-slots (remove-if-not (lambda (slot)
+				       (typep slot 'serializable-direct-slot-definition))
+				     direct-slots)))
+    (unless (null (cdr direct-slots))
+      (error "More than one :serialize specifier"))
+    (let ((direct-slot (car direct-slots)))
+      (setf (serializable-slot-p effective-slot)
+            (serializable-slot-p direct-slot)
+	    (serialization-name effective-slot)
+	    (serialization-name direct-slot)
+	    (serialization-type effective-slot)
+	    (serialization-type direct-slot)
+	    (serialization-accessor effective-slot) 
+	    (serialization-accessor direct-slot)
+	    (toggle-option effective-slot)
+	    (toggle-option direct-slot)))
+    effective-slot))
+
 
 ;; Inheritance
 
@@ -136,3 +169,32 @@
   (some (lambda (slot)
 	  (equalp (slot-value slot 'sb-pcl::name) slot-name))
 	(serializable-slots object)))
+
+(defmacro define-serializable-class (name direct-superclasses direct-slots &rest options)
+  `(defclass ,name ,direct-superclasses
+     ,direct-slots
+     (:metaclass serializable-class)
+     ,@options))
+
+(defun serializable-class-schema (serializable-class)
+  "Generate a schema using the serializable class meta info"
+  (let ((serialization-name 
+	 (or (and (serialization-name serializable-class)
+		  (first (serialization-name serializable-class)))
+	     (class-name serializable-class))))
+    (list :element serialization-name
+	  (loop for slot in (class-slots serializable-class)
+	     when (and (typep slot 'serializable-effective-slot-definition)
+		       (serializable-slot-p slot))
+	     collect
+	       (let ((serialization-name (or (serialization-name slot)
+					     (slot-definition-name slot)))
+		     (serialization-accessor (serialization-accessor slot))
+		     (toggle-option (toggle-option slot))
+		     (serialization-type (serialization-type slot)))
+		 `(,serialization-name 
+		   ,serialization-type
+		   ,@(when serialization-accessor
+			   (list :accessor serialization-accessor))
+		   ,@(when toggle-option
+			   (list :toggle toggle-option))))))))

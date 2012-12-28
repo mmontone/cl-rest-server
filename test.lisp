@@ -470,3 +470,51 @@
 		 (prin1-to-string parsed-input-2))
 	 (equalp (prin1-to-string parsed-input-2)
 		 (prin1-to-string parsed-input-3)))))))
+
+(defclass serializable-user ()
+  ((id :initarg :id
+       :accessor id
+       :serialize t
+       :serialization-type :integer)
+   (realname :initarg :realname
+	     :accessor realname
+	     :initform (error "Provide the realname")
+	     :serialization-type :string)
+   (age :initarg :age
+	:accessor age
+	:initform (error "Provide the age")
+	:serialization-type :integer)
+   (groups :initarg :groups
+	   :accessor groups
+	   :initform nil
+	   :serialization-type (:list group-schema))
+   (best-friend :initarg :best-friend
+		:accessor best-friend
+		:initform nil
+		:serialization-type user-schema))
+  (:metaclass serializable-class)
+  (:serialization-name user))
+
+(serializable-class-schema (find-class 'serializable-user))
+
+(defparameter *serializable-user* 
+  (make-instance 'serializable-user
+		 :realname "Mariano"
+		 :id 2
+		 :age 30
+		 :groups (list (make-instance 'group
+					      :name "My group"
+					      :id 3))
+		 :best-friend (make-instance 'user 
+					     :id 3
+					     :realname "Fernando"
+					     :age 31
+					     )))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :json
+      (serialize-with-schema 
+       (serializable-class-schema 
+	(find-class 'serializable-user))
+       *serializable-user*))))

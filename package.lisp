@@ -46,4 +46,7 @@
 	   #:serialize-with-schema
 	   #:find-schema
 	   #:schema
-	   #:define-schema))
+	   #:define-schema
+	   #:serializable-class
+	   #:define-serializable-class
+	   #:serializable-class-schema))
