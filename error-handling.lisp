@@ -39,6 +39,11 @@
   (:default-initargs
    :status-code 403))
 
+(define-condition http-service-unavailable (http-error)
+  ()
+  (:default-initargs
+   :status-code 503))
+
 (define-condition http-unsupported-media-type-error (http-error)
   ()
   (:default-initargs
@@ -79,21 +84,35 @@
   ()
   (:documentation "Inherit your condition from this if you dont want your condition to be catched by the error handler. (.i.e validation-errors to be serialized to the server, always)"))
 
+(defmethod http-return-code (condition)
+  hunchentoot:+http-ok+)
+
+(defmethod http-return-code ((condition http-error))
+  (status-code condition))
+
+(defmethod http-return-code ((condition error))
+  hunchentoot:+http-internal-server-error+)
+
+(defmethod setup-reply-from-error ((condition http-error))
+  (setf (hunchentoot:return-code*) (http-return-code condition)))
+
+(defvar *retry-after-seconds* 5)
+
+(defmethod setup-reply-from-error ((error http-service-unavailable))
+  "We add a retry-after header for the user to try again. The retry-after header value is in seconds"
+  (call-next-method)
+  (setf (hunchentoot:header-out "Retry-After") *retry-after-seconds*))
+
 (defun %with-condition-handling (function)
-  (labels ((http-return-code (condition)
-             (cond
-	       ((typep condition 'http-error) (status-code condition))
-               ((typep condition 'error) hunchentoot:+http-internal-server-error+)
-               (t hunchentoot:+http-ok+)))
-	   (serialize-condition (condition)
+  (labels ((serialize-condition (condition)
 	     (with-output-to-string (s)
 	       (with-serializer-output s
 		 (with-serializer *default-serializer*
 		   (serialize condition)))))
            (handle-condition (condition)
              (if (equalp *development-mode* :production)
-		 (setf (hunchentoot:return-code*) (http-return-code condition))
-					; else, we are in :testing, serialize the condition
+		 (setup-reply-from-error condition)
+		 ; else, we are in :testing, serialize the condition
 		 (serialize-condition condition))))
     (if (equalp *development-mode* :development)
 	(handler-case (funcall function)
