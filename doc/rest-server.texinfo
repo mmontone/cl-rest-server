@@ -83,13 +83,13 @@ This is rest-server Common Lisp library documentation
 @menu
 * Introduction::                        What is rest-server?
 * Overview::                            A rest-server overview
+* Error handling::                      Error handling
 * Example::                             An api example
 * System reference::                    The system reference
 * References::                          Related work
 * Index::                               Complete index.
 
 @detailmenu
- --- The Detailed Node Listing ---
 
 Introduction
 
@@ -99,6 +99,8 @@ Introduction
 * Conventions::                 Type-setting conventions in the manual
 
 Overview
+
+Error handling
 
 Example
 
@@ -215,6 +217,21 @@ http://swagger.wordnik.com/
 - Good source of ideas:
 http://django-rest-framework.org/
 http://www.restlet.org/
+
+@node Error handling
+@chapter Error handling
+
+Error handling is controlled by the %with-condition-handling function, that is supposed to be private. The user api is the with-condition-handling macro.
+
+The way condition handling is done is controlled by the *development-mode* variable. Its valid values are :development, :production and :testing.
+
+When in :development program errors and conditions are not serialized or returned to the server in any way, but they are left unhandled.
+
+In :testing program errors are serialized to the server.
+
+And in :production, program errors are not serialized, but the request status header is modify according to the error. In general, on a program error a 500 internal server error is returned. There are special conditions, like http-not-found-error, http-internal-server-error, http-authorization-required-error, http-forbidden-error, http-service-unavailable-error, http-unsupported-media-type-error (all http-error subclasses), that should be signaled for the client to get the correct HTTP status code.
+
+There is also special harmless-condition. Conditions from that family (subclasses) are never handled by the default error handler.
 
 @node Example
 @chapter Example
