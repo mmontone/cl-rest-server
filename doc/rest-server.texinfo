@@ -258,6 +258,8 @@ Purpose of the library:
 @node API definition and implementation
 @chapter API definition and implementation
 
+APIs are defined using the define-api macro.
+
 @node Serialization
 @chapter Serialization
 
@@ -282,44 +284,49 @@ There is also special harmless-condition. Conditions from that family (subclasse
 @node Example
 @chapter Example
 
+First, let's define a very simple model to work with. It is a CRUD on application users:
+
 @example
 
-(in-package :rest-server)
+(defpackage :model-test
+  (:use :cl)
+  (:export :get-user
+	   :all-users
+	   :add-user
+	   :update-user))
 
-(defparameter *element*
-  (element "user"
-           (attribute "id" 22)
-           (attribute "realname" "Mike")
-           (attribute "groups"
-                      (elements "groups"
-                                (element "group"
-                                         (attribute "id" 33)
-                                         (attribute "title" "My group"))))))
+(in-package :model-test)
 
-(with-serializer-output t
-  (with-serializer :json
-    (serialize *element*)))
+(defvar *users* nil)
 
-(with-output-to-string (s)
-  (with-serializer-output s
-    (with-serializer :json
-      (serialize *element*))))
+(defun make-user (id realname)
+  (list (cons :id id)
+	(cons :realname realname)))
 
-(cxml:with-xml-output (cxml:make-character-stream-sink t :indentation nil :omit-xml-declaration-p t)
-  (with-serializer-output t
-    (with-serializer :xml
-      (serialize *element*))))
+(defun add-user (user)
+  (push (cons (cdr (assoc :id user))
+	      user)
+	*users*))
 
-(with-output-to-string (s)
-  (with-serializer-output s
-    (with-serializer :xml
-      (cxml:with-xml-output (cxml:make-character-stream-sink s :indentation nil :omit-xml-declaration-p t)
-        (serialize *element*)))))
+(defun update-user (user)
+  (let ((user-id (cdr (assoc :id user))))
+    (delete-user user-id)
+    (add-user user)))
 
-(with-serializer-output t
-  (with-serializer :sexp
-    (serialize *element*)))
+(defun get-user (id)
+  (cdr (assoc id *users*)))
 
+(defun delete-user (id)
+  (setf *users* (delete id *users* :test #'equalp :key #'first)))
+
+(defun all-users ()
+  (mapcar #'cdr *users*))
+
+@end example
+
+Now we can define an api to do CRUD operations to that model via HTTP:
+
+@example
 (defpackage :api-test
   (:use :rest-server :cl))
 
@@ -354,28 +361,39 @@ There is also special harmless-condition. Conditions from that family (subclasse
                  :uri-prefix "/users/@{id@}"
                  :documentation "Delete a user")
                ((id :string "The user id"))))
+@end example
+
+Now we have the API defined, but it is not actually implemented yet. To implement it, we define a new package.
+
+@example
 
 (defpackage :api-test-implementation
   (:use :cl :rest-server))
 
 (in-package :api-test-implementation)
 
-(defun get-users (&key (expand-groups nil))
-  (list "user1" "user2" "user3" expand-groups))
+(implement-api-function get-users (&key (expand-groups nil))
+  (declare (ignore expand-groups))
+  (with-output-to-string (s)
+    (with-serializer-output s
+      (with-serializer (rest-server::accept-serializer)
+	(with-elements-list ("users")
+	  (loop for user in (model-test:all-users)
+	     do
+	       (with-element ("user")
+		 (set-attribute "id" (cdr (assoc :id user)))
+		 (set-attribute "realname" (cdr (assoc :realname user))))))))))       
 
 (implement-api-function (get-user :serialization t)
     (id &key (expand-groups nil))
   (declare (ignore expand-groups))
-  (element "user"
-	   (attribute "id" id)
-           (attribute "groups"
-                      (elements "groups"
-                                (element "group"
-                                         (attribute "id" 22)
-                                         (attribute "name" "Group 1"))
-                                (element "group"
-                                         (attribute "id" 33)
-                                         (attribute "name" "Group 2"))))))
+  (let ((user (model-test:get-user id)))
+    (if (not user)
+	(error 'http-not-found-error)
+	; else
+	(element "user"
+		 (attribute "id" (cdr (assoc :id user)))
+		 (attribute "realname" (cdr (assoc :realname user)))))))
 
 (defun create-user (posted-content)
   (format nil "Create user: ~A" posted-content))
