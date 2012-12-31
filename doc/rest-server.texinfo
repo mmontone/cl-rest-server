@@ -1,7 +1,7 @@
 \input texinfo   @c -*-texinfo-*-
 @c %**start of header
 @setfilename rest-server.info
-@settitle rest-server - A configuration library for Common Lisp
+@settitle rest-server - A library for providing REST APIs in Common Lisp
 
 @set VERSION 0.1
 @set DATE January 2011
@@ -17,7 +17,7 @@
 @ifinfo
 @format
 START-INFO-DIR-ENTRY
-* rest-server: (rest-server.info). A configuration library for Common Lisp.
+* rest-server: (rest-server.info). A library for providing REST APIs in Common Lisp.
 END-INFO-DIR-ENTRY
 @end format
 @end ifinfo
@@ -74,10 +74,7 @@ license to the document, as described in section 6 of the license.
 
 @ifnottex
 @node Top
-@top rest-server - A configuration library for Common Lisp
-
-This is rest-server Common Lisp library documentation
-
+@top Contents
 @end ifnottex
 
 @menu
@@ -87,6 +84,7 @@ This is rest-server Common Lisp library documentation
 * Serialization::                       Serialization
 * Schemas::                             Schemas
 * Error handling::                      Error handling
+* Authentication::                      Authentication
 * Example::                             An api example
 * System reference::                    The system reference
 * References::                          Related work
@@ -105,11 +103,16 @@ Overview
 
 API definition and implementation
 
+* API definition::              API definition
+* API implementation::          API implementation
+
 Serialization
 
 Schemas
 
 Error handling
+
+Authentication
 
 Example
 
@@ -257,8 +260,84 @@ Purpose of the library:
 
 @node API definition and implementation
 @chapter API definition and implementation
+@cindex API
+
+This chapter is about APIs definitions and its implementation.
+
+@menu
+* API definition::              API definition
+* API implementation::          API implementation
+@end menu
+
+@node API definition
+@section API definiton
 
 APIs are defined using the define-api macro.
+
+This is the syntax:
+
+@example
+(define-api <api-name> <options-plist>
+    &rest
+    <api-function-definition>)
+@end example
+
+where some common options are:
+
+@itemize @bullet
+@item @code{:documentation} The api docstring
+@item @code{:content-types} Globally accepted content types. Valid content-types are :json, :xml, :html and :sexp
+@end itemize
+
+and
+
+@example
+<api-function-definition> := (<api-function-name> <api-function-options> <api-function-arguments>)
+@end example
+
+with required api-function options:
+
+@itemize @bullet
+@item @code{:method}. The HTTP method. One of :get, :post, :put, :delete
+@item @code{:uri-prefix}. The api function uri prefix. Should start with ``/'', and encloses required arguments between @{ and @}. Example: ``/users/@{id@}''
+@item @code{:documentation}. The api function documentation string.  
+@end itemize
+
+and @code{<api-function-arguments>} being a lambda-list like list with support for @code{&optional} arguments, but no keyword arguments. Besides, each argument declaration has the form @code{(<argument-name> <argument-type> <argument-docstring>)} for required arguments and @code{(<argument-name> <argument-type> <default-value> <argument-docstring>)} for optional values.
+
+Example:
+
+@example
+(get-user (:method :get
+           :content-types (list :json)
+           :uri-prefix "/users/@{id@}"
+           :documentation "Retrive an user")
+            ((id :string "The user id")
+             &optional (expand-groups :boolean nil "Expand groups if true")))
+@end example
+
+@node API implementation
+@section API implementation
+@cindex API
+
+The API is supposed to be implemented in a separate package, using the @code{implement-api-function} macro. Arguments are injected with parsed values (using the argument type in the declaration). Besides, optional arguments in the declaration are assumed to be keyword arguments in the implementation. When the HTTP method is POST, or PUT, the variable name posted-content is filled with the HTTP request posted content.
+
+For instance, when updating a user, we had the following api function declaration:
+
+@example
+(update-user (:method :put
+              :content-types (list :json)
+              :uri-prefix "/users/@{id@}"
+              :documentation "Update a user")
+          ((id :string "The user id")))
+@end example
+
+To implement that api function, we do:
+
+@example
+(implement-api-function update-user (posted-content id)
+  (format nil "Update user: ~A ~A" id posted-content))
+@end example
 
 @node Serialization
 @chapter Serialization
@@ -280,6 +359,9 @@ In :testing program errors are serialized to the server.
 And in :production, program errors are not serialized, but the request status header is modify according to the error. In general, on a program error a 500 internal server error is returned. There are special conditions, like http-not-found-error, http-internal-server-error, http-authorization-required-error, http-forbidden-error, http-service-unavailable-error, http-unsupported-media-type-error (all http-error subclasses), that should be signaled for the client to get the correct HTTP status code.
 
 There is also special harmless-condition. Conditions from that family (subclasses) are never handled by the default error handler.
+
+@node Authentication
+@chapter Authentication
 
 @node Example
 @chapter Example
