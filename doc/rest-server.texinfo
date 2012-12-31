@@ -83,6 +83,9 @@ This is rest-server Common Lisp library documentation
 @menu
 * Introduction::                        What is rest-server?
 * Overview::                            A rest-server overview
+* API definition and implementation::   API definition and implementation
+* Serialization::                       Serialization
+* Schemas::                             Schemas
 * Error handling::                      Error handling
 * Example::                             An api example
 * System reference::                    The system reference
@@ -99,6 +102,12 @@ Introduction
 * Conventions::                 Type-setting conventions in the manual
 
 Overview
+
+API definition and implementation
+
+Serialization
+
+Schemas
 
 Error handling
 
@@ -166,57 +175,94 @@ REST-SERVER is a Common Lisp library for implementing REST APIs servers.
 
 Purpose of the library:
 
-* Method matching
-- Based on HTTP method (GET, PUT, POST, DELETE)
-- Based on Accept request header
-- URL parsing (argument types)
-- Matching based on "extension": i.e. /users.json or /users.xml, etc
-- Method combinations?
+@itemize @bullet
+@item Method matching
+@itemize @minus
+@item Based on HTTP method (GET, PUT, POST, DELETE)
+@item Based on Accept request header
+@item URL parsing (argument types)
+@item Matching based on "extension": i.e. /users.json or /users.xml, etc
+@item Method combinations?
+@end itemize
 
-* Serialization
-- Different serialization types (JSON, XML, S-expressions)
+@item Serialization
 
-* Materialization (unserialization)
-- Types
+@itemize @minus
+@item Different serialization types (JSON, XML, S-expressions)
+@end itemize
 
-* Error handling
-- Condition serialization
-- Error codes configuration
+@item Materialization (unserialization)
 
-* Validation
-- Types
-- Schemas (JSON, XML schemas)
+@itemize @minus
+@item Types
+@end itemize
 
-* Versioning
-Support for api versioning?
+@item Error handling
 
-* Logging
+@itemize @minus
+@item Condition serialization
+@item Error codes configuration
+@end itemize
 
-* Cache handling
+@item Validation
+@itemize @minus
+@item Types
+@item Schemas (JSON, XML schemas)
+@end itemize
 
-* Extensible
-- Backends (JSON, XML, etc)
-- Types
-- Validation
+@item Versioning
+@itemize @minus
+@item Support for api versioning?
+@end itemize
 
-* Authentication
-- Different methods (token based, oauth)
-- Avoid changing the api interface spec because of this
+@item Logging
 
-* Modes
-- Debugging mode -> outputs full error serialization/backtrace
-- Production -> 500 internal server error
+@item Cache handling
 
-* Documentation
-- For the (lisp) developer
-- For the api consumer:
-https://github.com/mashery/iodocs
-http://swagger.wordnik.com/
+@item Extensible
+@itemize @minus
+@item Backends (JSON, XML, etc)
+@item Types
+@item Validation
+@end itemize
 
-* Resources
-- Good source of ideas:
-http://django-rest-framework.org/
-http://www.restlet.org/
+@item Authentication
+@itemize @minus
+@item Different methods (token based, oauth)
+@item Avoid changing the api interface spec because of this
+@end itemize
+
+@item Modes
+@itemize @minus
+@item Debugging mode -> outputs full error serialization/backtrace
+@item Production -> 500 internal server error
+@end itemize
+
+@item Documentation
+@itemize @minus
+@item For the (lisp) developer
+@item For the api consumer:
+@item https://github.com/mashery/iodocs
+@item http://swagger.wordnik.com/
+@end itemize
+
+@item Resources
+@itemize @minus
+@item Good source of ideas:
+@item http://django-rest-framework.org/
+@item http://www.restlet.org/
+@end itemize
+
+@end itemize
+
+@node API definition and implementation
+@chapter API definition and implementation
+
+@node Serialization
+@chapter Serialization
+
+@node Schemas
+@chapter Schemas
 
 @node Error handling
 @chapter Error handling
@@ -289,7 +335,7 @@ There is also special harmless-condition. Conditions from that family (subclasse
              (&optional (expand-groups :boolean nil "Expand groups if true")))
   (get-user (:method :get
              :content-types (list :json)
-             :uri-prefix "/users/{id}"
+             :uri-prefix "/users/@{id@}"
              :documentation "Retrive an user")
             ((id :string "The user id")
              &optional (expand-groups :boolean nil "Expand groups if true")))
@@ -300,12 +346,12 @@ There is also special harmless-condition. Conditions from that family (subclasse
                ())
   (update-user (:method :put
                  :content-types (list :json)
-                 :uri-prefix "/users/{id}"
+                 :uri-prefix "/users/@{id@}"
                  :documentation "Update a user")
                ((id :string "The user id")))
   (delete-user (:method :delete
                  :content-types (list :json)
-                 :uri-prefix "/users/{id}"
+                 :uri-prefix "/users/@{id@}"
                  :documentation "Delete a user")
                ((id :string "The user id"))))
 
