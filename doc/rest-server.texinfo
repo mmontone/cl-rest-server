@@ -379,22 +379,139 @@ And the log output:
 
 @node Serialization
 @chapter Serialization
+@cindex serialization
+
+Our purpose is to handle serialization/unserialization of data in a format independent way. That means, the developer shouldn't need change the code if the client is requesting or transferring data in JSON, XML or any other supported format.
+
+There are two ways by which the library trys to achieve that: an intermediate representation, that can be later serialized/unserialized to the desired format; and a generic streaming serialization API: generic operations for serializing data in a format independent way directly to a stream.
+
+@menu
+* General serialization interface::                     General serialization interface
+* Serialization intermediate representation::           Serialization intermediate representation
+* Generic streaming serialization API::                 Generic streaming serialization API
+@end menu
+
+@node General serialization interface
+@section General serialization interface
+
+Serialization output is controlled by the @code{*serializer-output*} variable, via the @code{with-serializer-output} macro.
+
+Serialization format is selected by the @code{*serializer*} variable, via the @code{with-serializer} macro. The built-in serializers are :json for JSON, :xml for XML, :sexp for Lisp SExpressions and :html for HTML.
+
+Example:
+
+@example
+(with-serializer-output s
+   (with-serializer :json     
+       (serialize *element*)))
+@end example
+
+@node Serialization intermediate representation
+@section Serialization intermediate representation
+@cindex intermediate representation
+
+Intermediate representation objects are created via the @code{element}, @code{attribute} and @code{elements} macros.
+
+Example:
+
+@example
+(defparameter *user*
+  (element "user"
+	   (attribute "id" 22)
+	   (attribute "realname" "Mike")
+	   (attribute "groups"
+		      (elements "groups"
+				(element "group"
+					 (attribute "id" 33)
+					 (attribute "title" "My group"))))))
+@end example
+
+We can then serialize that:
+
+@example
+(with-output-to-string (s)
+   (with-serializer-output s
+     (with-serializer :json
+       (serialize *element*))))
+=>
+
+"@{\"id\":22,\"realname\":\"Mike\",\"groups\":[@{\"id\":33,\"title\":\"My group\"@}]@}"
+@end example
+
+@example
+(with-output-to-string (s)
+  (with-serializer-output s
+     (with-serializer :xml
+       (serialize *element*))))
+=>
+
+"<user><id>22</id><realname>\"Mike\"</realname><groups><group><id>33</id><title>\"My group\"</title></group></groups></user>"
+@end example
+
+@node Generic streaming serialization API
+@section Generic streaming serialization API
+
+Insted of building an intermediate representation first, and then serializing it, we can serialize our data directly to a stream via an abstract generic interface.
+
+The macros to be used in this case are @code{with-element}, @code{with-attribute} and @code{set-attribute}, @code{with-elements-list}, @code{with-list-member}.
+
+Example:
+
+@example
+(defparameter *streamed-element*
+  (lambda ()
+    (with-element ("user")
+      (set-attribute "id" 22)
+      (with-attribute ("realname")
+	(serialize "Mike"))
+      (with-attribute ("groups")
+	(with-elements-list ("groups")
+	  (with-list-member ("group")
+	    (with-element ("group")
+	      (set-attribute "id" 33)
+	      (set-attribute "title" "My group"))))))))
+@end example
+
+@example
+
+(with-output-to-string (s)
+   (with-serializer-output s
+     (with-serializer :json
+       (funcall *streamed-element*))))
+
+=>
+
+"@{\"id\":22,\"realname\":\"Mike\",\"groups\":[@{\"id\":33,\"title\":\"My group\"@}]@}"
+@end example
+
+@example
+(with-output-to-string (s)
+	   (with-serializer-output s
+	     (with-serializer :xml
+	       (funcall *streamed-element*))))
+
+=>
+
+"<user><id>22</id><realname>\"Mike\"</realname><groups><group><group><id>33</id><title>\"My group\"</title></group></group></groups></user>"
+@end example
 
 @node Schemas
 @chapter Schemas
+@cindex schema
 
 @node Error handling
 @chapter Error handling
+@cindex error
 
-Error handling is controlled by the %with-condition-handling function, that is supposed to be private. The user api is the with-condition-handling macro.
+Error handling is controlled by the @code{%with-condition-handling} function, that is supposed to be private. The user api is the @code{with-condition-handling} macro.
 
-The way condition handling is done is controlled by the *development-mode* variable. Its valid values are :development, :production and :testing.
+The way condition handling is done is controlled by the @code{*development-mode*} variable. Its valid values are @code{:development}, @code{:production} and @code{:testing}.
 
-When in :development program errors and conditions are not serialized or returned to the server in any way, but they are left unhandled.
+When in @code{:development} program errors and conditions are not serialized or returned to the server in any way, but they are left unhandled.
 
-In :testing program errors are serialized to the server.
+In @code{:testing} program errors are serialized to the server.
 
-And in :production, program errors are not serialized, but the request status header is modify according to the error. In general, on a program error a 500 internal server error is returned. There are special conditions, like http-not-found-error, http-internal-server-error, http-authorization-required-error, http-forbidden-error, http-service-unavailable-error, http-unsupported-media-type-error (all http-error subclasses), that should be signaled for the client to get the correct HTTP status code.
+And in @code{:production}, program errors are not serialized, but the request status header is modify according to the error. In general, on a program error a 500 internal server error is returned. There are special conditions, like http-not-found-error, http-internal-server-error, http-authorization-required-error, http-forbidden-error, http-service-unavailable-error, http-unsupported-media-type-error (all http-error subclasses), that should be signaled for the client to get the correct HTTP status code.
 
 There is also special harmless-condition. Conditions from that family (subclasses) are never handled by the default error handler.
 
