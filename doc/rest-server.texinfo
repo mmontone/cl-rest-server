@@ -403,6 +403,7 @@ There are two ways by which the library trys to achieve that: an intermediate re
 * General serialization interface::                     General serialization interface
 * Serialization intermediate representation::           Serialization intermediate representation
 * Generic streaming serialization API::                 Generic streaming serialization API
+* Serializable CLOS objects::                           Serializable CLOS objects
 @end menu
 
 @node General serialization interface
@@ -507,6 +508,96 @@ Example:
 =>
 
 "<user><id>22</id><realname>\"Mike\"</realname><groups><group><group><id>33</id><title>\"My group\"</title></group></group></groups></user>"
+@end example
+
+@node Serializable CLOS objects
+@section Serializable CLOS objects
+@cindex CLOS, MOP, serializable-class
+
+CLOS objects can be annotated with serialization meta information via the @code{serializable-class} metaclass or using the @code{define-serializable-class} macro for defining classes.
+
+The serializable-class class supports the following slot options:
+
+@itemize @bullet
+@item @code{:serialize}. Boolean. Whether serialize the slot or not. Default: nil.
+@item @code{:serialization-type}. One of :integer, :string, :boolean, (:list <type>), a class name, or a schema name. The type of the slot to be serialized. This slot option is required if slot serialization was enabled.
+@item @code{:serialization-optional}. Boolean. If true, serialization won't fail if the slot is null.
+@end itemize
+
+Example:
+
+We define a class with metaclass serializable-class:
+
+@example
+(defclass serializable-user ()
+  ((id :initarg :id
+       :accessor id
+       :serialize t
+       :serialization-type :integer)
+   (realname :initarg :realname
+	     :accessor realname
+	     :initform (error "Provide the realname")
+	     :serialization-type :string)
+   (age :initarg :age
+	:accessor age
+	:initform (error "Provide the age")
+	:serialization-type :integer)
+   (groups :initarg :groups
+	   :accessor groups
+	   :initform nil
+	   :serialization-type (:list group-schema))
+   (best-friend :initarg :best-friend
+		:accessor best-friend
+		:initform nil
+		:serialization-type user-schema
+		:serialization-optional t)
+   (another-friend :initarg :another-friend
+		   :accessor another-friend
+		   :initform nil
+		   :serialization-type serializable-user
+		   :serialization-optional t))
+  (:metaclass serializable-class)
+  (:serialization-name user))
+@end example
+
+Then we instantiate an object of that class:
+
+@example
+(defparameter *serializable-user* 
+  (make-instance 'serializable-user
+		 :realname "Mariano"
+		 :id 2
+		 :age 30
+		 :groups (list (make-instance 'group
+					      :name "My group"
+					      :id 3))
+		 :best-friend (make-instance 'serializable-user 
+					     :id 3
+					     :realname "Fernando"
+					     :age 31
+					     )
+		 :another-friend (make-instance 'serializable-user 
+					     :id 3
+					     :realname "Julio"
+					     :age 31
+					     )))
+@end example
+
+Finally, we can serialize the object via the @code{serialize} method:
+
+@example
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :json
+      (serialize *serializable-user*))))
+
+=>
+
+REST-SERVER-TESTS> (with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :json
+      (serialize *serializable-user*))))
+"@{\"id\":2,\"realname\":\"Mariano\",\"age\":30,\"groups\":[@{\"id\":3,\"name\":\"My group\"@}],\"bestFriend\":@{\"identity\":3,\"realname\":\"Fernando\",\"age\":31@},\"anotherFriend\":@{\"id\":3,\"realname\":\"Julio\",\"age\":31,\"groups\":[]@}@}"
 @end example
 
 @node Schemas
