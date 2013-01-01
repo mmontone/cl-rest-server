@@ -267,6 +267,7 @@ This chapter is about APIs definitions and its implementation.
 @menu
 * API definition::              API definition
 * API implementation::          API implementation
+* API logging::                 API logging
 @end menu
 
 @node API definition
@@ -337,6 +338,43 @@ To implement that api function, we do:
 @example
 (implement-api-function update-user (posted-content id)
   (format nil "Update user: ~A ~A" id posted-content))
+@end example
+
+@node API logging
+@section API logging
+@cindex logging, log
+
+It is possible to look at what is happening behind the scenes enabling API logging. This is useful for debugging, track how many times and how the API is being accessed, etc.
+
+To start API logging, simply evaluate: @code{(start-api-logging)}.
+
+The api logging output is sent to @code{*api-logging-output*}.
+
+Only api-function-implementations with :logging option enabled are logged.
+
+Example:
+
+@example
+(implement-api-function (get-users :logging t)
+    (&key (expand-groups nil))
+  (declare (ignore expand-groups))
+  (with-output-to-string (s)
+    (with-serializer-output s
+      (with-serializer (rest-server::accept-serializer)
+	(with-elements-list ("users")
+	  (loop for user in (model-test:all-users)
+	     do
+	       (with-element ("user")
+		 (set-attribute "id" (cdr (assoc :id user)))
+		 (set-attribute "realname" (cdr (assoc :realname user))))))))))       
+@end example
+
+And the log output:
+
+@example
+3566032253 API: Handling GET /users by GET-USERS NIL
+3566032253 Response: <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<ol class='elements'></ol> NIL
 @end example
 
 @node Serialization
