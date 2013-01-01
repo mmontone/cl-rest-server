@@ -76,7 +76,7 @@
 
 ;; Streaming api test
 
-(defvar *streamed-element*
+(defparameter *streamed-element*
   (lambda ()
     (with-element ("user")
       (set-attribute "id" 22)
@@ -84,9 +84,10 @@
 	(serialize "Mike"))
       (with-attribute ("groups")
 	(with-elements-list ("groups")
-	  (with-element ("groups")
-	    (set-attribute "id" 33)
-	    (set-attribute "title" "My group")))))))
+	  (with-list-member ("group")
+	    (with-element ("group")
+	      (set-attribute "id" 33)
+	      (set-attribute "title" "My group"))))))))
 
 (test json-stream-serialization-test
   (let ((json-output
