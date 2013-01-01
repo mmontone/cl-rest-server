@@ -360,8 +360,10 @@
 	       )))
       *default-serializer*))
 
-(defmethod expand-api-function-wrapping ((option (eql :serialization)) enabled args)
-  (declare (ignore args))
+(defmethod expand-api-function-wrapping (api-function-name
+					 api-function-options
+					 (option (eql :serialization)) enabled args)
+  (declare (ignore args api-function-name api-function-options))
   (when enabled
     (let ((serializer (gensym "SERIALIZER-")))
       `(let ((,serializer (accept-serializer)))

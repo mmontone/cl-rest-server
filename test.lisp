@@ -161,14 +161,14 @@
                 :documentation "Create a user")
                ())
   (update-user (:method :put
-                 :content-types (list :json)
-                 :uri-prefix "/users/{id}"
-                 :documentation "Update a user")
+                :content-types (list :json)
+                :uri-prefix "/users/{id}"
+                :documentation "Update a user")
                ((id :string "The user id")))
   (delete-user (:method :delete
-                 :content-types (list :json)
-                 :uri-prefix "/users/{id}"
-                 :documentation "Delete a user")
+                :content-types (list :json)
+                :uri-prefix "/users/{id}"
+                :documentation "Delete a user")
                ((id :string "The user id"))))
 
 (defpackage :model-test
@@ -210,7 +210,8 @@
 
 (in-package :api-test-implementation)
 
-(implement-api-function get-users (&key (expand-groups nil))
+(implement-api-function (get-users :logging t)
+    (&key (expand-groups nil))
   (declare (ignore expand-groups))
   (with-output-to-string (s)
     (with-serializer-output s

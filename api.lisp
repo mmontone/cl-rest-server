@@ -435,14 +435,34 @@
 	 (:method ,args
 	   ,@body)
 	 ,@(loop for (option . val) in options
-	      collect (%expand-api-function-wrapping option val name args))))))
+	      collect (%expand-api-function-wrapping name options option val name args))))))
 
-(defun %expand-api-function-wrapping (option value name args)
+(defun %expand-api-function-wrapping (api-function-name
+				      api-function-options
+				      option value name args)
   (declare (ignore name))
-  (let ((wrapper (expand-api-function-wrapping option value args)))
+  (let ((wrapper (expand-api-function-wrapping api-function-name
+					       api-function-options
+					       option value args)))
     (when wrapper
       `(:method :around ,option ,args
 		,wrapper))))
+
+(defmethod expand-api-function-wrapping (api-function-name api-function-options
+					 (option (eql :logging)) enabled args)
+  (declare (ignore args api-function-options))
+  (if enabled
+      `(progn
+	 (log5:log-for (rest-server) "API: Handling ~A ~A by ~A"
+		       (hunchentoot:request-method*)
+		       (hunchentoot:request-uri*) ',api-function-name)
+	 (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
+				 (hunchentoot:raw-post-data :external-format :utf8))))
+	   (when posted-content (log5:log-for (rest-server) "Posted content: ~A" posted-content)))
+	 (let ((result (call-next-method)))
+	   (log5:log-for (rest-server) "Response: ~A" result)
+	   result))
+      `(call-next-method)))
 
 (defun find-api-function-implementation (name acceptor)
   (or (ignore-errors (symbol-function (intern (symbol-name name) (api-implementation-package acceptor))))
