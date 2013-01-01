@@ -265,9 +265,10 @@ Purpose of the library:
 This chapter is about APIs definitions and its implementation.
 
 @menu
-* API definition::              API definition
-* API implementation::          API implementation
-* API logging::                 API logging
+* API definition::                      API definition
+* API implementation::                  API implementation
+* API logging::                         API logging
+* API documentation application::       API documentation application
 @end menu
 
 @node API definition
@@ -375,6 +376,19 @@ And the log output:
 3566032253 API: Handling GET /users by GET-USERS NIL
 3566032253 Response: <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <ol class='elements'></ol> NIL
+@end example
+
+@node API documentation application
+@section API documentation application
+@cindex documentation
+
+There's a web application for documenting and browsing APIs.
+
+To start it, evaluate the @code{start-api-documentation} function passing the API name symbol, the address and the port where the web application should run.
+
+@example
+REST-SERVER-TESTS> (start-api-documentation 'api-test::api-test "localhost" 8282)
+#<REST-SERVER::API-DOCUMENTATION-ACCEPTOR (host localhost, port 8282)>
 @end example
 
 @node Serialization
