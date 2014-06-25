@@ -172,11 +172,6 @@
   (:method ((object t) (class serializable-class))
     (closer-mop:class-slots class)))
 
-(defmethod transactional-slot-p ((object serializable-object) slot-name)
-  (some (lambda (slot)
-	  (equalp (slot-value slot 'sb-pcl::name) slot-name))
-	(serializable-slots object)))
-
 (defmacro define-serializable-class (name direct-superclasses direct-slots &rest options)
   "Helper macro to define serializable classes"
   `(defclass ,name ,direct-superclasses

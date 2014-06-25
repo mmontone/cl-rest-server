@@ -10,7 +10,7 @@
 
 (defun register-key (key)
   (setf *key*
-        (let* ((octets (sb-ext:string-to-octets key))
+        (let* ((octets (babel:string-to-octets key))
                (length (length octets)))
           (and (> length 0)
                (flet ((pad-to (n)
@@ -28,10 +28,10 @@
                                        :mode :ecb))))))
 
 (defun compress (string)
-  (sb-ext:string-to-octets string))
+  (babel:string-to-octets string))
 
 (defun inflate (ub8s)
-  (sb-ext:octets-to-string ub8s))
+  (babel:octets-to-string ub8s))
 
 (defun word-to-octets (x)
   (declare (type (unsigned-byte 32) x))

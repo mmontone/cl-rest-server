@@ -132,7 +132,7 @@
             :initform nil)
    (documentation :accessor api-documentation
 		  :initarg :documentation))
-  (:metaclass sb-mop:funcallable-standard-class)
+  (:metaclass closer-mop:funcallable-standard-class)
   (:documentation "The api function description"))
 
 
@@ -346,7 +346,7 @@
             api-function))))
 
 ;; (defmethod initialize-instance :after ((api-function api-function) &rest args)
-;;   (sb-mop:set-funcallable-instance-function
+;;   (closer-mop:set-funcallable-instance-function
 ;;    api-function
 ;;    (lambda (&rest args)
 ;;      (call-api-function api-function args))))
@@ -429,7 +429,7 @@
 	  (values (first name-and-options)
 		  (alexandria:plist-alist (rest name-and-options)))
 	  (values name-and-options nil))
-    (let ((parsed-lambda-list (multiple-value-list (sb-int:parse-lambda-list args))))
+    (let ((parsed-lambda-list (multiple-value-list (alexandria:parse-ordinary-lambda-list args))))
       `(defgeneric ,name (,@(first parsed-lambda-list) &key ,@(mapcar #'first (nth 5 parsed-lambda-list)))
 	 (:method-combination method-combination-utilities:lax)
 	 (:method ,args
@@ -609,7 +609,7 @@
                                :proxy *rest-server-proxy*
                                :content ,(when (member (request-method api-function) 
                                                      '(:post :put))
-                                             `(sb-ext:string-to-octets posted-content))
+                                             `(babel:string-to-octets posted-content))
                                :parameters (list 
                                             ,@(loop for x in optional-args
                                                  collect

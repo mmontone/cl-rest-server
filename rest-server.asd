@@ -55,4 +55,6 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :drakma
 	       :method-combination-utilities
                :cl-who
-	       :ironclad))
+	       :ironclad
+	       :babel
+	       :closer-mop))

@@ -64,7 +64,7 @@
 
 (defmethod decode-response (response (content-type (eql :json)))
   (json:decode-json-from-string
-          (sb-ext:octets-to-string
+          (babel:octets-to-string
            response
            :external-format :utf8)))
 
