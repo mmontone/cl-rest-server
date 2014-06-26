@@ -3,10 +3,14 @@
 (defparameter *apis* (make-hash-table :test #'equalp)
   "Global hashtable containing the apis defined")
 (defparameter *api* nil "The current api")
-(defvar *api-function-arguments-types*
-  (list :boolean :integer :string))
+(defparameter *api-function-arguments-types*
+  (list :boolean
+	:integer
+	:string
+	:list))
 (defvar *rest-server-proxy* nil)
-(defvar *register-api-function* t "Whether to try to register the api function on creation. Bind to nil to prevent that")
+(defvar *register-api-function* t
+  "Whether to try to register the api function on creation. Bind to nil to prevent that")
 
 ;; Toplevel api
 
@@ -268,6 +272,7 @@
     (:integer (or (parse-integer string :junk-allowed t)
 		  (error "Cannot parse ~s as integer" string))) 
     (:string (string-trim (list #\") string))
+    (:list (split-sequence:split-sequence #\, string))
     (t string)))
 
 (defun extract-function-arguments (api-function request)
