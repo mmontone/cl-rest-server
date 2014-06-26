@@ -474,18 +474,33 @@
    * :infer: Try different methods of parsing the content type until success
    * :raw: Leave the posted content unparsed. Just pass the string.")
 
+(defun some-test (list test)
+  (let ((res nil))
+    (loop for elem in list
+	 while (not res)
+	 do (setf res (funcall test elem)))
+    res))
+
+;; TODO: content negotiation is wrong!! Very wrong!!
+
 (defun parse-posted-content (posted-content &optional (method *parse-posted-content*))
   (ecase method
     (:use-request-content-type
      ;; Use the request content type to parse the posted content
-     (let ((content-type (hunchentoot:content-type*)))
+     (let ((content-type (hunchentoot:header-in* :content-type)))
        (let ((format
 	      (cond
-		((member content-type (list "text/xml" "application/xml"))
+		((some-test (list "text/xml" "application/xml")
+			    (lambda (ct)
+			      (cl-ppcre:scan ct content-type)))
 		 :xml)
-		((member content-type (list "application/json"))
+		((some-test (list "application/json")
+			    (lambda (ct)
+			      (cl-ppcre:scan ct content-type)))
 		 :json)
-		((member content-type (list "application/lisp" "text/lisp"))
+		((some-test (list "application/lisp" "text/lisp")
+			    (lambda (ct)
+			      (cl-ppcre:scan ct content-type)))
 		 :sexp)
 		(t (error 'http-unsupported-media-type-error "Content type not supported ~A" content-type)))))
 	 (parse-api-input format posted-content))))

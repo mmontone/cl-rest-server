@@ -181,21 +181,27 @@
 
 (in-package :model-test)
 
+(defparameter *user-id* 1)
 (defvar *users* nil)
 
 (defun make-user (id realname)
   (list (cons :id id)
 	(cons :realname realname)))
 
-(defun add-user (user)
-  (push (cons (cdr (assoc :id user))
-	      user)
+(defun user-id (user)
+  (cdr (assoc :id user)))
+
+(defun user-realname (user)
+  (cdr (assoc :realname user)))
+
+(defun add-user (realname)
+  (push (make-user (incf *user-id*)
+		   realname)
 	*users*))
 
 (defun update-user (user)
-  (let ((user-id (cdr (assoc :id user))))
-    (delete-user user-id)
-    (add-user user)))
+  (delete-user (user-id user))
+  (push user *users*))
 
 (defun get-user (id)
   (cdr (assoc id *users*)))
@@ -236,7 +242,7 @@
 		 (attribute "realname" (cdr (assoc :realname user)))))))
 
 (defun create-user (posted-content)
-  (format nil "Create user: ~A" posted-content))
+  (model-test:add-user (cdr (assoc :realname posted-content))))
 
 (defun update-user (posted-content id)
   (format nil "Update user: ~A ~A" id posted-content))
@@ -248,6 +254,26 @@
 
 (start-api 'api-test::api-test "localhost" 8181 (find-package :api-test-implementation))
 
+(test api-post-test
+  (drakma:http-request
+   "http://localhost:8181/users"
+   :method :post
+   :content-type "application/json"
+   :accept "application/json"
+   :content (json:encode-json-plist-to-string '(:realname "user1")))
+  (drakma:http-request
+   "http://localhost:8181/users"
+   :method :post
+   :content-type "application/json"
+   :accept "application/json"
+   :content (json:encode-json-plist-to-string '(:realname "user2")))
+  (drakma:http-request
+   "http://localhost:8181/users"
+   :method :post
+   :content-type "application/json"
+   :accept "application/json"
+   :content (json:encode-json-plist-to-string '(:realname "user3"))))   
+  
 (test api-setup-test
   (multiple-value-bind (result status-code)
       (drakma:http-request "http://localhost:8181/users" :method :get)
