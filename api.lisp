@@ -14,9 +14,14 @@
 
 ;; Toplevel api
 
-(defun find-api (name)
+(defun find-api (name &key (error-p t))
   "Find api by name"
-  (gethash name *apis*))
+  (multiple-value-bind (api found-p)
+      (gethash name *apis*)
+    (when (and (not found-p)
+	       error-p)
+      (error "API ~S not found" name))
+    api))
 
 (defmacro with-api (api &body body)
   "Execute body under api scope.
@@ -139,6 +144,42 @@
   (:metaclass closer-mop:funcallable-standard-class)
   (:documentation "The api function description"))
 
+;; url formatting
+
+(defgeneric format-api-function-url (api-function &rest args)
+  (:documentation "Print the api function url")
+  (:method ((api-function api-function) &rest args)
+    (let ((url-noparams
+	   (replace-vars-in-url (url-pattern-noparams api-function) args))
+	  (optional-args
+	   (loop
+	      for key in args by #'cddr
+	      for value in (cdr args) by #'cddr
+	      for optional-arg = (find key (optional-arguments api-function)
+				       :key (alexandria:compose #'make-keyword #'first))
+	      when optional-arg
+	      collect (format-optional-url-arg optional-arg value))))
+      (format nil "~A~@[?~{~A~^&~}~]"
+	      url-noparams
+	      optional-args))))
+
+(defun format-optional-url-arg (arg value)
+  (destructuring-bind (name type default-value documentation) arg
+    (format nil "~A=~A" (string-downcase name)
+	    (%format-optional-url-arg type arg value))))
+
+(defgeneric %format-optional-url-arg (type arg value)
+  (:method ((type (eql :string)) arg value)
+    (assert (stringp value))
+    value)
+  (:method ((type (eql :boolean)) arg value)
+    (if value "true" "false"))
+  (:method ((type (eql :integer)) arg value)
+    (assert (integerp value))
+    (princ-to-string value))
+  (:method ((type (eql :list)) arg value)
+    (assert (listp value))
+    (format nil "~{~A~^,~}" value)))
 
 ;; Parsing
 
