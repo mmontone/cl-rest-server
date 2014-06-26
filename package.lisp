@@ -1,18 +1,19 @@
 (defpackage :rest-server
   (:use :cl :closer-mop)
-  (:shadowing-import-from :closer-mop
-                          #:defclass
-                          #:standard-class
-                          #:defmethod
-                          #:standard-generic-function
-                          #:ensure-generic-function
-                          #:defgeneric
-                          #:defclass
-                          #:standard-class
-                          #:defmethod
-                          #:standard-generic-function
-                          #:ensure-generic-function
-                          #:defgeneric)
+  (:shadowing-import-from
+   :closer-mop
+   #:defclass
+   #:standard-class
+   #:defmethod
+   #:standard-generic-function
+   #:ensure-generic-function
+   #:defgeneric
+   #:defclass
+   #:standard-class
+   #:defmethod
+   #:standard-generic-function
+   #:ensure-generic-function
+   #:defgeneric)
   (:export #:define-api
 	   #:implement-api-function
 	   #:with-serializer
@@ -31,9 +32,11 @@
 	   #:attributes
 	   #:value
 	   #:find-api
+	   #:find-api-function
 	   #:with-api
 	   #:define-api-function
 	   #:make-api-function
+	   #:format-api-function-url
 	   #:with-api-backend
 	   #:start-api
 	   #:start-api-documentation
