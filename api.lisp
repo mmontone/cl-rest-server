@@ -68,7 +68,10 @@
                            name
                            (getf options :method)
                            options
-                           args)))))))
+                           args))
+			(or (and (getf options :package)
+				 (find-package (getf options :package)))
+			    *package*))))))
 
 (defun start-api (api address port &optional (api-implementation-package *package*))
   "Start an api at address and port.
@@ -631,22 +634,22 @@
 
 ;; Client implementation
 
-(defun client-stub (api-name api-function)
+(defun client-stub (api-name api-function &optional (package *package*))
   (let ((request-url (gensym "REQUEST-URL-"))
         (response (gensym "RESPONSE-")))
     (let ((required-args (required-arguments api-function))
 	  (optional-args (optional-arguments api-function)))
       `(progn
-	 (defun ,(name api-function)
+	 (defun ,(intern (name api-function) package)
              ,(append
                 (if (member (request-method api-function) '(:post :put))
                     (list 'posted-content)
                     nil)
                 (loop for x in required-args collect 
-		     (intern (symbol-name (car x))))
+		     (intern (symbol-name (car x)) package))
                 (if optional-args
                     (cons '&key (loop for x in optional-args collect 
-				     (list (intern (symbol-name (first x))) 
+				     (list (intern (symbol-name (first x)) package) 
 					   (third x))))))
 	   ,(api-documentation api-function)
            (log5:log-for (rest-server) "Client stub: ~A" ',(name api-function))
@@ -658,7 +661,7 @@
                                         (list
                                          ,@(loop for x in required-args 
                                               collect (make-keyword (car x))
-                                              collect (intern (symbol-name (car x)))))))))
+                                              collect (intern (symbol-name (car x)) package)))))))
              (log5:log-for (rest-server)  "Request: ~A ~A" ,(request-method api-function) ,request-url)
              ,(when (member (request-method api-function) 
                             '(:post :put))
@@ -678,7 +681,7 @@
                                                    `(cons 
                                                      ,(symbol-name (car x))
                                                      (format nil "~A" ,(intern (symbol-name 
-                                                                                (car x)))))))))))
+                                                                                (car x)) package)))))))))
                (log5:log-for (rest-server) "Response: ~A" ,response)
                ,response)))))))
 
