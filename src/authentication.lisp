@@ -1,5 +1,8 @@
 (in-package :rest-server)
 
+(defun authenticate-key (token)
+  (error "Not implemented"))
+
 (define-condition authentication-error (simple-error)
   ())
 
@@ -116,3 +119,12 @@
                     (authentication-error))))
      (let ((b2-model::*user* ,user))
        ,@body)))
+
+;; Plugging
+
+(defmethod configure-api-function-option ((option (eql :authenticate)) option-value api-function)
+  (add-wrapping-function api-function
+                         (lambda (next-function)
+                           (if (not (authenticate-key (getf hunchentoot:*request* :token)))
+			       (error "Authentication error")
+			       (funcall next-function)))))

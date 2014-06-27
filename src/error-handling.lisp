@@ -140,3 +140,11 @@
       (json:encode-json (type-of error) stream))
     (json:as-object-member (:message stream)
       (json:encode-json (simple-condition-format-control error) stream))))
+
+;; Plugging
+
+(defmethod configure-api-function-option ((option (eql :error-handling)) option-value api-function)
+  (add-wrapping-function api-function
+                         (lambda (next-function)
+                           (with-condition-handling
+			       (funcall next-function)))))
