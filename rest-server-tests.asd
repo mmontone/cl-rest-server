@@ -29,6 +29,9 @@ OTHER DEALINGS IN THE SOFTWARE."
   :description "rest-server tests"
   :long-description "rest-server tests"
   :components
-  ((:file "test"))
+  ((:module :test
+	    :components
+	    ((:file "test"))
+	    :serial t))
   :serial t
   :depends-on (:rest-server :fiveam :cl-html5-parser))

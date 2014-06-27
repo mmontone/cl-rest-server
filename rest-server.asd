@@ -36,14 +36,17 @@ OTHER DEALINGS IN THE SOFTWARE."
   :description "REST APIs servers in Common Lisp."
   :long-description "REST APIs servers in Common Lisp"
   :components
-  ((:file "package")
-   (:file "rest-server")
-   (:file "serialization")
-   (:file "mop")
-   (:file "schema")
-   (:file "error-handling")
-   (:file "api")
-   (:file "api-documentation"))
+  ((:module :src
+	    :components
+	    ((:file "package")
+	     (:file "rest-server")
+	     (:file "serialization")
+	     (:file "mop")
+	     (:file "schema")
+	     (:file "error-handling")
+	     (:file "api")
+	     (:file "api-documentation"))
+	    :serial t))
   :serial t
   :depends-on (:hunchentoot 
 	       :alexandria 
