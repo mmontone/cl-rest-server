@@ -143,34 +143,37 @@
 (in-package :api-test)
 
 (define-api api-test
-  (:documentation "This is an api test"
-   :content-types (list :json :xml))
-  (get-users (:method :get
-              :content-types (list :json)
-              :uri-prefix "/users"
-              :documentation "Retrive the users list")       
-             (&optional (expand-groups :boolean nil "Expand groups if true")))
-  (get-user (:method :get
-             :content-types (list :json)
-             :uri-prefix "/users/{id}"
-             :documentation "Retrive an user")
-            ((id :string "The user id")
-             &optional (expand-groups :boolean nil "Expand groups if true")))
-  (create-user (:method :post
-                :content-types (list :json)
-                :uri-prefix "/users"
-                :documentation "Create a user")
-               ())
-  (update-user (:method :put
-                :content-types (list :json)
-                :uri-prefix "/users/{id}"
-                :documentation "Update a user")
-               ((id :string "The user id")))
-  (delete-user (:method :delete
-                :content-types (list :json)
-                :uri-prefix "/users/{id}"
-                :documentation "Delete a user")
-               ((id :string "The user id"))))
+    (:documentation "This is an api test")
+  (users (:produces (:json :xml)
+		    :consumes (:json)
+		    :documentation "Users operations"
+		    :path "/users")
+	 (get-users (:request-method :get
+				     :produces (:json)
+				     :uri-prefix "/users"
+				     :documentation "Retrive the users list")       
+		    (&optional (expand-groups :boolean nil "Expand groups if true")))
+	 (get-user (:request-method :get
+				    :produces (:json)
+				    :uri-prefix "/users/{id}"
+				    :documentation "Retrive an user")
+		   ((id :string "The user id")
+		    &optional (expand-groups :boolean nil "Expand groups if true")))
+	 (create-user (:request-method :post
+				       :consumes (:json)
+				       :uri-prefix "/users"
+				       :documentation "Create a user")
+		      ())
+	 (update-user (:request-method :put
+				       :consumes (:json)
+				       :uri-prefix "/users/{id}"
+				       :documentation "Update a user")
+		      ((id :string "The user id")))
+	 (delete-user (:request-method :delete
+				       :consumes (:json)
+				       :uri-prefix "/users/{id}"
+				       :documentation "Delete a user")
+		      ((id :string "The user id")))))
 
 (defpackage :model-test
   (:use :cl)

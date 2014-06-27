@@ -34,6 +34,13 @@
 	   #:find-api
 	   #:find-api-function
 	   #:with-api
+	   #:list-api-resources
+	   #:resource
+	   #:resource-name
+	   #:resource-documentation
+	   #:resource-path
+	   #:define-api-resource
+	   #:list-api-resource-functions
 	   #:define-api-function
 	   #:make-api-function
 	   #:format-api-function-url

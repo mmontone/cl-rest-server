@@ -38,29 +38,16 @@
   (let ((*api-backend* backend))
     (funcall function)))
 
-(defmacro define-api (name options &body functions)
+(defmacro define-api (name options &body resources)
   "Define an api."
   `(progn
-     (make-instance 
-      'api-definition 
-      :name ',name
-      ,@options)
+     (apply #'make-instance 
+	    'api-definition 
+	    :name ',name
+	    ',options)
      (with-api ,name
-      ,@(loop for x in functions
-         collect (parse-api-method-definition x)))
-     ,@(let ((*register-api-function* nil))
-            (loop for x in functions
-               collect (client-stub
-                        name
-                        (destructuring-bind (name options args) x
-                          (make-api-function
-                           name
-                           (getf options :method)
-                           options
-                           args))
-			(or (and (getf options :package)
-				 (find-package (getf options :package)))
-			    *package*))))))
+      ,@(loop for x in resources
+	     collect `(define-api-resource ,@x)))))
 
 (defun start-api (api address port &optional (api-implementation-package *package*))
   "Start an api at address and port.
@@ -99,15 +86,20 @@
 ;; The api class
 (defclass api-definition ()
   ((name :accessor name :initarg :name)
-   (functions :accessor functions :initarg :functions :initform (make-hash-table :test #'equalp))
-   (content-types :initarg :content-types
-                  :initform nil
-                  :accessor content-types)
+   (resources :accessor resources
+	      :initarg :resources
+	      :initform (make-hash-table :test #'equalp))
    (version :initarg :version
             :initform nil
             :accessor version)
-   (documentation :accessor api-documentation :initarg :documentation :initform nil))
+   (documentation :accessor api-documentation
+		  :initarg :documentation
+		  :initform nil))
   (:documentation "The api class"))
+
+(defmethod list-api-resources ((api-definition api-definition))
+  (loop for resource being the hash-values of (resources api-definition)
+       collect resource))
 
 ;; Parsing
 

@@ -9,9 +9,9 @@
 	:string
 	:list))
 
-(defmacro define-api-function (name method options args)
+(defmacro define-api-function (name attributes args &rest options)
   "Helper macro to define an api function"
-  `(make-api-function ',name ',method ',options ',args))
+  `(make-api-function ',name ',attributes ',args ',options))
 
 (defclass api-function ()
   ((name :initarg :name
@@ -29,14 +29,26 @@
    (optional-arguments :initarg :optional-arguments
                        :accessor optional-arguments
                        :initform nil)
-   (content-types :initarg :content-types
-                  :accessor content-types
-                  :initform :all)
+   (consumes :initarg :consumes
+	     :accessor consumes
+	     :initform nil
+	     :documentation "MIME types that the api-function consumes. Overwrites MIME types defined in the resource")
+   (produces :initarg :produces
+	     :accessor produces
+	     :initform nil
+	     :documentation "MIME types that the api-function produces. Overwrites MIME types defined in the resource")     
    (options :initarg :options
             :accessor options
-            :initform nil)
+            :initform nil
+	    :documentation "API function options. Extensible. Pluggins data goes here.")
+   (summary :initarg :summary
+	    :accessor api-summary
+	    :initform nil
+	    :documentation "API function short description")
    (documentation :accessor api-documentation
-		  :initarg :documentation))
+		  :initarg :documentation
+		  :initform nil
+		  :documentation "API function description"))
   (:metaclass closer-mop:funcallable-standard-class)
   (:documentation "The api function description"))
 
@@ -69,8 +81,8 @@
 
   ;; Install the api function
   (when *register-api-function*
-    (let ((api (or *api* (error "Specify the api"))))
-      (setf (gethash (name api-function) (functions api))
+    (let ((resource (or *api-resource* (error "Specify the api resource"))))
+      (setf (gethash (name api-function) (api-functions resource))
             api-function))))
 
 ;; (defmethod initialize-instance :after ((api-function api-function) &rest args)
@@ -127,18 +139,16 @@
 		 nil
 		 "Argument ~a not declared in ~a" arg api-function))))
 
-(defun make-api-function (name method options args)
+(defun make-api-function (name attributes args options)
   "Make an api function."
   (multiple-value-bind (required-arguments optional-arguments)
       (parse-api-function-arguments args)
-    (make-instance 'api-function
-                   :name name
-                   :request-method method
-                   :uri-prefix (getf options :uri-prefix)
-                   :documentation (getf options :documentation)
-                   :options options
-                   :required-arguments required-arguments
-                   :optional-arguments optional-arguments)))
+    (apply #'make-instance 'api-function
+	   :name name
+	   :options options
+	   :required-arguments required-arguments
+	   :optional-arguments optional-arguments
+	   attributes)))
 
 (defmethod find-api-function ((api symbol) function-name)
   (find-api-function (find-api api) function-name))
@@ -252,13 +262,6 @@
 				   result))
 			       ;; else
 			       (funcall next-function)))))
-
-(defun parse-api-method-definition (method-spec)
-  (destructuring-bind (name options args) method-spec
-    `(define-api-function ,name ,(getf options :method)
-                       ,options
-                       ,args)))
-
 ;; url formatting
 
 (defgeneric format-api-function-url (api-function &rest args)
@@ -329,7 +332,7 @@
     (let ((required-args (required-arguments api-function))
 	  (optional-args (optional-arguments api-function)))
       `(progn
-	 (defun ,(intern (name api-function) package)
+	 (defun ,(intern (symbol-name (name api-function)) package)
              ,(append
                 (if (member (request-method api-function) '(:post :put))
                     (list 'posted-content)

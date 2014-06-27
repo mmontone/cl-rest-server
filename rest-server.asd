@@ -45,6 +45,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "schema")
 	     (:file "error-handling")
 	     (:file "api")
+	     (:file "resource")
 	     (:file "api-function")
 	     (:file "api-documentation"))
 	    :serial t))
