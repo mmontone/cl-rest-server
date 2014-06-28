@@ -85,7 +85,16 @@
 
 ;; The api class
 (defclass api-definition ()
-  ((name :accessor name :initarg :name)
+  ((name :accessor name
+	 :initarg :name
+	 :initform nil
+	 :type symbol
+	 :documentation "The api id")
+   (title :accessor title
+	  :initarg :title
+	  :initform nil
+	  :type string
+	  :documentation "A descriptive title for the api")
    (resources :accessor resources
 	      :initarg :resources
 	      :initform (make-hash-table :test #'equalp))

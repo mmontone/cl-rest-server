@@ -143,7 +143,8 @@
 (in-package :api-test)
 
 (define-api api-test
-    (:documentation "This is an api test")
+    (:title "Api test"
+	    :documentation "This is an api test")
   (users (:produces (:json :xml)
 		    :consumes (:json)
 		    :documentation "Users operations"
