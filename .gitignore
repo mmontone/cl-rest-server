@@ -1,4 +1,5 @@
 *~
+*.fasl
 /doc/rest-server.aux
 /doc/rest-server.cp
 /doc/rest-server.cps
