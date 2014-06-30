@@ -90,9 +90,10 @@
 
 (defmethod print-object ((api-function api-function) stream)
   (print-unreadable-object (api-function stream :type t :identity t)
-    (format stream "~A ~A"
+    (format stream "~A ~A ~S"
 	    (name api-function)
-	    (request-method api-function))))
+	    (request-method api-function)
+	    (uri-prefix api-function))))
 
 (defmethod validate ((api-function api-function))
   ;; Check api-function arguments have the right format

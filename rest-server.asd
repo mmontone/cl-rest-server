@@ -62,4 +62,5 @@ OTHER DEALINGS IN THE SOFTWARE."
                :cl-who
 	       :ironclad
 	       :babel
-	       :closer-mop))
+	       :closer-mop
+	       :group-by))

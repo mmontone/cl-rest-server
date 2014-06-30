@@ -76,9 +76,10 @@
 			    resource)))
     (funcall function)))
 
-(defun find-api-resource (name &key (error-p t))
+(defun find-api-resource (name &key (error-p t) api)
   "Find api resource by name in the current api"
-  (let ((api (or *api*
+  (let ((api (or api
+		 *api*
 		 (error "No api in scope"))))
     (multiple-value-bind (resource found-p)
 	(gethash name (resources api))

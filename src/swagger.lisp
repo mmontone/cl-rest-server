@@ -1,19 +1,36 @@
 (in-package :rest-server)
 
-(defmacro define-swagger-resource (api)
-  `(with-api ,(name api)
-     (define-api-resource api-docs (:documentation "Swagger API docs"
-						   :path "/api-docs")
-	 (api-docs-index (:request-method :get
-					  :uri-prefix "/api-docs"
-					  :produces (:json))
-			 ())
-	 ,@(loop for resource in (list-api-resources api)
-		collect `(,(intern (format nil "API-DOCS-~A" (string-upcase (resource-name resource))))
-			   (:request-method :get
-					    :uri-prefix ,(format nil "/api-docs/~A" (string-downcase (resource-name resource)))
+(defmacro define-swagger-resource (api-name)
+  (let ((api (find-api api-name)))
+    `(progn
+       ;; Swagger docs API definition
+       (with-api ,api-name
+	 (define-api-resource api-docs (:documentation "Swagger API docs"
+						       :path "/api-docs")
+	   (api-docs-index (:request-method :get
+					    :uri-prefix "/api-docs"
 					    :produces (:json))
-			   ())))))
+			   ())
+	   ,@(loop for resource in (list-api-resources api)
+		collect
+		  (let ((fname (intern (format nil "API-DOCS-~A" (string-upcase (resource-name resource))))))
+		    `(,fname (:request-method :get
+					      :uri-prefix ,(format nil "/api-docs/~A" (string-downcase (resource-name resource)))
+					      :produces (:json))
+			     ()))))
+
+	 ;; Swagger docs API  implementation
+	 (implement-api-function ,api-name api-docs-index ()
+	   (swagger-api-spec (find-api ',api-name)))
+     
+	 ,@(loop for resource in (list-api-resources api)
+	      collect
+		(let ((fname (intern (format nil "API-DOCS-~A" (string-upcase (resource-name resource))))))
+		  `(implement-api-function ,api-name ,fname ()
+		     (let ((api (find-api ',api-name)))
+		       (swagger-resource-spec api
+					      (find-api-resource ',(resource-name resource) :api api)
+					      "http://localhost:8181")))))))))
   
 (defun swagger-api-spec (api)
   (with-output-to-string (json:*json-output*)
@@ -31,6 +48,49 @@
 					      (name api)))
 	(json:encode-object-member :description (api-documentation api))))))
 
+(defun resource-apis (resource)
+  "Get Swagger apis from the resource"
+  (group-by:group-by (rest-server::list-api-resource-functions resource)
+		     :key #'rest-server::uri-prefix
+		     :test #'equalp
+		     :value #'identity))
+
+(defun encode-swagger-operation (operation)
+  (flet ((encode-parameter (parameter required-p)
+	   (if (not required-p)
+	       (destructuring-bind (name type default-value documentation) parameter
+		 (declare (ignore default-value))
+		 (json:with-object ()
+		   (json:encode-object-member :name name)
+		   (json:encode-object-member :type type)
+		   (json:encode-object-member :description documentation)
+		   (json:encode-object-member :required :false)
+		   (json:encode-object-member :allow-multiple :false)))
+	       (destructuring-bind (name type documentation) parameter
+		 (json:with-object ()
+		   (json:encode-object-member :name name)
+		   (json:encode-object-member :type type)
+		   (json:encode-object-member :description documentation)
+		   (json:encode-object-member :required t)
+		   (json:encode-object-member :allow-multiple :false))))))
+    (json:with-object ()
+      (json:encode-object-member :method (string-upcase (symbol-name (request-method operation))))
+      (json:encode-object-member :summary (api-summary operation))
+      (json:encode-object-member :notes (api-documentation operation))
+      #+nil(json:encode-object-member :type (api-function-type operation))
+      (when (produces operation)
+	(json:encode-object-member :produces (mapcar #'mime-to-string (produces operation))))
+      (when (consumes operation)
+	(json:encode-object-member :consumes (mapcar #'mime-to-string (consumes operation))))
+      (json:as-object-member (:parameters)
+	(json:with-array ()
+	  (loop for parameter in (required-arguments operation)
+	     do
+	       (encode-parameter parameter t))
+	  (loop for parameter in (optional-arguments operation)
+	     do
+	       (encode-parameter parameter nil)))))))
+      
 (defun swagger-resource-spec (api resource base-url)
   (with-output-to-string (json:*json-output*)
     (json:with-object ()
@@ -46,14 +106,17 @@
        :produces (mapcar #'mime-to-string (resource-produces resource)))
       (json:as-object-member (:apis)
 	(json:with-array ()
-	  (loop for function in (list-api-resource-functions resouce)
-	       do
-	       (json:with-object ()
-		 (json:encode-object-member :path (uri-prefix function))
-		 (json:as-object-member (:operations)
-		   
-		   ))
-      
+	  (loop for api in (resource-apis resource)
+	     do
+	       (destructuring-bind (path &rest operations) api
+		   (json:with-object ()
+		     (json:encode-object-member :path path)
+		     (json:as-object-member (:operations)
+		       (json:with-array ()
+			 (loop for operation in operations
+			    do (json:as-array-member ()
+				 (encode-swagger-operation operation)))))))))))))
+
 (defun mime-to-string (mime-type)
   (cond
     ((stringp mime-type)
@@ -66,19 +129,3 @@
        (:html "text/html")
        (:sexp "application/sexp")))
     (t (error "Invalid mime type ~S" mime-type))))
-
-(defun export-swagger-spec (api directory)
-  (ensure-directories-exist directory)
-  (let ((api-filename (merge-pathnames (name api) directory)))
-    (with-open-file (f pathname :direction :output
-		       :if-exists :supersede
-		       :if-does-not-exist :create)
-    (swagger-encode-api api f)))
-  (ensure-directories-exist 
-  (loop for resource in (list-api-resources api)
-       do
-       (let ((resource-filename (
-
-(defun create-swagger-spec (api)
-  
-		     

@@ -11,6 +11,12 @@
 (defvar *register-api-function* t
   "Whether to try to register the api function on creation. Bind to nil to prevent that")
 
+;; Util
+
+(defmethod json:encode-json ((o (eql :false))
+                        &optional (stream json:*json-output*))
+  (json::write-json-chars "false" stream))
+
 ;; Toplevel api
 
 (defun find-api (name &key (error-p t))
