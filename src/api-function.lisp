@@ -1,8 +1,5 @@
 (in-package :rest-server)
 
-(defvar *register-api-function* t
-  "Whether to try to register the api function on creation. Bind to nil to prevent that")
-
 (defparameter *api-function-arguments-types*
   (list :boolean
 	:integer
@@ -76,8 +73,6 @@
   
   ;; Validate the function
   (validate api-function)
-
-  (configure-api-function api-function)
 
   ;; Install the api function
   (when *register-api-function*
@@ -205,7 +200,7 @@
    (lambda (&rest args)
      (apply #'execute api-function-implementation args))))
 
-(defmethod execute-before-primary-after ((api-function-implementation api-function-implementation) &rest args)
+(defmethod execute-before-primary-after ((api-function-implementation api-function-implementation) args)
   (loop for before in (before api-function-implementation)
        do (apply before args))
   (prog1
@@ -303,15 +298,16 @@
       (error "Api function ~A not implemented" name)))
 
 (defun execute-api-function-implementation (api-function function-implementation request)
-  (let ((args (extract-function-arguments api-function request)))
-    (apply function-implementation
-	   (append 
-	    (when (member (request-method api-function) (list :put :post))
-	      (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
-				      (hunchentoot:raw-post-data :external-format :utf8))))
-		(log5:log-for (rest-server) "Posted content: ~A" posted-content)
-		(list (parse-posted-content posted-content))))
-	    args))))
+  (with-condition-handling
+    (let ((args (extract-function-arguments api-function request)))
+      (apply function-implementation
+	     (append 
+	      (when (member (request-method api-function) (list :put :post))
+		(let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
+					(hunchentoot:raw-post-data :external-format :utf8))))
+		  (log5:log-for (rest-server) "Posted content: ~A" posted-content)
+		  (list (parse-posted-content posted-content))))
+	      args)))))
 
 (defun find-optional-argument (name api-function)
   (or

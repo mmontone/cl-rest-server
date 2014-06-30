@@ -93,6 +93,10 @@
 (defmethod http-return-code ((condition error))
   hunchentoot:+http-internal-server-error+)
 
+(defmethod setup-reply-from-error ((error error))
+  (setf (hunchentoot:return-code*)
+	hunchentoot:+http-internal-server-error+))
+
 (defmethod setup-reply-from-error ((condition http-error))
   (setf (hunchentoot:return-code*) (http-return-code condition)))
 
@@ -121,7 +125,7 @@
         (handler-case (funcall function)
 	  (harmless-condition (c)
 	    (serialize-condition c))
-          (condition (c)
+          (error (c)
             (handle-condition c))))))
 
 (defmethod serialize-value ((serializer (eql :json)) (error simple-error) stream) 
@@ -143,8 +147,9 @@
 
 ;; Plugging
 
-(defmethod configure-api-function-option ((option (eql :error-handling)) option-value api-function)
-  (add-wrapping-function api-function
-                         (lambda (next-function)
-                           (with-condition-handling
-			       (funcall next-function)))))
+(defmethod configure-api-function-implementation-option
+    ((option-name (eql :error-handling)) api-function-implementation option)
+  (add-around-function api-function-implementation
+      (lambda (&rest args)
+	(with-condition-handling
+	  (call-next-function)))))

@@ -1,8 +1,5 @@
 (in-package :rest-server)
 
-(defparameter *register-api-resource* t "Wether to register the created resource in the current API")
-(defparameter *api-resource* nil "The current api resource")
-
 (defclass api-resource ()
   ((name :initarg :name
 	 :initform (error "Provide the resouce name")

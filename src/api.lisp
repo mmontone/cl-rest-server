@@ -5,6 +5,12 @@
 (defparameter *api* nil "The current api")
 (defvar *rest-server-proxy* nil)
 
+(defparameter *register-api-resource* t "Wether to register the created resource in the current API")
+(defparameter *api-resource* nil "The current api resource")
+
+(defvar *register-api-function* t
+  "Whether to try to register the api function on creation. Bind to nil to prevent that")
+
 ;; Toplevel api
 
 (defun find-api (name &key (error-p t))
@@ -49,7 +55,7 @@
       ,@(loop for x in resources
 	     collect `(define-api-resource ,@x)))))
 
-(defun start-api (api address port &optional (api-implementation-package *package*))
+(defun start-api (api address port)
   "Start an api at address and port.
    api-implementation-package: is the package where the api-functions are implemented."
   (hunchentoot:start
@@ -58,22 +64,18 @@
 		  :port port
                   :api (if (symbolp api)
                            (find-api api)
-                           api)
-                  :api-implementation-package api-implementation-package)))
+                           api))))
 
 ;; Hunchentoot api acceptor
 
 (defclass api-acceptor (hunchentoot:acceptor)
   ((api :initarg :api
         :accessor api
-        :initform (error "Provide the api"))
-   (api-implementation-package :initarg :api-implementation-package
-                       :accessor api-implementation-package
-                       :initform *package*))
+        :initform (error "Provide the api")))
   (:documentation "Hunchentoot api acceptor"))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
-  (loop for api-function being the hash-value of (api-functions (api acceptor))
+  (loop for api-function in (api-functions (api acceptor))
      when (api-function-matches-request-p api-function request)
      return (let ((result 
 		   (execute-api-function-implementation 
@@ -112,7 +114,7 @@
 
 (defmethod api-functions ((api-definition api-definition))
   (loop for resource in (list-api-resources api-definition)
-       appending (api-functions resource)))
+     appending (alexandria:hash-table-values (api-functions resource))))
 
 ;; Parsing
 
