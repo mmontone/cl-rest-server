@@ -47,6 +47,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "api")
 	     (:file "resource")
 	     (:file "api-function")
+	     (:file "swagger")
 	     (:file "api-documentation"))
 	    :serial t))
   :serial t

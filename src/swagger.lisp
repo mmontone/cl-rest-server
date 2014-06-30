@@ -33,20 +33,26 @@
 					      "http://localhost:8181")))))))))
   
 (defun swagger-api-spec (api)
+  (setf (hunchentoot:header-out "Content-Type") "application/json")
+  (setf (hunchentoot:header-out "Access-Control-Allow-Origin") "*")
   (with-output-to-string (json:*json-output*)
     (json:with-object ()
       (json:encode-object-member :api-version (or (version api) "0.1"))
       (json:encode-object-member :swagger-version "1.2")
       (json:as-object-member (:apis)
-	(loop for resource in (list-api-resources api)
-	   do
-	     (json:with-object ()
-	       (json:encode-object-member :path (resource-path resource))
-	       (json:encode-object-member :description (resource-documentation resource)))))
+	(json:with-array ()
+	  (loop for resource in (list-api-resources api)
+	       when (not (equalp (resource-name resource) 'api-docs))
+	     do
+	       (json:as-array-member ()
+		 (json:with-object ()
+		   (json:encode-object-member :path (resource-path resource))
+		   (json:encode-object-member :description (resource-documentation resource)))))))
       (json:as-object-member (:info)
-	(json:encode-object-member :title (or (title api)
-					      (name api)))
-	(json:encode-object-member :description (api-documentation api))))))
+	(json:with-object ()
+	  (json:encode-object-member :title (or (title api)
+						(name api)))
+	  (json:encode-object-member :description (api-documentation api)))))))
 
 (defun resource-apis (resource)
   "Get Swagger apis from the resource"
@@ -77,21 +83,26 @@
       (json:encode-object-member :method (string-upcase (symbol-name (request-method operation))))
       (json:encode-object-member :summary (api-summary operation))
       (json:encode-object-member :notes (api-documentation operation))
+      (json:encode-object-member :nickname (symbol-name (name operation)))
       #+nil(json:encode-object-member :type (api-function-type operation))
       (when (produces operation)
 	(json:encode-object-member :produces (mapcar #'mime-to-string (produces operation))))
       (when (consumes operation)
-	(json:encode-object-member :consumes (mapcar #'mime-to-string (consumes operation))))
+	(json:encode-object-member :consumes (mapcar #'mime-to-string (consumes operation))))      
       (json:as-object-member (:parameters)
 	(json:with-array ()
 	  (loop for parameter in (required-arguments operation)
 	     do
-	       (encode-parameter parameter t))
+	       (json:as-array-member ()
+		 (encode-parameter parameter t)))
 	  (loop for parameter in (optional-arguments operation)
 	     do
-	       (encode-parameter parameter nil)))))))
+	       (json:as-array-member ()
+		 (encode-parameter parameter nil))))))))
       
 (defun swagger-resource-spec (api resource base-url)
+  (setf (hunchentoot:header-out "Content-Type") "application/json")
+  (setf (hunchentoot:header-out "Access-Control-Allow-Origin") "*")
   (with-output-to-string (json:*json-output*)
     (json:with-object ()
       (json:encode-object-member
@@ -108,14 +119,15 @@
 	(json:with-array ()
 	  (loop for api in (resource-apis resource)
 	     do
-	       (destructuring-bind (path &rest operations) api
+	       (json:as-array-member ()
+		 (destructuring-bind (path &rest operations) api
 		   (json:with-object ()
 		     (json:encode-object-member :path path)
 		     (json:as-object-member (:operations)
 		       (json:with-array ()
 			 (loop for operation in operations
 			    do (json:as-array-member ()
-				 (encode-swagger-operation operation)))))))))))))
+				 (encode-swagger-operation operation))))))))))))))
 
 (defun mime-to-string (mime-type)
   (cond
