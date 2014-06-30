@@ -221,7 +221,8 @@
 
 (in-package :api-test-implementation)
 
-(implement-api-function (get-users :logging t)
+(implement-api-function (get-users
+			 (:logging :enabled t))
     (&key (expand-groups nil))
   (declare (ignore expand-groups))
   (with-output-to-string (s)
@@ -234,7 +235,8 @@
 		 (set-attribute "id" (cdr (assoc :id user)))
 		 (set-attribute "realname" (cdr (assoc :realname user))))))))))       
 
-(implement-api-function (get-user :serialization t)
+(implement-api-function (get-user
+			 (:serialization :enabled t))
     (id &key (expand-groups nil))
   (declare (ignore expand-groups))
   (let ((user (model-test:get-user id)))

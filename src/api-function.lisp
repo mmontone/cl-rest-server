@@ -154,26 +154,104 @@
   (find-api-function (find-api api) function-name))
 
 (defmethod find-api-function ((api api-definition) function-name)
-  (gethash function-name (functions api)))
+  (loop for resource being the hash-values of (resources api)
+       when (gethash function-name (api-functions resource))
+       do (return-from find-api-function
+	    (gethash function-name (api-functions resource))))
+  (error "api function not found ~A" function-name))
 
 (defun format-api-url (api function-name &rest args)
   (let ((api-function (find-api-function api function-name)))
     (replace-vars-in-url (url-pattern api-function) args)))
 
-(defmacro implement-api-function (name-and-options args &body body)
+(defclass api-function-implementation ()
+  ((api-function :initarg :api-function
+		 :initform (error "Provide the api function")
+		 :accessor api-function
+		 :documentation "The api function that is implemented")
+   (around :initarg :around
+	   :initform nil
+	   :accessor around
+	   :documentation "Around functions")
+   (before :initarg :before
+	   :initform nil
+	   :accessor before
+	   :documentation "Before functions")
+   (primary :initarg :primary
+	    :initform (error "Provide the primary function")
+	    :accessor primary
+	    :documentation "Primary function")
+   (after :initarg :after
+	  :initform nil
+	  :accessor after
+	  :documentation "After functions")
+   (options :initarg :options
+	    :initform nil
+	    :accessor options
+	    :documentation "api-function options"))
+  (:metaclass closer-mop:funcallable-standard-class)
+  (:documentation "api-function implementation"))
+
+(defmethod initialize-instance :after ((api-function-implementation api-function-implementation)
+				       &rest initargs)
+  (declare (ignore initargs))
+  (loop for option in (options api-function-implementation)
+       do (configure-api-function-implementation-option
+	   (first option)
+	   api-function-implementation
+	   option))
+  (closer-mop:set-funcallable-instance-function
+   api-function-implementation
+   (lambda (&rest args)
+     (apply #'execute api-function-implementation args))))
+
+(defmethod execute-before-primary-after ((api-function-implementation api-function-implementation) &rest args)
+  (loop for before in (before api-function-implementation)
+       do (apply before args))
+  (prog1
+      (apply (primary api-function-implementation) args)
+    (loop for after in (after api-function-implementation)
+       do (apply after args))))
+
+(defun call-around-function (api-function-implementation function arounds args)
+  (handler-bind
+      ((call-next-function-condition
+	(let ((around (first arounds)))
+	  #'(lambda (c)
+	      (let ((result (if (not around)
+				(execute-before-primary-after
+				 api-function-implementation args)
+					;else
+				(call-around-function api-function-implementation
+						      around (rest arounds) args))))
+		(invoke-restart (find-restart 'continue c) result))))))
+	    (apply function args)))
+
+(defmethod execute ((api-function-implementation api-function-implementation) &rest args)
+  (if (not (around api-function-implementation))
+      (execute-before-primary-after api-function-implementation args)
+      ; else
+      (call-around-function api-function-implementation
+			    (first (around api-function-implementation))
+			    (rest (around api-function-implementation))
+			    args)))  
+	
+(defmacro implement-api-function (api-name name-and-options args &body body)
   "Define an api function implementation"
   (multiple-value-bind (name options)
       (if (listp name-and-options)
 	  (values (first name-and-options)
 		  (alexandria:plist-alist (rest name-and-options)))
 	  (values name-and-options nil))
-    (let ((parsed-lambda-list (multiple-value-list (alexandria:parse-ordinary-lambda-list args))))
-      `(defgeneric ,name (,@(first parsed-lambda-list) &key ,@(mapcar #'first (nth 5 parsed-lambda-list)))
-	 (:method-combination method-combination-utilities:lax)
-	 (:method ,args
-	   ,@body)
-	 ,@(loop for (option . val) in options
-	      collect (%expand-api-function-wrapping name options option val name args))))))
+      `(let* ((api (find-api ',api-name))
+	      (api-function-implementation
+	       (make-instance 'api-function-implementation
+			      :api-function (find-api-function ',name)
+			      :primary (lambda ,args
+					 ,@body)
+			      :options ',options)))
+	 (setf (get ',name :api-function-implementation)
+	       api-function-implementation))))
 
 (defun %expand-api-function-wrapping (api-function-name
 				      api-function-options
@@ -201,6 +279,36 @@
 	   (log5:log-for (rest-server) "Response: ~A" result)
 	   result))
       `(call-next-method)))
+
+(define-condition call-next-function-condition ()
+  ())
+
+(defun call-next-function ()
+  (restart-case 
+    (signal 'call-next-function-condition)
+    (continue (&rest args)
+      (apply #'values args))))
+
+(defun add-around-function (api-function-implementation function)
+  (push function (around api-function-implementation)))
+
+(defmethod configure-api-function-implementation-option
+    ((option-name (eql :logging))
+     api-function-implementation
+     option)
+  (when (not (getf (cdr option) :disabled))
+    (add-around-function api-function-implementation
+	(lambda (&rest args)
+	  (declare (ignore args))
+	  (log5:log-for (rest-server) "API: Handling ~A ~A by ~A"
+			(hunchentoot:request-method*)
+			(hunchentoot:request-uri*) (name (api-function api-function-implementation)))
+	  (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
+				  (hunchentoot:raw-post-data :external-format :utf8))))
+	    (when posted-content (log5:log-for (rest-server) "Posted content: ~A" posted-content)))
+	  (let ((result (call-next-function)))
+	    (log5:log-for (rest-server) "Response: ~A" result)
+	    result)))))
 
 (defun find-api-function-implementation (name acceptor)
   (or (ignore-errors (symbol-function (intern (symbol-name name) (api-implementation-package acceptor))))
