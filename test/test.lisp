@@ -221,22 +221,24 @@
 
 (in-package :api-test-implementation)
 
-(implement-api-function (get-users
-			 (:logging :enabled t))
+(implement-api-function api-test::api-test
+    (api-test::get-users
+     (:logging :enabled t))
     (&key (expand-groups nil))
   (declare (ignore expand-groups))
   (with-output-to-string (s)
     (with-serializer-output s
       (with-serializer (rest-server::accept-serializer)
 	(with-elements-list ("users")
-	  (loop for user in (model-test:all-users)
-	     do
-	       (with-element ("user")
-		 (set-attribute "id" (cdr (assoc :id user)))
-		 (set-attribute "realname" (cdr (assoc :realname user))))))))))       
+	   (loop for user in (model-test:all-users)
+	      do
+		(with-element ("user")
+		  (set-attribute "id" (cdr (assoc :id user)))
+		  (set-attribute "realname" (cdr (assoc :realname user))))))))))       
 
-(implement-api-function (get-user
-			 (:serialization :enabled t))
+(implement-api-function api-test::api-test
+    (api-test::get-user
+     (:serialization :enabled t))
     (id &key (expand-groups nil))
   (declare (ignore expand-groups))
   (let ((user (model-test:get-user id)))

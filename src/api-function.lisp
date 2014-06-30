@@ -241,44 +241,17 @@
   (multiple-value-bind (name options)
       (if (listp name-and-options)
 	  (values (first name-and-options)
-		  (alexandria:plist-alist (rest name-and-options)))
+		  (rest name-and-options))
 	  (values name-and-options nil))
       `(let* ((api (find-api ',api-name))
 	      (api-function-implementation
 	       (make-instance 'api-function-implementation
-			      :api-function (find-api-function ',name)
+			      :api-function (find-api-function api ',name)
 			      :primary (lambda ,args
 					 ,@body)
 			      :options ',options)))
 	 (setf (get ',name :api-function-implementation)
 	       api-function-implementation))))
-
-(defun %expand-api-function-wrapping (api-function-name
-				      api-function-options
-				      option value name args)
-  (declare (ignore name))
-  (let ((wrapper (expand-api-function-wrapping api-function-name
-					       api-function-options
-					       option value args)))
-    (when wrapper
-      `(:method :around ,option ,args
-		,wrapper))))
-
-(defmethod expand-api-function-wrapping (api-function-name api-function-options
-					 (option (eql :logging)) enabled args)
-  (declare (ignore args api-function-options))
-  (if enabled
-      `(progn
-	 (log5:log-for (rest-server) "API: Handling ~A ~A by ~A"
-		       (hunchentoot:request-method*)
-		       (hunchentoot:request-uri*) ',api-function-name)
-	 (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
-				 (hunchentoot:raw-post-data :external-format :utf8))))
-	   (when posted-content (log5:log-for (rest-server) "Posted content: ~A" posted-content)))
-	 (let ((result (call-next-method)))
-	   (log5:log-for (rest-server) "Response: ~A" result)
-	   result))
-      `(call-next-method)))
 
 (define-condition call-next-function-condition ()
   ())
@@ -296,7 +269,7 @@
     ((option-name (eql :logging))
      api-function-implementation
      option)
-  (when (not (getf (cdr option) :disabled))
+  (when (getf (cdr option) :enabled)
     (add-around-function api-function-implementation
 	(lambda (&rest args)
 	  (declare (ignore args))
@@ -310,9 +283,24 @@
 	    (log5:log-for (rest-server) "Response: ~A" result)
 	    result)))))
 
-(defun find-api-function-implementation (name acceptor)
-  (or (ignore-errors (symbol-function (intern (symbol-name name) (api-implementation-package acceptor))))
-      (error "Api function ~A not implemented in package ~A" name (api-implementation-package acceptor))))
+(defmethod configure-api-function-implementation-option
+    ((option-name (eql :serialization))
+     api-function-implementation
+     option)
+  (when (getf (cdr option) :enabled)
+    (add-around-function api-function-implementation
+	(lambda (&rest args)
+	  (with-output-to-string (s)
+	    (with-serializer-output s
+	      (with-serializer (rest-server::accept-serializer)
+		(serialize
+		 (call-next-function)
+		 *serializer*
+		 s))))))))
+
+(defun find-api-function-implementation (name)
+  (or (get name :api-function-implementation)
+      (error "Api function ~A not implemented" name)))
 
 (defun execute-api-function-implementation (api-function function-implementation request)
   (let ((args (extract-function-arguments api-function request)))
@@ -334,42 +322,11 @@
 	  api-function 
 	  (optional-arguments api-function))))
 
-
 (defun api-function-matches-request-p (api-function request)
   (let ((scanner (parse-uri-prefix (uri-prefix api-function))))
     (and (cl-ppcre:scan scanner (hunchentoot:request-uri request)) 
          (equalp (request-method api-function) (hunchentoot:request-method request)))))
 
-(defun add-wrapping-function (api-function function)
-  )
-
-(defmethod configure-api-function ((api-function api-function))
-  (let ((options (alexandria:plist-alist (options api-function))))
-    (loop for option in options
-       do
-         (configure-api-function-option (car option) option api-function))))
-
-(defgeneric configure-api-function-option (option option-value api-function)
-  (:documentation "Configure an api function depending on its option")
-  (:method (option option-value api-function)
-    (error "Option ~A is invalid" option)))
-
-(defmethod configure-api-function-option ((option (eql :logging)) option-value api-function)
-  (add-wrapping-function api-function
-			 (lambda (next-function)
-			   (if (cadr option-value)
-			       (progn
-				 (log5:log-for (rest-server) "API: Handling ~A ~A by ~A"
-					       (hunchentoot:request-method*)
-					       (hunchentoot:request-uri*) (name api-function))
-				 (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
-							 (hunchentoot:raw-post-data :external-format :utf8))))
-				   (when posted-content (log5:log-for (rest-server) "Posted content: ~A" posted-content)))
-				 (let ((result (funcall next-function)))
-				   (log5:log-for (rest-server) "Response: ~A" result)
-				   result))
-			       ;; else
-			       (funcall next-function)))))
 ;; url formatting
 
 (defgeneric format-api-function-url (api-function &rest args)

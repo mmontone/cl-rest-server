@@ -73,12 +73,12 @@
   (:documentation "Hunchentoot api acceptor"))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
-  (loop for api-function being the hash-value of (functions (api acceptor))
+  (loop for api-function being the hash-value of (api-functions (api acceptor))
      when (api-function-matches-request-p api-function request)
      return (let ((result 
 		   (execute-api-function-implementation 
 		    api-function
-		    (find-api-function-implementation (name api-function) acceptor)
+		    (find-api-function-implementation (name api-function))
 		    request)))
 	      (if (stringp result) result (prin1-to-string result)))
      finally (call-next-method)))
@@ -109,6 +109,10 @@
 (defmethod list-api-resources ((api-definition api-definition))
   (loop for resource being the hash-values of (resources api-definition)
        collect resource))
+
+(defmethod api-functions ((api-definition api-definition))
+  (loop for resource in (list-api-resources api-definition)
+       appending (api-functions resource)))
 
 ;; Parsing
 
