@@ -91,14 +91,10 @@
 	(json:encode-object-member :consumes (mapcar #'mime-to-string (consumes operation))))      
       (json:as-object-member (:parameters)
 	(json:with-array ()
-	  (loop for parameter in (required-arguments operation)
+	  (loop for parameter in (arguments operation)
 	     do
 	       (json:as-array-member ()
-		 (encode-parameter parameter t)))
-	  (loop for parameter in (optional-arguments operation)
-	     do
-	       (json:as-array-member ()
-		 (encode-parameter parameter nil))))))))
+		 (encode-parameter parameter t))))))))
       
 (defun swagger-resource-spec (api resource base-url)
   (setf (hunchentoot:header-out "Content-Type") "application/json")

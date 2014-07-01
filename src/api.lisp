@@ -255,6 +255,48 @@
                         (parse-var-value string (second optarg))))))
 	  (append required-args optional-args))))))
 
+(defun extract-function-arguments-values (api-function request)
+  (loop for arg in (arguments api-function)
+       collect (extract-function-argument-value api-function request arg)))
+
+(defun extract-function-argument-value (api-function request argument)
+  (%extract-function-argument-value
+   (param-type argument)
+   api-function request argument))
+
+(defgeneric %extract-function-argument-value (param-type api-function request argument)
+  (:method ((param-type (eql :path)) api-function request argument)
+    (multiple-value-bind (scanner args)
+	(parse-uri-prefix (uri-prefix api-function))
+      (let ((arg-pos (position (symbol-name (argument-name argument))
+			       args
+			       :key #'symbol-name
+			       :test #'equalp)))
+	(when (not arg-pos)
+	  (error "Argument ~A not found in url ~S" argument (uri-prefix api-function)))
+	(multiple-value-bind (replaced-uri args-values) 
+	    (ppcre:scan-to-strings scanner (hunchentoot:request-uri request))
+	  (declare (ignore replaced-uri))
+	  (let ((arg-value (parse-var-value (aref args-values arg-pos)
+					    (argument-type argument))))
+	    arg-value)))))
+  (:method ((param-type (eql :query)) api-function request argument)
+    (let ((arg-value
+	   (hunchentoot:get-parameter
+	    (string-downcase (symbol-name (argument-name argument)))
+	    request)))
+      (when (and (required-p argument)
+		 (not arg-value))
+	(error "~A is required but was not provided" argument))
+      (when arg-value
+	(parse-var-value arg-value (argument-type argument)))))
+  (:method ((param-type (eql :body)) api-function request argument)
+    (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
+			    (hunchentoot:raw-post-data :external-format :utf8))))
+      (log5:log-for (rest-server) "Posted content: ~A" posted-content)
+      (let ((value (parse-posted-content posted-content)))
+	value))))				    
+
 ;; Implementation
 
 ;; api-definition

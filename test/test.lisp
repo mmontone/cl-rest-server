@@ -155,28 +155,51 @@
 				       :produces (:json)
 				       :uri-prefix "/users"
 				       :documentation "Retrive the users list")       
-		      (&optional (expand-groups :boolean nil "Expand groups if true")))
+		      ((expand-groups :type :boolean
+				      :param-type :query
+				      :required-p nil
+				      :default-value nil
+				      :documentation "Expand groups if true")))
 	   (get-user (:request-method :get
 				      :produces (:json)
 				      :uri-prefix "/users/{id}"
 				      :documentation "Retrive an user")
-		     ((id :integer "The user id")
-		      &optional (expand-groups :boolean nil "Expand groups if true")))
+		     ((id :type :integer
+			  :param-type :path
+			  :required-p t
+			  :documentation "The user id")
+		      (expand-groups :type :boolean
+				     :param-type :query
+				     :default-value nil
+				     :documentation "Expand groups if true")))
 	   (create-user (:request-method :post
 					 :consumes (:json)
 					 :uri-prefix "/users"
 					 :documentation "Create a user")
-			())
+			((body :type :string
+			       :param-type :body
+			       :required-p t
+			       :documentation "The user in json format")))
 	   (update-user (:request-method :put
 					 :consumes (:json)
 					 :uri-prefix "/users/{id}"
 					 :documentation "Update a user")
-			((id :integer "The user id")))
+			((id :type :integer
+			     :param-type :path
+			     :required-p t
+			     :documentation "The user id")
+			 (body :type :string
+			       :param-type :body
+			       :required-p t
+			       :documentation "The user data in json format")))
 	   (delete-user (:request-method :delete
 					 :consumes (:json)
 					 :uri-prefix "/users/{id}"
 					 :documentation "Delete a user")
-			((id :integer "The user id"))))))
+			((id :type :integer
+			     :param-type :path
+			     :required-p t
+			     :documentation "The user id"))))))
 
 ;; Add Swagger resource
 (rest-server::define-swagger-resource api-test)
@@ -259,18 +282,19 @@
 		 (attribute "id" (cdr (assoc :id user)))
 		 (attribute "realname" (cdr (assoc :realname user)))))))
 
-(implement-api-function api-test::api-test api-test::create-user (posted-content)
-  (model-test:add-user (cdr (assoc :realname posted-content))))
+(implement-api-function api-test::api-test
+    api-test::create-user (body)
+  (model-test:add-user (cdr (assoc :realname body))))
 
 (implement-api-function
     api-test::api-test
-    api-test::update-user (posted-content id)
+    api-test::update-user (id body)
     (let ((user (model-test::get-user id)))
       (if (not user)
 	(error 'http-not-found-error)
 	; else
 	(progn
-	  (model-test::set-user-realname user (cdr (assoc :realname posted-content)))
+	  (model-test::set-user-realname user (cdr (assoc :realname body)))
 	  (model-test::update-user user)))))
 
 (implement-api-function api-test::api-test

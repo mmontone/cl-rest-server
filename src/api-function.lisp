@@ -20,12 +20,10 @@
    (request-method :initarg :request-method
 		   :accessor request-method
 		   :initform :get)
-   (required-arguments :initarg :required-arguments
-                       :accessor required-arguments
-                       :initform nil)
-   (optional-arguments :initarg :optional-arguments
-                       :accessor optional-arguments
-                       :initform nil)
+   (arguments :initarg :arguments
+	      :initform nil
+	      :accessor arguments
+	      :documentation "The api function arguments")
    (consumes :initarg :consumes
 	     :accessor consumes
 	     :initform nil
@@ -96,55 +94,49 @@
 	    (uri-prefix api-function))))
 
 (defmethod validate ((api-function api-function))
-  ;; Check api-function arguments have the right format
-  (loop for arg in (required-arguments api-function)
-       do
-       (assert (and (listp arg)
-                    (symbolp (first arg))
-                    (keywordp (second arg))
-                    (member (second arg) *api-function-arguments-types*)
-                    (or (not (third arg))
-                        (stringp (third arg))))
-               nil
-               "The argument is not in the right format ~A.
-                Right format: (<name> <type> <documentation>)"
-               arg))
-
-    (loop for arg in (optional-arguments api-function)
-       do
-       (assert (and (listp arg)
-                    (symbolp (first arg))
-                    (keywordp (second arg))
-                    (member (second arg) *api-function-arguments-types*)
-                    ;(api-function-typep (third arg) (second arg))
-                    (or (not (nth 3 arg))
-                        (stringp (nth 3 arg))))
-               nil
-               "The argument is not in the right format ~A.
-                Right format: (<name> <type> <default-value> <documentation>)"
-               arg))
-  
-  ; Ensure uri parameters have been declared
+					; Ensure path parameters have been declared
   (let ((args-in-uri (multiple-value-bind (scanner vars)
                          (parse-uri-prefix (uri-prefix api-function))
                        (declare (ignore scanner))
                        vars)))
-    (loop for arg in args-in-uri
+    (let ((path-arguments (path-arguments api-function)))
+      (loop for arg in args-in-uri
 	 do
-	 (assert (member arg (mapcar #'first (required-arguments api-function)))
-		 nil
-		 "Argument ~a not declared in ~a" arg api-function))))
+	   (assert (member (symbol-name arg)
+			   (mapcar #'argument-name path-arguments)
+			   :test #'equalp
+			   :key #'symbol-name)
+		   nil
+		   "Argument ~a not declared in ~a" arg api-function)))))
+
+(defmethod required-arguments ((api-function api-function))
+  (remove-if-not #'required-p (arguments api-function)))
+
+(defmethod optional-arguments ((api-function api-function))
+  (remove-if #'required-p (arguments api-function)))
+
+(defmethod path-arguments ((api-function api-function))
+  (remove-if-not (lambda (arg)
+		   (equalp (param-type arg) :path))
+		 (arguments api-function)))
+
+(defmethod query-arguments ((api-function api-function))
+  (remove-if-not (lambda (arg)
+		   (equalp (param-type arg) :query))
+		 (arguments api-function)))
+
+(defmethod body-argument ((api-function api-function))
+  (find-if (lambda (arg)
+		    (equalp (param-type arg) :body))
+	   (arguments api-function)))
 
 (defun make-api-function (name attributes args options)
   "Make an api function."
-  (multiple-value-bind (required-arguments optional-arguments)
-      (parse-api-function-arguments args)
-    (apply #'make-instance 'api-function
+  (apply #'make-instance 'api-function
 	   :name name
+	   :arguments (parse-api-function-arguments args)
 	   :options options
-	   :required-arguments required-arguments
-	   :optional-arguments optional-arguments
-	   attributes)))
+	   attributes))
 
 (defmethod find-api-function ((api symbol) function-name)
   (find-api-function (find-api api) function-name))
@@ -159,6 +151,95 @@
 (defun format-api-url (api function-name &rest args)
   (let ((api-function (find-api-function api function-name)))
     (replace-vars-in-url (url-pattern api-function) args)))
+
+(defparameter *argument-types* (list :integer
+				     :long
+				     :float
+				     :double
+				     :string
+				     :byte
+				     :boolean
+				     :date
+				     :date-time))
+
+(defparameter *param-types* (list :path :query :body :header :form))
+
+(defclass api-function-argument ()
+  ((name :initarg :name
+	 :accessor argument-name
+	 :initform (error "Provide the argument name (:name)")
+	 :type symbol
+	 :documentation "The argument name")
+   (type :initarg :type
+	 :accessor argument-type
+	 :initform (error "Provide the argument type (:type)")
+	 :documentation "The argument type")
+   (param-type :initarg :param-type
+	       :accessor param-type
+	       :initform (error "Provide the parameter type (:param-type)")
+	       :type (member (:path :query :body :header :form))
+	       :documentation "The type of the parameter (that is, the location of the parameter in the request). The value MUST be one of these values: :path, :query, :body, :header, :form")
+   (format :initarg :format
+	   :accessor argument-format
+	   :initform nil
+	   :documentation "The argument format")
+   (default-value
+       :initarg :default-value
+     :accessor default-value
+     :initform nil
+     :documentation "The default value")
+   (enum :initarg :enum
+	 :accessor argument-enum
+	 :initform nil
+	 :documentation "A fixed list of possible values. If this field is used in conjunction with the defaultValue field, then the default value MUST be one of the values defined in the enum")
+   (minimum :initarg :minimum
+	    :accessor argument-minimum
+	    :initform nil
+	    :documentation "The minimum valid value for the type, inclusive. If this field is used in conjunction with the defaultValue field, then the default value MUST be higher than or equal to this value.")
+   (maximum :initarg :maximum
+	    :accessor argument-maximum
+	    :initform nil
+	    :documentation "The maximum valid value for the type, inclusive. If this field is used in conjunction with the defaultValue field, then the default value MUST be lower than or equal to this value.")
+   (allow-multiple :initarg :allow-multiple
+		   :accessor allow-multiple
+		   :initform nil
+		   :documentation "Another way to allow multiple values for a :query parameter. If used, the query parameter may accept comma-separated values. The field may be used only if paramType is :query, :header or :path")
+   (required-p :initarg :required-p
+	       :accessor required-p
+	       :initform nil
+	       :documentation "A flag to note whether this parameter is required. If this field is not included, it is equivalent to adding this field with the value false")
+   (documentation :initarg :documentation
+		  :accessor argument-documentation
+		  :initform nil
+		  :type string
+		  :documentation "Recommended. A brief description of this parameter."))
+  (:documentation "An api-function argument"))
+
+(defmethod initialize-instance :after ((arg api-function-argument) &rest initargs)
+  (declare (ignore initargs))
+  (validate-api-function-argument arg))
+
+(defmethod validate-api-function-argument ((arg api-function-argument))
+  (assert (member (argument-type arg) *argument-types*) nil
+	  "Argument type invalid ~A" (argument-type arg))
+  (assert (member (param-type arg) *param-types*) nil
+	  "Param type ~A is invalid" (param-type arg))
+  (assert (or (not (equalp (param-type arg) :body))
+	      (equalp (symbol-name (argument-name arg)) "body"))
+	  nil "Argument name should be 'body'"))
+
+(defmethod print-object ((arg api-function-argument) stream)
+  (print-unreadable-object (arg stream :type t :identity t)
+    (format stream "~A::~A(~A) REQUIRED: ~A"
+	    (argument-name arg)
+	    (argument-type arg)
+	    (param-type arg)
+	    (required-p arg))))
+
+(defun parse-api-function-argument (arg-spec)
+  (apply #'make-instance 'api-function-argument
+	 :name (first arg-spec)
+	 (rest arg-spec)))
 
 (defclass api-function-implementation ()
   ((api-function :initarg :api-function
@@ -300,15 +381,8 @@
 
 (defun execute-api-function-implementation (api-function function-implementation request)
   (with-condition-handling
-    (let ((args (extract-function-arguments api-function request)))
-      (apply function-implementation
-	     (append 
-	      (when (member (request-method api-function) (list :put :post))
-		(let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
-					(hunchentoot:raw-post-data :external-format :utf8))))
-		  (log5:log-for (rest-server) "Posted content: ~A" posted-content)
-		  (list (parse-posted-content posted-content))))
-	      args)))))
+    (let ((arg-values (extract-function-arguments-values api-function request)))
+      (apply function-implementation arg-values))))
 
 (defun find-optional-argument (name api-function)
   (or
@@ -362,19 +436,8 @@
     (format nil "~{~A~^,~}" value)))
 
 (defun parse-api-function-arguments (arguments-spec)
-  (loop with required-arguments = '()
-     with optional-arguments ='()
-     with optional = nil
-     for argument in arguments-spec
-     do
-     (if (equalp argument '&optional)
-         (setf optional t)
-         ;; else
-         (if optional
-             (push argument optional-arguments)
-             (push argument required-arguments)))
-     finally (return (values (reverse required-arguments)
-                             (reverse optional-arguments)))))
+  (loop for arg-spec in arguments-spec
+     collect (parse-api-function-argument arg-spec)))     
 
 (defun parse-parameter (string)
   (cl-ppcre:register-groups-bind (query-param var)
@@ -396,15 +459,12 @@
       `(progn
 	 (defun ,(intern (symbol-name (name api-function)) package)
              ,(append
-                (if (member (request-method api-function) '(:post :put))
-                    (list 'posted-content)
-                    nil)
-                (loop for x in required-args collect 
-		     (intern (symbol-name (car x)) package))
-                (if optional-args
-                    (cons '&key (loop for x in optional-args collect 
-				     (list (intern (symbol-name (first x)) package) 
-					   (third x))))))
+	       (loop for arg in required-args collect 
+		     (intern (symbol-name (argument-name arg)) package))
+	       (if optional-args
+		   (cons '&key (loop for arg in optional-args collect 
+				     (list (intern (symbol-name (argument-name arg)) package) 
+					   (default-value arg))))))
 	   ,(api-documentation api-function)
            (log5:log-for (rest-server) "Client stub: ~A" ',(name api-function))
            (assert *api-backend* nil "Error: this is an API function. No api backend selected. Wrap this function call with with-api-backend")
@@ -413,29 +473,25 @@
                                        (replace-vars-in-url 
                                         ,(url-pattern-noparams api-function)
                                         (list
-                                         ,@(loop for x in required-args 
-                                              collect (make-keyword (car x))
-                                              collect (intern (symbol-name (car x)) package)))))))
+                                         ,@(loop for arg in (path-arguments api-function) 
+                                              collect (make-keyword (argument-name arg))
+                                              collect (intern (symbol-name (argument-name arg)) package)))))))
              (log5:log-for (rest-server)  "Request: ~A ~A" ,(request-method api-function) ,request-url)
-             ,(when (member (request-method api-function) 
-                            '(:post :put))
-                    `(log5:log-for (rest-server) "Posted content: ~A"
-                                   posted-content))
-             (let ((,response (drakma:http-request 
+	     (let ((,response (drakma:http-request 
                                ,request-url
                                :method ,(request-method api-function)
                                :proxy *rest-server-proxy*
-                               :content ,(when (member (request-method api-function) 
-                                                     '(:post :put))
-                                             `(babel:string-to-octets posted-content))
+                               :content ,(let ((body-argument (body-argument api-function)))
+					      (when body-argument
+						`(babel:string-to-octets ,(intern (symbol-name (argument-name body-argument))))))
                                :parameters (list 
-                                            ,@(loop for x in optional-args
+                                            ,@(loop for arg in (query-arguments api-function)
                                                  collect
                                                  (progn
                                                    `(cons 
-                                                     ,(symbol-name (car x))
+                                                     ,(symbol-name (argument-name arg))
                                                      (format nil "~A" ,(intern (symbol-name 
-                                                                                (car x)) package)))))))))
+                                                                                (argument-name arg)) package)))))))))
                (log5:log-for (rest-server) "Response: ~A" ,response)
                ,response)))))))
 
