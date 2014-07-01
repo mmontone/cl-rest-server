@@ -239,7 +239,9 @@
   (push user *users*))
 
 (defun get-user (id)
-  (cdr (assoc id *users*)))
+  (find-if (lambda (user)
+	     (equalp (user-id user) id))
+	   *users*))
 
 (defun delete-user (id)
   (setf *users* (delete id *users* :test #'equalp :key #'first)))
@@ -256,7 +258,7 @@
     (api-test::get-users
      (:logging :enabled t)
      (:error-handling :enabled t))
-    (&key (expand-groups nil))
+    (expand-groups)
   (declare (ignore expand-groups))
   (with-output-to-string (s)
     (with-serializer-output s
@@ -272,7 +274,7 @@
 (implement-api-function api-test::api-test
     (api-test::get-user
      (:serialization :enabled t))
-    (id &key (expand-groups nil))
+    (id expand-groups)
   (declare (ignore expand-groups))
   (let ((user (model-test:get-user id)))
     (if (not user)

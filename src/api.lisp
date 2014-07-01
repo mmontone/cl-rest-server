@@ -288,8 +288,10 @@
       (when (and (required-p argument)
 		 (not arg-value))
 	(error "~A is required but was not provided" argument))
-      (when arg-value
-	(parse-var-value arg-value (argument-type argument)))))
+      (if arg-value
+	  (parse-var-value arg-value (argument-type argument))
+	  ;; else, use the default-value
+	  (default-value argument))))
   (:method ((param-type (eql :body)) api-function request argument)
     (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
 			    (hunchentoot:raw-post-data :external-format :utf8))))
