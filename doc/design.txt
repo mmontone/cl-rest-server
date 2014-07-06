@@ -143,3 +143,55 @@ post:
   Used for serialization?
 
   Optional
+
+* Specify api-functions return types and unserialize results
+
+  Example:
+
+    (define-api-function (my-api-function
+                            :returns integer)
+	((arg :type string)))
+
+  Or using 'Schemas' or 'Models':
+
+    (define-api-function (get-person
+                            :returns person)
+	((id :type integer)))
+
+  The function implementation returns a person:
+
+     (implement-api-function (get-person
+          ((:unserialization :enabled t
+	                     :schema person)
+	   (:authorization :enabled t
+	                   :type :oauth
+			   :scope user-info)
+	   (:caching :enabled t)		   
+	   (:database :enabled t)))
+	   (id)
+	(get-person id))
+
+* Desired api functions 'plugins':
+
+  - Pagination
+  - Linking
+  - Sorting
+  - Validation
+  - Serialization
+  - Unserialization
+  - Logging
+  - Caching
+  - Authorization
+  - Authentication
+  - Etags
+
+* Resources options
+
+  Resources options can be overwritten in api-function-implementations
+
+  (defresource (users
+          ((:caching :enabled t)		   
+	   (:database :enabled t)))
+	   ... )
+
+* Use anvil-connect for API authentication and authorization
