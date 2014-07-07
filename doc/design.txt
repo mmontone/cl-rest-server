@@ -197,3 +197,5 @@ post:
 * Use anvil-connect for API authentication and authorization
 
 * API versioning
+
+* Proper HTTP Content negotiation
