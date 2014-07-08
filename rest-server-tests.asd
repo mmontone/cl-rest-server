@@ -31,7 +31,10 @@ OTHER DEALINGS IN THE SOFTWARE."
   :components
   ((:module :test
 	    :components
-	    ((:file "test"))
+	    ((:file "test")
+	     (:file "serialization")
+	     (:file "api")
+	     (:file "schema"))
 	    :serial t))
   :serial t
   :depends-on (:rest-server :fiveam :cl-html5-parser))
