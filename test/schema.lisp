@@ -126,7 +126,7 @@
       (serialize-with-schema 
        *schema* *user*))))
 
-#+fails(with-output-to-string (s)
+(with-output-to-string (s)
   (with-serializer-output s
     (with-serializer :xml
       (serialize-with-schema 
@@ -140,7 +140,7 @@
 
 (test parse-api-input-test
   (let ((input-1 "{\"id\":2,\"realname\":\"Mariano\",\"age\":30,\"bestFriend\":{\"id\":3,\"realname\":\"Fernando\"},\"groups\":[{\"id\":3,\"name\":\"My group\"}]}")
-	(input-2 "<user><id>2</id><realname>Mariano</realname><age>30</age><best-friend><id>3</id><realname>Fernando</realname></best-friend><groups><group><id>3</id><name>My group</name></group></groups></user>")
+	(input-2 "<user><id>2</id><realname>Mariano</realname><age>30</age><best-friend><user><id>3</id><realname>Fernando</realname></user></best-friend><groups><group><id>3</id><name>My group</name></group></groups></user>")
 	(input-3 "(user ((id . 2) (realname . \"Mariano\") (age . 30) (best-friend . ((id . 3) (realname . \"Fernando\"))) (groups . ((group ((id . 3) (name . \"My group\")))))))"))
   (let ((parsed-input-1 (rest-server::parse-api-input :json input-1))
 	(parsed-input-2 (rest-server::parse-api-input :xml input-2))
@@ -179,13 +179,20 @@
 		   :accessor another-friend
 		   :initform nil
 		   :serialization-type serializable-user
-		   :serialization-optional t))
+		   :serialization-optional t)
+   (hobbies :initarg :hobbies
+	    :accessor hobbies
+	    :serialize t
+	    :serialization-type (:list :string)
+	    :initform nil
+	    :serialization-optional t))
   (:metaclass serializable-class)
   (:serialization-name user))
 
 (closer-mop:finalize-inheritance (find-class 'serializable-user))
 
 (serializable-class-schema (find-class 'serializable-user))
+(find-schema 'serializable-user)
 
 (defparameter *serializable-user* 
   (make-instance 'serializable-user
@@ -198,13 +205,12 @@
 		 :best-friend (make-instance 'serializable-user 
 					     :id 3
 					     :realname "Fernando"
-					     :age 31
-					     )
+					     :age 31)
 		 :another-friend (make-instance 'serializable-user 
 					     :id 3
 					     :realname "Julio"
-					     :age 31
-					     )))
+					     :age 31)
+		 :hobbies (list "reading" "swimming")))
 
 (with-output-to-string (s)
   (with-serializer-output s
@@ -219,6 +225,21 @@
     (with-serializer :json
       (serialize *serializable-user*))))
 
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :xml
+      (serialize-with-schema 
+       (serializable-class-schema 
+	(find-class 'serializable-user))
+       *serializable-user*))))
+
+(with-output-to-string (s)
+  (with-serializer-output s
+    (with-serializer :xml
+      (serialize *serializable-user*))))
+
+
+
 ;; Unserialization
 
 (let ((data
@@ -228,5 +249,17 @@
 	     (serialize-with-schema 
 	      (find-schema 'user-schema) *user*))))))
   (rest-server::unserialize-with-schema
+   (find-schema 'user-schema)
+   data))
+
+;; Validation
+
+#+nil(let ((data
+       (with-output-to-string (s)
+	 (with-serializer-output s
+	   (with-serializer :json
+	     (serialize-with-schema 
+	      (find-schema 'user-schema) *user*))))))
+  (rest-server::validate-with-schema
    (find-schema 'user-schema)
    data))

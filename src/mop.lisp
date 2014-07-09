@@ -100,14 +100,23 @@
 					&key direct-superclasses)
   (declare (dynamic-extent initargs))
   (if (loop for class in direct-superclasses
-            thereis (subtypep class (find-class 'serializable-object)))
+	 thereis (subtypep class (find-class 'serializable-object)))
       ;; 'serializable-object is already one of the (indirect) superclasses
       (call-next-method)
       ;; 'serializable-object is not one of the superclasses, so we have to add it
       (apply #'call-next-method class :direct-superclasses
 	     (append direct-superclasses
 		     (list (find-class 'serializable-object)))
-	     initargs)))
+	     initargs))
+  ;; Register the schema
+  ;; Hack: this shouldn't be here, but the class needs to be finalized in order
+  ;; to be able to call closer-mop:class-slots needed for the schema definition
+  (closer-mop:finalize-inheritance class)
+
+  (let ((schema-name #+nil(intern (format nil "~A-SCHEMA" (class-name class)))
+		     (class-name class)))
+    (register-schema schema-name
+		     (serializable-class-schema class))))
 
 (defmethod reinitialize-instance :around ((class serializable-class) 
 					  &rest initargs 
@@ -116,13 +125,23 @@
   (if direct-superclasses-p
       ;; if direct superclasses are explicitly passed
       ;; this is exactly like above
-      (if (loop for class in direct-superclasses
-	     thereis (subtypep class (find-class 'serializable-object)))
-	  (call-next-method)
-	  (apply #'call-next-method class :direct-superclasses
-		 (append direct-superclasses
-			 (list (find-class 'serializable-object)))
-		 initargs))
+      (progn
+	(if (loop for class in direct-superclasses
+	       thereis (subtypep class (find-class 'serializable-object)))
+	    (call-next-method)
+	    (apply #'call-next-method class :direct-superclasses
+		   (append direct-superclasses
+			   (list (find-class 'serializable-object)))
+		   initargs))
+	;; Register a schema
+	;; Hack: this shouldn't be here, but the class needs to be finalized in order
+	;; to be able to call closer-mop:class-slots needed for the schema definition
+	(closer-mop:finalize-inheritance class)
+	
+	(let ((schema-name #+nil(intern (format nil "~A-SCHEMA" (class-name class)))
+			   (class-name class)))
+	  (register-schema schema-name
+			   (serializable-class-schema class))))
       ;; if direct superclasses are not explicitly passed
       ;; we _must_ not change anything
       (call-next-method))) 
@@ -203,7 +222,7 @@
 		   ,@(when toggle-option
 			   (list :toggle toggle-option))
 		   ,@(when serialization-optional
-			   (list :optional t))))))))
+			   (list :optional t))))))))	   
 
 (defmethod serialize ((object serializable-object) &optional (serializer *serializer*)
 		      (stream *serializer-output*))

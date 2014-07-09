@@ -62,34 +62,39 @@
 (defun serialize-schema-list (schema-list serializer input stream)
   (destructuring-bind (_ list-type) schema-list
     (declare (ignore _))
-    (with-elements-list ("list" :serializer serializer
+    (with-elements-list ("LIST" :serializer serializer
 				:stream stream)
       (cond 
 	((keywordp list-type)
+	 ;; It is a primitive type like :string, :boolean, etc
 	 (loop for elem in input
 	    do
-	    (add-list-member "item" elem serializer stream)))
+	    (add-list-member "ITEM" elem
+			     :serializer serializer
+			     :stream stream)))
 	((symbolp list-type)
+	 ;; It is a reference to a schema like 'user-schema'
 	 (let ((schema (find-schema list-type)))
 	   (loop for elem in input
 	      do
-	      (with-list-member ("item" :serializer serializer
-					:stream stream)
-		(%serialize-with-schema schema serializer elem stream)))))
+		(%serialize-with-schema schema serializer elem stream))))
 	((listp list-type)
+	 ;; It is some compound type, like :element, :list, or :option
 	 (let ((schema list-type))
 	   (loop for elem in input
 	      do
-	      (with-list-member ("item" :serializer serializer
-					:stream stream)
-		(%serialize-with-schema schema serializer elem stream)))))))))
+		(%serialize-with-schema schema serializer elem stream))))))))
 
 (defvar *schemas* (make-hash-table))
 
+(defun register-schema (name definition)
+  (setf (gethash name *schemas*)
+	definition))
+
 (defmacro define-schema (name schema)
   "Define a schema"
-  `(setf (gethash ',name *schemas*)
-	 (schema ,schema)))
+  `(register-schema ',name
+		    (schema ,schema)))
 
 (defmacro schema (schema-def)
   `(quote ,schema-def))
@@ -104,10 +109,10 @@
 	    nil)
 	schema)))
 
-(defgeneric validate-with-schema (schema input)
-  (:documentation "Validate input using schema")
-  (:method (schema input)
-    (schema-validate-with-element schema input)))
+(defun validate-with-schema (schema string &optional (format :json))
+  "Validate input using schema"
+  (let ((data (parse-api-input format string)))
+    (schema-validate-with-element schema data)))
 
 (define-condition validation-error (simple-error)
   ())
@@ -136,7 +141,7 @@
 		 (schema-typep input-attribute-value schema-attribute-type))))))))
 
 (defgeneric parse-api-input (format string)
-  )
+  (:documentation "Parses content depending on its format"))
 
 (defmethod parse-api-input ((format (eql :json)) string)
   (json:decode-json-from-string string)) 
@@ -146,6 +151,48 @@
 
 (defmethod parse-api-input ((format (eql :sexp)) string)
   (read-from-string string))
+
+(defgeneric parse-with-schema (format schema string)
+  (:documentation "Parses the string to an association list using the schema"))
+
+(defmethod parse-with-schema (format schema string)
+  (parse-api-input format string))
+
+(defun schema-type (schema)
+  (first schema))
+
+(defmethod parse-with-schema ((format (eql :xml)) schema string)
+  (parse-xml-with-schema schema (parse-api-input :xml string)))
+
+(defun parse-xml-with-schema (schema input)
+  (ecase (schema-type schema)
+    (:list
+     (let ((items (third input)))
+       (loop for item in items
+	  collect (parse-xml-with-schema
+		   (second schema) ;; the list type
+		   item))))
+    (:element
+     (assert (equalp (element-name schema) (first input)) nil
+	     "~A is not a ~A" input (element-name schema))
+     (loop for attribute in (element-attributes schema)
+	appending (let ((input-attribute
+			 (find (attribute-name attribute)
+			       (cddr input)
+			       :key #'first
+			       :test #'equalp)))
+		    (if input-attribute
+			;; The attrbute is present
+			(list (cons (make-keyword (first input-attribute))
+				    (if (listp (schema-type schema))
+					;; It is a compound type (:list, :element, etc)
+					(parse-xml-with-schema (second schema) ;; The compound element type
+							       (third input-attribute) ;; The attribute value
+							       )
+					;; else, the attribute type is simple, parse the attribute value
+					(unserialize-schema-attribute-value
+					 (attribute-type attribute)
+					 (third input-attribute)))))))))))
 
 (defun element-name (element)
   (second element))
@@ -236,33 +283,43 @@ See: parse-api-input (function)"
 	    (when (not (attribute-optional-p attribute))
 	      (error "Attribute ~A is not optional but value was not provided" attribute))
 	    ; else
-	    (unserialize-schema-type (attribute-type attribute) input)))))
+	    (unserialize-schema-attribute-value (attribute-type attribute) input)))))
 
-(defun unserialize-schema-type (type input)
-  (%unserialize-schema-type (if (listp type)
-				(first type)
-				type)
-			    type
-			    input))
+(defun unserialize-schema-attribute-value (type input)
+  (%unserialize-schema-attribute-value
+   (if (listp type)
+       (first type)
+       type)
+   type
+   input))
 
-(defgeneric %unserialize-schema-type (type-name type input)
+(defgeneric %unserialize-schema-attribute-value (type-name type input)
   (:method ((type-name (eql :integer)) attribute input)
     (if (integerp input)
 	input
 	(parse-integer input)))
   (:method ((type-name (eql :string)) type input)
     input)
+  (:method ((type-name (eql :boolean)) type input)
+    (if (stringp input)
+	(let ((true-strings (list "true" "t" "yes" "on"))
+	      (false-strings (list "false" "f" "no" "off")))
+	  (assert (member input (append true-strings false-strings) :test #'equalp)
+		  nil "Invalid boolean ~A" input)
+	  (member input true-strings :test #'equalp))
+	(not (null input))))
   (:method ((type-name (eql :element)) type input)
     (unserialize-schema-element type input))
   (:method ((type-name (eql :list)) type input)
     (let ((list-type (second type)))
       (loop for elem in input
-	 collect (unserialize-schema-type list-type elem))))
+	 collect (unserialize-schema-attribute-value list-type elem))))
   (:method ((type-name (eql :option)) type input)
     input)
   (:method (type-name type input)
+    ;; Assume a schema reference
     (let ((schema (find-schema type-name nil)))
       (if (not schema)
 	  (error "Invalid type ~A" type-name)
 					; else
-	  (unserialize-schema-type schema input)))))
+	  (unserialize-schema-attribute-value schema input)))))
