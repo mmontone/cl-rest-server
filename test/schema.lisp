@@ -53,12 +53,15 @@
    (age :initarg :age
 	:accessor age
 	:initform (error "Provide the age"))
+   (sex :initarg :sex
+	:accessor sex
+	:initform nil)
    (groups :initarg :groups
 	   :accessor groups
 	   :initform nil)
    (best-friend :initarg :best-friend
 		:accessor best-friend
-		:initform nil)))		
+		:initform nil)))
 
 (defclass group ()
   ((id :initarg :id

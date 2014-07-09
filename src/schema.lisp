@@ -13,6 +13,7 @@
   (if (listp schema)
       (ecase (first schema)
 	(:list (serialize-schema-list schema serializer input stream))
+	(:option (serialize-value serializer input stream))
 	(:element (serialize-schema-element schema serializer input stream)))))
 
 (defun serialize-schema-element (schema-element serializer input stream)
