@@ -164,35 +164,51 @@
 (defmethod parse-with-schema ((format (eql :xml)) schema string)
   (parse-xml-with-schema schema (parse-api-input :xml string)))
 
-(defun parse-xml-with-schema (schema input)
-  (ecase (schema-type schema)
-    (:list
-     (let ((items (third input)))
-       (loop for item in items
-	  collect (parse-xml-with-schema
-		   (second schema) ;; the list type
-		   item))))
-    (:element
-     (assert (equalp (element-name schema) (first input)) nil
-	     "~A is not a ~A" input (element-name schema))
-     (loop for attribute in (element-attributes schema)
-	appending (let ((input-attribute
-			 (find (attribute-name attribute)
-			       (cddr input)
-			       :key #'first
-			       :test #'equalp)))
-		    (if input-attribute
-			;; The attrbute is present
-			(list (cons (make-keyword (first input-attribute))
-				    (if (listp (schema-type schema))
-					;; It is a compound type (:list, :element, etc)
-					(parse-xml-with-schema (second schema) ;; The compound element type
-							       (third input-attribute) ;; The attribute value
-							       )
-					;; else, the attribute type is simple, parse the attribute value
-					(unserialize-schema-attribute-value
-					 (attribute-type attribute)
-					 (third input-attribute)))))))))))
+(defun parse-xml-with-schema (schema-or-name input)
+  (let ((schema (if (symbolp schema-or-name)
+		    (find-schema schema-or-name)
+		    schema-or-name)))
+  
+    (ecase (schema-type schema)
+      (:list
+       (let ((items (third input)))
+	 (loop for item in items
+	    collect
+	      (parse-xml-with-schema
+	       (second schema) ;; the list type
+	       item))))
+      (:element
+       (assert (equalp (make-keyword (element-name schema))
+		       (make-keyword (first input))) nil
+		       "~A is not a ~A" input (element-name schema))
+       (loop for attribute in (element-attributes schema)
+	  appending (let ((input-attribute
+			   (find (symbol-name (attribute-name attribute))
+				 (cddr input)
+				 :key #'first
+				 :test #'equalp)))
+		      (if input-attribute
+			  ;; The attrbute is present
+			  (list (cons (make-keyword (first input-attribute))
+				      (cond
+					((listp (attribute-type attribute))
+					 ;; It is a compound type (:list, :element, etc)
+					 (parse-xml-with-schema
+					  (second (attribute-type attribute)) ;; The compound element type
+					  (third input-attribute) ;; The attribute value
+					  ))
+					((keywordp (attribute-type attribute))
+					 ;; the attribute type is simple, parse the attribute value
+					 (unserialize-schema-attribute-value
+					  (attribute-type attribute)
+					  (third input-attribute)))
+					((symbolp (attribute-type attribute))
+					 ;; assume a schema reference
+					 (let ((attribute-schema (find-schema (attribute-type attribute))))
+					   (parse-xml-with-schema
+					    attribute-schema
+					    (third input-attribute) ;; The attribute value
+					    )))))))))))))
 
 (defun element-name (element)
   (second element))
