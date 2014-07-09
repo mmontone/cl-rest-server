@@ -231,7 +231,11 @@ See: parse-api-input (function)"
   (let ((unserializer (attribute-option :unserializer attribute)))
     (if unserializer
 	(funcall unserializer)
-	(unserialize-schema-type (attribute-type attribute) input))))
+	(if (null input)
+	    (when (not (attribute-optional-p attribute))
+	      (error "Attribute ~A is not optional but value was not provided" attribute))
+	    ; else
+	    (unserialize-schema-type (attribute-type attribute) input)))))
 
 (defun unserialize-schema-type (type input)
   (%unserialize-schema-type (if (listp type)
@@ -252,8 +256,12 @@ See: parse-api-input (function)"
   (:method ((type-name (eql :list)) type input)
     (let ((list-type (second type)))
       (loop for elem in input
-	 collect (unserialize-schema-type list-type input))))
+	 collect (unserialize-schema-type list-type elem))))
   (:method ((type-name (eql :option)) type input)
     input)
   (:method (type-name type input)
-    input))
+    (let ((schema (find-schema type-name nil)))
+      (if (not schema)
+	  (error "Invalid type ~A" type-name)
+					; else
+	  (unserialize-schema-type schema input)))))
