@@ -103,8 +103,7 @@
 	       (with-serializer :json
 		 (serialize-with-schema 
 		  *schema* user))))))
-      (finishes (json:decode-json-from-string json))
-      (
+      (finishes (json:decode-json-from-string json)))))      
 
 (with-output-to-string (s)
   (with-serializer-output s
