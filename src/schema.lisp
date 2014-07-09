@@ -16,7 +16,7 @@
 	(:element (serialize-schema-element schema serializer input stream)))))
 
 (defun serialize-schema-element (schema-element serializer input stream)
-  (destructuring-bind (_ element-name attributes) schema-element
+  (destructuring-bind (_ element-name attributes &rest options) schema-element
     (declare (ignore _))
     (with-element ((or (and (stringp element-name)
 			    element-name)
@@ -145,3 +145,115 @@
 
 (defmethod parse-api-input ((format (eql :sexp)) string)
   (read-from-string string))
+
+(defun element-name (element)
+  (second element))
+
+(defun element-attributes (element)
+  (third element))
+
+(defun element-options (element)
+  (cdddr element))
+
+(defun element-option (option element)
+  (find option (element-options element) :key #'car))
+
+(defun attribute-name (attribute)
+  (first attribute))
+
+(defun attribute-type (attribute)
+  (second attribute))
+
+(defun attribute-type-name (attribute)
+  (let ((attribute-type (attribute-type attribute)))
+    (if (listp attribute-type)
+	(first attribute-type)
+	attribute-type)))  
+
+(defun attribute-options (attribute)
+  (cddr attribute))
+
+(defun attribute-option (option attribute)
+  (getf (attribute-options attribute) option))
+
+(defun attribute-optional-p (attribute)
+  (attribute-option :optional attribute))      
+
+;; Unserialization
+
+(defun element-class (element)
+  "Returns the CLOS class associated with an element. May be null."
+  (let ((element-class (element-option :class element)))
+    (second element-class)))
+
+(defun element-unserializer (element)
+  "Returns the unserializer of the element if any"
+  (let ((unserializer (element-option :unserializer element)))
+    (second unserializer)))  
+
+;; (element-unserializer '(:element user () (:unserializer unserialize-user)))
+
+(defun unserialize-with-schema (schema string &optional (format :json))
+  (let ((input (parse-api-input format string)))
+    (unserialize-schema-element schema input)))  
+
+(defun unserialize-schema-element (element input)
+  "Unserializes an schema element
+
+Args: - element (list) : An schema element
+      - input (assoc-list) : An association list with values.
+                             Probably obtained from parse-api-input.
+
+See: parse-api-input (function)"
+  
+  (let ((unserializer (element-unserializer element))
+	(element-class (element-class element)))
+    (cond
+      (unserializer (funcall unserializer input))
+      (element-class (unserialize-schema-element-to-class element input element-class))
+      (t input))))
+
+(defun unserialize-schema-element-to-class (element input class)
+  (let ((instance (allocate-instance (find-class class))))
+    (loop for attribute in (element-attributes element)
+       do (progn
+	    (let* ((attribute-input (cdr (assoc (make-keyword (attribute-name attribute)) input
+						)))
+		   (attribute-value (unserialize-schema-attribute attribute attribute-input)))
+	      
+	      (setf (slot-value instance (or (attribute-option :slot attribute)
+					     (attribute-name attribute)))
+		    attribute-value))))
+    (initialize-instance instance)
+    instance))
+
+(defun unserialize-schema-attribute (attribute input)
+  (let ((unserializer (attribute-option :unserializer attribute)))
+    (if unserializer
+	(funcall unserializer)
+	(unserialize-schema-type (attribute-type attribute) input))))
+
+(defun unserialize-schema-type (type input)
+  (%unserialize-schema-type (if (listp type)
+				(first type)
+				type)
+			    type
+			    input))
+
+(defgeneric %unserialize-schema-type (type-name type input)
+  (:method ((type-name (eql :integer)) attribute input)
+    (if (integerp input)
+	input
+	(parse-integer input)))
+  (:method ((type-name (eql :string)) type input)
+    input)
+  (:method ((type-name (eql :element)) type input)
+    (unserialize-schema-element type input))
+  (:method ((type-name (eql :list)) type input)
+    (let ((list-type (second type)))
+      (loop for elem in input
+	 collect (unserialize-schema-type list-type input))))
+  (:method ((type-name (eql :option)) type input)
+    input)
+  (:method (type-name type input)
+    input))

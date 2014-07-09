@@ -7,7 +7,8 @@
    (:element user
     ((id :integer)
      (realname :string)
-     (age :integer)
+     (age :integer :optional t)
+     (sex (:option :male :female))
      (best-friend (:element user 
 			    ((id :integer)
 			     (realname :string))))
@@ -18,14 +19,15 @@
 
 (define-schema user-schema
     (:element user
-     ((identity :integer :accessor id)
-      (realname :string)
-      (age :integer)
-      (best-friend user-schema
-		   :optional t)
-      (groups (:list group-schema)
-	      :optional t
-	      :switch :include-user-groups))))
+	      ((id :integer :accessor id)
+	       (realname :string)
+	       (age :integer)
+	       (best-friend user-schema
+			    :optional t)
+	       (groups (:list group-schema)
+		       :optional t
+		       :switch :include-user-groups))
+	      (:class user)))
 
 (define-schema minimal-user-schema
     (:element user
@@ -34,11 +36,12 @@
 
 (define-schema group-schema
     (:element group
-     ((id :integer)
-      (name :string)
-      (users (:list user-schema) 
-	     :optional t
-	     :switch :include-group-users))))
+	      ((id :integer)
+	       (name :string)
+	       (users (:list user-schema) 
+		      :optional t
+		      :switch :include-group-users))
+	      (:class group)))  
 
 (defclass user ()
   ((id :initarg :id
@@ -82,11 +85,26 @@
 					     :age 31
 					     )))
 
-(with-output-to-string (s)
-  (with-serializer-output s
-    (with-serializer :json
-      (serialize-with-schema 
-       *schema* *user*))))
+(test basic-json-schema-serialization-test
+  (let ((user (make-instance 'user
+			     :realname "Mariano"
+			     :id 2
+			     :age 30
+			     :groups (list (make-instance 'group
+							  :name "My group"
+							  :id 3))
+			     :best-friend (make-instance 'user 
+							 :id 3
+							 :realname "Fernando"
+							 :age 31))))
+    (let ((json
+	   (with-output-to-string (s)
+	     (with-serializer-output s
+	       (with-serializer :json
+		 (serialize-with-schema 
+		  *schema* user))))))
+      (finishes (json:decode-json-from-string json))
+      (
 
 (with-output-to-string (s)
   (with-serializer-output s
@@ -130,6 +148,8 @@
 		 (prin1-to-string parsed-input-2))
 	 (equalp (prin1-to-string parsed-input-2)
 		 (prin1-to-string parsed-input-3)))))))
+
+;; MOP
 
 (defclass serializable-user ()
   ((id :initarg :id
@@ -196,3 +216,15 @@
   (with-serializer-output s
     (with-serializer :json
       (serialize *serializable-user*))))
+
+;; Unserialization
+
+(let ((data
+       (with-output-to-string (s)
+	 (with-serializer-output s
+	   (with-serializer :json
+	     (serialize-with-schema 
+	      (find-schema 'user-schema) *user*))))))
+  (rest-server::unserialize-with-schema
+   (find-schema 'user-schema)
+   data))
