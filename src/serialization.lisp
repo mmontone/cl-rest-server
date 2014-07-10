@@ -170,7 +170,7 @@
 ;; XML serializer
 
 (defmethod serialize-element ((serializer (eql :xml)) element stream)
-  (cxml:with-element (name element)
+  (cxml:with-element (format nil "_~A" (element-name element))
     (loop for attribute in (attributes element)
          do (serialize attribute serializer stream))))
 
@@ -251,7 +251,7 @@
 
 (defmethod call-with-element ((serializer (eql :xml)) name body stream)
   (declare (ignore stream))
-  (cxml:with-element name
+  (cxml:with-element (format nil "_~A" name)
       (funcall body)))
 
 (defmethod call-with-element ((serializer (eql :html)) name body stream)

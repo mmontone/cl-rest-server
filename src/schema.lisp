@@ -146,8 +146,41 @@
 (defmethod parse-api-input ((format (eql :json)) string)
   (json:decode-json-from-string string)) 
 
+(defun fold-tree (f g tree)
+  (if (listp tree)
+      (let ((name (first tree))
+	    (children (cdr tree)))
+	(funcall f
+		 (cons name (mapcar (lambda (child)
+				      (fold-tree f g child))
+				    children))))
+	(funcall g tree)))
+
 (defmethod parse-api-input ((format (eql :xml)) string)
-  (cxml:parse string (cxml-xmls:make-xmls-builder)))
+  (let ((data
+	 (cxml:parse string (make-xmls-builder))))
+    (fold-tree (lambda (node)
+		 (cond
+		   ((equalp (car node) "_ITEM")
+		    ;; It is a list item
+		    (cons :li (string-trim '(#\") (cadr node))))
+		   ((equalp (aref (car node) 0) #\_)
+		    ;; It is an object
+		    (cdr node))
+		   ((stringp (cadr node))
+		    (cons (make-keyword (first node))
+			  (string-trim '(#\") (cadr node))))
+		   ((and (listp (cadr node))
+			 (equalp (first (cadr node)) :li))
+			;; The attribute value is a list
+			(cons (make-keyword (first node))
+			      (mapcar #'cdr (cdr node))))
+		   (t
+		    (let ((attr-name (make-keyword (first node)))
+			  (attr-value (cdr node)))
+		      (cons attr-name attr-value)))))
+	       #'identity
+	       data)))
 
 (defmethod parse-api-input ((format (eql :sexp)) string)
   (read-from-string string))
