@@ -118,7 +118,8 @@
 
 (implement-api-function api-test::api-test
     (api-test::get-user
-     (:serialization :enabled t))
+     (:serialization :enabled t)
+     (:logging :enabled nil))
     (id &key (expand-groups nil))
   (declare (ignore expand-groups))
   (let ((user (model-test:get-user id)))

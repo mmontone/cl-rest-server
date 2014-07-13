@@ -165,22 +165,10 @@
 		 :initform (error "Provide the api function")
 		 :accessor api-function
 		 :documentation "The api function that is implemented")
-   (around :initarg :around
-	   :initform nil
-	   :accessor around
-	   :documentation "Around functions")
-   (before :initarg :before
-	   :initform nil
-	   :accessor before
-	   :documentation "Before functions")
    (primary :initarg :primary
 	    :initform (error "Provide the primary function")
 	    :accessor primary
 	    :documentation "Primary function")
-   (after :initarg :after
-	  :initform nil
-	  :accessor after
-	  :documentation "After functions")
    (options :initarg :options
 	    :initform nil
 	    :accessor options
@@ -188,50 +176,18 @@
   (:metaclass closer-mop:funcallable-standard-class)
   (:documentation "api-function implementation"))
 
-(defmethod initialize-instance :after ((api-function-implementation api-function-implementation)
-				       &rest initargs)
+(defmethod initialize-instance :after
+    ((api-function-implementation api-function-implementation)
+     &rest initargs)
   (declare (ignore initargs))
-  (loop for option in (options api-function-implementation)
-       do (configure-api-function-implementation-option
-	   (first option)
-	   api-function-implementation
-	   option))
   (closer-mop:set-funcallable-instance-function
    api-function-implementation
    (lambda (&rest args)
      (apply #'execute api-function-implementation args))))
 
-(defmethod execute-before-primary-after ((api-function-implementation api-function-implementation) args)
-  (loop for before in (before api-function-implementation)
-       do (apply before args))
-  (prog1
-      (apply (primary api-function-implementation) args)
-    (loop for after in (after api-function-implementation)
-       do (apply after args))))
-
-(defun call-around-function (api-function-implementation function arounds args)
-  (handler-bind
-      ((call-next-function-condition
-	(let ((around (first arounds)))
-	  #'(lambda (c)
-	      (let ((result (if (not around)
-				(execute-before-primary-after
-				 api-function-implementation args)
-					;else
-				(call-around-function api-function-implementation
-						      around (rest arounds) args))))
-		(invoke-restart (find-restart 'continue c) result))))))
-	    (apply function args)))
-
 (defmethod execute ((api-function-implementation api-function-implementation) &rest args)
-  (if (not (around api-function-implementation))
-      (execute-before-primary-after api-function-implementation args)
-      ; else
-      (call-around-function api-function-implementation
-			    (first (around api-function-implementation))
-			    (rest (around api-function-implementation))
-			    args)))  
-	
+  (apply (primary api-function-implementation) args))
+
 (defmacro implement-api-function (api-name name-and-options args &body body)
   "Define an api function implementation"
   (multiple-value-bind (name options)
@@ -247,52 +203,97 @@
 					 ,@body)
 			      :options ',options)))
 	 (setf (get ',name :api-function-implementation)
-	       api-function-implementation))))
+	       (process-api-function-implementation-options
+		api-function-implementation)))))
 
-(define-condition call-next-function-condition ()
-  ())
+(defun process-api-function-implementation-options (api-function-implementation)
+  (let ((processed-api-function api-function-implementation))
+    (loop for option in (options api-function-implementation)
+	 do (destructuring-bind (option-name &rest args) option
+	      (setf processed-api-function
+		    (apply #'process-api-function-implementation-option
+			   option-name
+			   processed-api-function
+			   args))))
+    processed-api-function))
 
-(defun call-next-function ()
-  (restart-case 
-    (signal 'call-next-function-condition)
-    (continue (&rest args)
-      (apply #'values args))))
+(defgeneric process-api-function-implementation-option
+    (option-name api-function-implementation &rest args)
+  (:method (option-name api-function-implementation &rest args)
+    (error "Option ~A is not valid" option-name))
+  (:documentation "Overwrite this in decorations"))
 
-(defun add-around-function (api-function-implementation function)
-  (push function (around api-function-implementation)))
+(defclass api-function-implementation-decoration ()
+  ((decorates :initarg :decorates
+	      :initform (error "Provide the thing being decorated")
+	      :accessor decorates
+	      :documentation "The thing being decorated"))
+  (:metaclass closer-mop:funcallable-standard-class))
 
-(defmethod configure-api-function-implementation-option
-    ((option-name (eql :logging))
+(defmethod initialize-instance :after ((decoration api-function-implementation-decoration)
+				       &rest initargs)
+  (declare (ignore initargs))
+  (closer-mop:set-funcallable-instance-function
+   decoration
+   (lambda (&rest args)
+     (apply #'execute decoration args))))
+
+(defmethod execute ((decoration api-function-implementation-decoration) &rest args)
+  (apply (decorates decoration) args))
+
+(defmethod api-function ((decoration api-function-implementation-decoration))
+  (api-function (decorates decoration)))
+
+(defclass logging-api-function-implementation-decoration
+    (api-function-implementation-decoration)
+  ()
+  (:metaclass closer-mop:funcallable-standard-class))
+  
+(defmethod process-api-function-implementation-option
+    ((option (eql :logging))
      api-function-implementation
-     option)
-  (when (getf (cdr option) :enabled)
-    (add-around-function api-function-implementation
-	(lambda (&rest args)
-	  (declare (ignore args))
-	  (log5:log-for (rest-server) "API: Handling ~A ~A by ~A"
-			(hunchentoot:request-method*)
-			(hunchentoot:request-uri*) (name (api-function api-function-implementation)))
-	  (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
-				  (hunchentoot:raw-post-data :external-format :utf8))))
-	    (when posted-content (log5:log-for (rest-server) "Posted content: ~A" posted-content)))
-	  (let ((result (call-next-function)))
-	    (log5:log-for (rest-server) "Response: ~A" result)
-	    result)))))
+     &key enabled)
+  (if enabled
+      (make-instance 'logging-api-function-implementation-decoration
+		     :decorates api-function-implementation)
+      api-function-implementation))
+  
+(defmethod execute :around ((decoration logging-api-function-implementation-decoration)
+			    &rest args)
+  (log5:log-for (rest-server) "API: Handling ~A ~A by ~A"
+		(hunchentoot:request-method*)
+		(hunchentoot:request-uri*)
+		(name (api-function decoration)))
+  (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
+			  (hunchentoot:raw-post-data :external-format :utf8))))
+    (when posted-content (log5:log-for (rest-server) "Posted content: ~A" posted-content)))
+  (let ((result (call-next-method)))
+    (log5:log-for (rest-server) "Response: ~A" result)
+    result))
 
-(defmethod configure-api-function-implementation-option
-    ((option-name (eql :serialization))
+(defclass serialization-api-function-implementation-decoration
+    (api-function-implementation-decoration)
+  ()
+  (:metaclass closer-mop:funcallable-standard-class))
+
+(defmethod process-api-function-implementation-option
+    ((option (eql :serialization))
      api-function-implementation
-     option)
-  (when (getf (cdr option) :enabled)
-    (add-around-function api-function-implementation
-	(lambda (&rest args)
-	  (with-output-to-string (s)
-	    (with-serializer-output s
-	      (with-serializer (rest-server::accept-serializer)
-		(serialize
-		 (call-next-function)
-		 *serializer*
-		 s))))))))
+     &key enabled)
+  (if enabled
+      (make-instance 'serialization-api-function-implementation-decoration
+		     :decorates api-function-implementation)
+      api-function-implementation))
+
+(defmethod execute :around ((decoration serialization-api-function-implementation-decoration)
+			    &rest args)
+  (with-output-to-string (s)
+    (with-serializer-output s
+      (with-serializer (rest-server::accept-serializer)
+	(serialize
+	 (call-next-method)
+	 *serializer*
+	 s)))))
 
 (defun find-api-function-implementation (name)
   (or (get name :api-function-implementation)

@@ -147,9 +147,21 @@
 
 ;; Plugging
 
-(defmethod configure-api-function-implementation-option
-    ((option-name (eql :error-handling)) api-function-implementation option)
-  (add-around-function api-function-implementation
-      (lambda (&rest args)
-	(with-condition-handling
-	  (call-next-function)))))
+(defclass error-handling-api-function-implementation-decoration
+    (api-function-implementation-decoration)
+  ()
+  (:metaclass closer-mop:funcallable-standard-class))
+  
+(defmethod process-api-function-implementation-option
+    ((option (eql :error-handling))
+     api-function-implementation
+     &key enabled)
+  (if enabled
+      (make-instance 'error-handling-api-function-implementation-decoration
+		     :decorates api-function-implementation)
+      api-function-implementation))
+  
+(defmethod execute :around ((decoration error-handling-api-function-implementation-decoration)
+			    &rest args)
+  (with-condition-handling
+    (call-next-method)))
