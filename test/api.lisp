@@ -20,28 +20,28 @@
 		      :path "/users")
 	   (get-users (:request-method :get
 				       :produces (:json)
-				       :uri-prefix "/users"
+				       :path "/users"
 				       :documentation "Retrive the users list")       
 		      (&optional (expand-groups :boolean nil "Expand groups if true")))
 	   (get-user (:request-method :get
 				      :produces (:json)
-				      :uri-prefix "/users/{id}"
+				      :path "/users/{id}"
 				      :documentation "Retrive an user")
 		     ((id :integer "The user id")
 		      &optional (expand-groups :boolean nil "Expand groups if true")))
 	   (create-user (:request-method :post
 					 :consumes (:json)
-					 :uri-prefix "/users"
+					 :path "/users"
 					 :documentation "Create a user")
 			())
 	   (update-user (:request-method :put
 					 :consumes (:json)
-					 :uri-prefix "/users/{id}"
+					 :path "/users/{id}"
 					 :documentation "Update a user")
 			((id :integer "The user id")))
 	   (delete-user (:request-method :delete
 					 :consumes (:json)
-					 :uri-prefix "/users/{id}"
+					 :path "/users/{id}"
 					 :documentation "Delete a user")
 			((id :integer "The user id"))))))
 
