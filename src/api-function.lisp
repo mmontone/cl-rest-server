@@ -390,21 +390,22 @@
 
 (defun client-stub (api-name api-function &optional (package *package*))
   (let ((request-url (gensym "REQUEST-URL-"))
-        (response (gensym "RESPONSE-")))
+        (response (gensym "RESPONSE-"))
+	(status-code (gensym "STATUS-CODE-")))
     (let ((required-args (required-arguments api-function))
 	  (optional-args (optional-arguments api-function)))
       `(progn
 	 (defun ,(intern (symbol-name (name api-function)) package)
              ,(append
-                (if (member (request-method api-function) '(:post :put))
-                    (list 'posted-content)
-                    nil)
-                (loop for x in required-args collect 
-		     (intern (symbol-name (car x)) package))
-                (if optional-args
-                    (cons '&key (loop for x in optional-args collect 
-				     (list (intern (symbol-name (first x)) package) 
-					   (third x))))))
+	       (if (member (request-method api-function) '(:post :put))
+		   (list 'posted-content)
+		   nil)
+	       (loop for x in required-args collect 
+		    (intern (symbol-name (car x)) package))
+	       (if optional-args
+		   (cons '&key (loop for x in optional-args collect 
+				    (list (intern (symbol-name (first x)) package) 
+					  (third x))))))
 	   ,(api-documentation api-function)
            (log5:log-for (rest-server) "Client stub: ~A" ',(name api-function))
            (assert *api-backend* nil "Error: this is an API function. No api backend selected. Wrap this function call with with-api-backend")
@@ -421,23 +422,24 @@
                             '(:post :put))
                     `(log5:log-for (rest-server) "Posted content: ~A"
                                    posted-content))
-             (let ((,response (drakma:http-request 
-                               ,request-url
-                               :method ,(request-method api-function)
-                               :proxy *rest-server-proxy*
-                               :content ,(when (member (request-method api-function) 
-                                                     '(:post :put))
-                                             `(babel:string-to-octets posted-content))
-                               :parameters (list 
-                                            ,@(loop for x in optional-args
-                                                 collect
-                                                 (progn
-                                                   `(cons 
-                                                     ,(symbol-name (car x))
-                                                     (format nil "~A" ,(intern (symbol-name 
-                                                                                (car x)) package)))))))))
-               (log5:log-for (rest-server) "Response: ~A" ,response)
-               ,response)))))))
+             (multiple-value-bind (,response ,status-code)
+		 (drakma:http-request 
+		  ,request-url
+		  :method ,(request-method api-function)
+		  :proxy *rest-server-proxy*
+		  :content ,(when (member (request-method api-function) 
+					  '(:post :put))
+				  `(babel:string-to-octets posted-content))
+		  :parameters (list 
+			       ,@(loop for x in optional-args
+				    collect
+				      (progn
+					`(cons 
+					  ,(symbol-name (car x))
+					  (format nil "~A" ,(intern (symbol-name 
+								     (car x)) package)))))))
+	       (log5:log-for (rest-server) "Response: ~A" ,response)
+	       (values ,response ,status-code))))))))
 
 (defgeneric url-pattern-noparams (api-function))
 (defmethod url-pattern-noparams ((api-function api-function))

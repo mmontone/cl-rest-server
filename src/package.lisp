@@ -47,6 +47,7 @@
 	   #:with-api-backend
 	   #:start-api
 	   #:start-api-documentation
+	   #:start-api-logging
 	   #:*development-mode*
 	   #:http-error
 	   #:http-not-found-error
