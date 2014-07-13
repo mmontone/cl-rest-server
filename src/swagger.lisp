@@ -8,14 +8,14 @@
 	 (define-api-resource api-docs (:documentation "Swagger API docs"
 						       :path "/api-docs")
 	   (api-docs-index (:request-method :get
-					    :uri-prefix "/api-docs"
+					    :path "/api-docs"
 					    :produces (:json))
 			   ())
 	   ,@(loop for resource in (list-api-resources api)
 		collect
 		  (let ((fname (intern (format nil "API-DOCS-~A" (string-upcase (resource-name resource))))))
 		    `(,fname (:request-method :get
-					      :uri-prefix ,(format nil "/api-docs/~A" (string-downcase (resource-name resource)))
+					      :path ,(format nil "/api-docs/~A" (string-downcase (resource-name resource)))
 					      :produces (:json))
 			     ()))))
 
@@ -57,7 +57,7 @@
 (defun resource-apis (resource)
   "Get Swagger apis from the resource"
   (group-by:group-by (rest-server::list-api-resource-functions resource)
-		     :key #'rest-server::uri-prefix
+		     :key #'rest-server::path
 		     :test #'equalp
 		     :value #'identity))
 

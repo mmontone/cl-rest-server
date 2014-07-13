@@ -69,21 +69,25 @@
 	 ;; It is a primitive type like :string, :boolean, etc
 	 (loop for elem in input
 	    do
-	    (add-list-member "ITEM" elem
-			     :serializer serializer
-			     :stream stream)))
+	      (add-list-member "ITEM" elem
+			       :serializer serializer
+			       :stream stream)))
 	((symbolp list-type)
 	 ;; It is a reference to a schema like 'user-schema'
 	 (let ((schema (find-schema list-type)))
 	   (loop for elem in input
 	      do
-		(%serialize-with-schema schema serializer elem stream))))
+		(with-list-member ("ITEM" :serializer serializer
+					  :stream stream)
+		  (%serialize-with-schema schema serializer elem stream)))))
 	((listp list-type)
 	 ;; It is some compound type, like :element, :list, or :option
 	 (let ((schema list-type))
 	   (loop for elem in input
 	      do
-		(%serialize-with-schema schema serializer elem stream))))))))
+		(with-list-member ("ITEM" :serializer serializer
+					  :stream stream)
+		  (%serialize-with-schema schema serializer elem stream)))))))))
 
 (defvar *schemas* (make-hash-table))
 

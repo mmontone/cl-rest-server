@@ -143,11 +143,11 @@
 
 (defun uri-match-p (uri-prefix request-uri)
   (cl-ppcre:scan 
-   (parse-uri-prefix uri-prefix)
+   (parse-api-function-path uri-prefix)
    request-uri))
 
 (defun url-pattern (api-function)
-  (parse-uri-prefix (uri-prefix api-function)))
+  (parse-api-function-path (path api-function)))
 
 (defun replace-vars-in-url (url plist)
   (labels ((do-replace (url plist)
@@ -171,7 +171,7 @@
 
 (defun parse-api-url (request-string)
   (multiple-value-bind (scanner vars)
-	(parse-uri-prefix (request-uri-prefix request-string))
+	(parse-api-function-path (request-uri-prefix request-string))
     (let ((parameters 
 	   (when (find #\? request-string)
 	     (parse-parameters 
@@ -179,9 +179,9 @@
 	      ))))
       (values scanner vars parameters))))
 
-(defun parse-uri-prefix (string)
+(defun parse-api-function-path (string)
   (let* ((vars nil)
-	 (uri-prefix-regex (remove 
+	 (path-regex (remove 
 			    nil
 			    (loop for x in (cl-ppcre:split '(:register (:char-class #\{ #\})) string :with-registers-p t)
 			       with status = :norm
@@ -209,9 +209,9 @@
 	    :start-anchor
 	    (:alternation
 	     (:sequence
-	      ,@uri-prefix-regex)
+	      ,@path-regex)
 	     (:sequence
-	      ,@uri-prefix-regex
+	      ,@path-regex
 	      #\?
 	      (:non-greedy-repetition 0 nil :everything)))
 	    :end-anchor)))
@@ -234,7 +234,7 @@
     (t string)))
 
 (defun extract-function-arguments (api-function request)
-  (let ((scanner (parse-uri-prefix (uri-prefix api-function))))
+  (let ((scanner (parse-api-function-path (path api-function))))
     (multiple-value-bind (replaced-uri args) 
 	(ppcre:scan-to-strings scanner (hunchentoot:request-uri request))
       (declare (ignore replaced-uri))

@@ -14,9 +14,9 @@
   ((name :initarg :name
 	 :accessor name
 	 :initform (error "Provide the name"))
-   (uri-prefix :initarg :uri-prefix
-               :accessor uri-prefix
-               :initform nil)
+   (path :initarg :path
+	 :accessor path
+	 :initform nil)
    (request-method :initarg :request-method
 		   :accessor request-method
 		   :initform :get)
@@ -56,7 +56,7 @@
 
   ;; Parse the uri to obtain the required parameters
   #+nil(let ((args-in-uri (multiple-value-bind (scanner vars)
-                         (parse-uri-prefix (uri-prefix api-function))
+                         (parse-api-function-path (path api-function))
                        (declare (ignore scanner))
                        vars)))
     (setf (required-arguments api-function)
@@ -93,7 +93,7 @@
     (format stream "~A ~A ~S"
 	    (name api-function)
 	    (request-method api-function)
-	    (uri-prefix api-function))))
+	    (path api-function))))
 
 (defmethod validate ((api-function api-function))
   ;; Check api-function arguments have the right format
@@ -126,7 +126,7 @@
   
   ; Ensure uri parameters have been declared
   (let ((args-in-uri (multiple-value-bind (scanner vars)
-                         (parse-uri-prefix (uri-prefix api-function))
+                         (parse-api-function-path (path api-function))
                        (declare (ignore scanner))
                        vars)))
     (loop for arg in args-in-uri
@@ -304,8 +304,9 @@
       (apply function-implementation
 	     (append 
 	      (when (member (request-method api-function) (list :put :post))
-		(let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
-					(hunchentoot:raw-post-data :external-format :utf8))))
+		(let ((posted-content
+		       (when (hunchentoot:raw-post-data :external-format :utf8)
+			 (hunchentoot:raw-post-data :external-format :utf8))))
 		  (log5:log-for (rest-server) "Posted content: ~A" posted-content)
 		  (list (parse-posted-content posted-content))))
 	      args)))))
@@ -320,7 +321,7 @@
 	  (optional-arguments api-function))))
 
 (defun api-function-matches-request-p (api-function request)
-  (let ((scanner (parse-uri-prefix (uri-prefix api-function))))
+  (let ((scanner (parse-api-function-path (path api-function))))
     (and (cl-ppcre:scan scanner (hunchentoot:request-uri request)) 
          (equalp (request-method api-function) (hunchentoot:request-method request)))))
 
@@ -443,7 +444,7 @@
 
 (defgeneric url-pattern-noparams (api-function))
 (defmethod url-pattern-noparams ((api-function api-function))
-  (let* ((pattern (uri-prefix api-function))
+  (let* ((pattern (path api-function))
 	(pos (position #\? pattern)))
     (if pos
 	(subseq pattern 0 pos)

@@ -60,7 +60,7 @@
          (:div :class "documentation"
                (cl-who:str (api-documentation api-function)))
          (:div :class "signature"
-               (cl-who:str (uri-prefix api-function)))
+               (cl-who:str (path api-function)))
          (:div :class "arguments"
                (:ul
                 (loop for arg in (required-arguments api-function)
