@@ -74,16 +74,19 @@
   (setf (cdr (assoc :realname user)) realname))
 
 (defun add-user (realname)
-  (push (make-user (incf *user-id*)
-		   realname)
-	*users*))
+  (let ((user (make-user (incf *user-id*)
+		   realname)))
+  (push user
+	*users*)
+  user))
 
 (defun update-user (user)
   (delete-user (user-id user))
   (push user *users*))
 
 (defun get-user (id)
-  (cdr (assoc id *users*)))
+  (find id *users* :key (lambda (user)
+			  (cdr (assoc :id user)))))
 
 (defun delete-user (id)
   (setf *users* (delete id *users* :test #'equalp :key #'first)))
@@ -127,7 +130,9 @@
 		 (attribute "realname" (cdr (assoc :realname user)))))))
 
 (implement-api-function api-test::api-test api-test::create-user (posted-content)
-  (model-test:add-user (cdr (assoc :realname posted-content))))
+  (let ((user
+	 (model-test:add-user (cdr (assoc :realname posted-content)))))
+    (json:encode-json-alist-to-string user)))
 
 (implement-api-function
     api-test::api-test
@@ -239,15 +244,34 @@
 			      :additional-headers '(("Accept" . "text/lisp")))))
     (finishes (read-from-string result))))
 
+(defparameter *api-url* "http://localhost:8181")
+
 (test client-api-access-test
-  (let ((response
-	 (with-api-backend "http://localhost:8181"
-	   (api-test::get-user 345 :expand-groups t))))
-    (finishes (json:decode-json-from-string response)))
-  (let ((response
-	 (with-api-backend "http://localhost:8181"
-	   (api-test::get-user 22))))
-    (finishes (json:decode-json-from-string response))))
+  ;; Create a new user
+  (multiple-value-bind (result status)
+      (with-api-backend *api-url*
+	(api-test::create-user
+	 (json:encode-json-plist-to-string
+	  (list :realname "Felipe"))))
+    (is (equalp status 200))
+    (let ((created-user (json:decode-json-from-string result)))
+      ;; Retrieve the list of users
+      (multiple-value-bind (users status)
+	  (with-api-backend *api-url*
+	    (api-test::get-users))
+	(finishes (json:decode-json-from-string users))
+	(equalp status 200))
+      ;; Fetch the created user
+      (multiple-value-bind (result status)
+	  (with-api-backend *api-url*
+	    (api-test::get-user (cdr (assoc :id created-user))))
+	(finishes (json:decode-json-from-string result))
+	(is (equalp status 200)))
+      ;; Fetch an unexisting user
+      (multiple-value-bind (result status)
+	 (with-api-backend *api-url*
+	   (api-test::get-user 123456))
+	(is (equalp status 404))))))
 
 (test content-type-test
   "Specify the content type we are sending explicitly"

@@ -398,15 +398,19 @@
       `(progn
 	 (defun ,(intern (symbol-name (name api-function)) package)
              ,(append
-	       (if (member (request-method api-function) '(:post :put))
-		   (list 'posted-content)
-		   nil)
+	       (when (member (request-method api-function) '(:post :put))
+		 (list 'posted-content))
 	       (loop for x in required-args collect 
 		    (intern (symbol-name (car x)) package))
-	       (if optional-args
-		   (cons '&key (loop for x in optional-args collect 
-				    (list (intern (symbol-name (first x)) package) 
-					  (third x))))))
+	       (cons '&key
+		     (append
+		      (list '(accept "application/json"))
+		      (when optional-args
+			(loop for x in optional-args collect 
+			     (list (intern (symbol-name (first x)) package) 
+				   (third x))))
+		      (when (member (request-method api-function) '(:post :put))
+			(list '(content-type "application/json"))))))
 	   ,(api-documentation api-function)
            (log5:log-for (rest-server) "Client stub: ~A" ',(name api-function))
            (assert *api-backend* nil "Error: this is an API function. No api backend selected. Wrap this function call with with-api-backend")
@@ -431,6 +435,9 @@
 		  :content ,(when (member (request-method api-function) 
 					  '(:post :put))
 				  `(babel:string-to-octets posted-content))
+		  :content-type ,(when (member (request-method api-function) 
+					  '(:post :put))
+				       'content-type)
 		  :parameters (list 
 			       ,@(loop for x in optional-args
 				    collect
@@ -438,7 +445,8 @@
 					`(cons 
 					  ,(symbol-name (car x))
 					  (format nil "~A" ,(intern (symbol-name 
-								     (car x)) package)))))))
+								     (car x)) package))))))
+		  :additional-headers (list (cons "Accept" accept))) 
 	       (log5:log-for (rest-server) "Response: ~A" ,response)
 	       (values ,response ,status-code))))))))
 
