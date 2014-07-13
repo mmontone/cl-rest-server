@@ -1,14 +1,5 @@
 (in-package :rest-server)
 
-(defun authenticate-key (token)
-  (error "Not implemented"))
-
-(define-condition authentication-error (simple-error)
-  ())
-
-(defun authentication-error (&optional (format-control "Authentication error") &rest args)
-  (error 'authentication-error :format-control format-control :format-arguments args))
-
 (defvar *key* nil)
 
 (defun register-key (key)
@@ -99,10 +90,8 @@
 
 (register-key "zgpaZoegGAbg3G480jn340fnsS3ia")
 
-(defun user-authentication-token (username password)
-  (encode-string (format nil "(~s ~s)"
-			 username
-			 password)))
+(defun user-authentication-token (id username)
+  (encode-string (format nil "(~A ~A)" id username)))
 
 (defun decode-token (token)
   (ignore-errors (read-from-string (decode-string token))))
@@ -122,9 +111,65 @@
 
 ;; Plugging
 
-(defmethod configure-api-function-option ((option (eql :authenticate)) option-value api-function)
-  (add-wrapping-function api-function
-                         (lambda (next-function)
-                           (if (not (authenticate-key (getf hunchentoot:*request* :token)))
-			       (error "Authentication error")
-			       (funcall next-function)))))
+(defclass authentication-api-function-implementation-decoration
+    (api-function-implementation-decoration)
+  ()
+  (:metaclass closer-mop:funcallable-standard-class))
+
+(defclass token-authentication-api-function-implementation-decoration
+    (authentication-api-function-implementation-decoration)
+  ((authentication-function
+    :initarg :authentication-function
+    :accessor authentication-function
+    :initform (lambda (token)
+		(error "Not implemented"))))
+  (:metaclass closer-mop:funcallable-standard-class))
+
+(defmethod authenticate-token ((decoration token-authentication-api-function-implementation-decoration)
+			       token)
+  (funcall (authentication-function decoration) token))
+
+(defmethod process-api-function-implementation-option
+    ((option (eql :authentication))
+     api-function-implementation
+     &rest args
+     &key
+       (enabled t)
+       (type :token))
+  (if enabled
+      (apply #'make-authentication-decoration
+	     type
+	     api-function-implementation
+	     args)
+      api-function-implementation))
+
+(defgeneric make-authentication-decoration (type api-function-implementation &rest args)
+  (:documentation "Create an authentication-decoration of specific type"))
+
+(defmethod make-authentication-decoration ((type (eql :token))
+					   api-function-implementation
+					   &rest args)
+  (apply #'make-instance
+	 'token-authentication-api-function-implementation-decoration
+	 :decorates api-function-implementation
+	 args))
+
+(defmethod make-authentication-decoration (type
+					   api-function-implementation
+					   &rest args)
+    (apply #'make-instance type
+	   :decorates api-function-implementation
+	   :allow-other-keys t args))
+
+(defmethod execute :around
+    ((decoration token-authentication-api-function-implementation-decoration)
+     &rest args)
+  (with-condition-handling
+    (let ((token (hunchentoot:header-in* "Authentication")))
+      (if (not token)
+	  (error 'http-authorization-required-error
+		 :format-control "Provide the token")
+	  (if (not (authenticate-token decoration token))
+	      (error 'http-authorization-required-error
+		     :format-control "Authentication error")
+	      (call-next-method))))))

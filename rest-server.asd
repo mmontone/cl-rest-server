@@ -45,6 +45,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "xml")
 	     (:file "schema")
 	     (:file "error-handling")
+	     (:file "authentication")
 	     (:file "api")
 	     (:file "resource")
 	     (:file "api-function")
