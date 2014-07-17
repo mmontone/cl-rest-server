@@ -128,7 +128,10 @@
     ((listp auth-spec)
      (destructuring-bind (auth-type &rest args) auth-spec
        (let ((class-name (ecase (type-of auth-type)
-			   (keyword (intern auth-type :rest-server))
+			   (keyword
+			    (intern
+			     (format nil "~A-AUTHENTICATION" (symbol-name auth-type))
+			     :rest-server))
 			   (symbol auth-type))))
 	 (apply #'make-instance class-name args))))
     (t (error "Invalid authentication spec ~A" auth-spec))))
@@ -138,7 +141,7 @@
     :initarg :authentication-function
     :accessor authentication-function
     :initform (lambda (token)
-		(error "Not implemented")))))
+		#+nil(error "Not implemented")))))
 
 (defmethod authenticate-token ((authentication token-authentication)
 			       token)
@@ -172,6 +175,7 @@
 
 (defun verify-authentication (api-function)
   (let ((authentications (api-function-authorizations api-function)))
+    (break "~A" authentications)
     (when (and (plusp (length authentications))
 	       (every #'authenticate authentications))
       (signal 'http-authorization-required-error)))

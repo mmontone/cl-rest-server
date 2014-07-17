@@ -14,8 +14,7 @@
 	    (if (stringp symbol-or-string)
 		symbol-or-string
 		(string-downcase (symbol-name symbol-or-string))))
-	  (slot-value authentication 'scopes)))
-
+	  (slot-value authentication 'scope)))
 
 (defmethod authenticate ((authentication oauth2-authentication))
   (let ((access-token (hunchentoot:header-in* "Authentication")))
@@ -23,15 +22,20 @@
     (if (not access-token)
 	"Provide the token"
 	;; else, verify the access token
-	(multiple-value-bind (result status)
-	    (anvil-connect::verify-access-token access-token *client-access-token*)
-	  ;; if not valid, error
-	  (if (not (equalp status 200))
-	      "Invalid token"
-	      ;; else, check that the scopes are ok
-	      (let ((token-scopes (split-sequence:split-sequence #\ 
-								 (getf result :scope))))
-		(if (not (every (lambda (scope)
-				  (member scope token-scopes :test #'equalp))
-				(scope authentication)))
-		    "Scope not sufficient")))))))
+	(destructuring-bind (token-type token-string)
+	    (split-sequence:split-sequence #\  access-token)
+	  ;; Check it is a Bearer token
+	  (if (not (equalp token-type "Bearer"))
+	      "Not a Bearer token"
+	      (multiple-value-bind (result status)
+		  (anvil-connect::verify-access-token token-string *client-access-token*)
+		;; if not valid, error
+		(if (not (equalp status 200))
+		    "Invalid token"
+		    ;; else, check that the scopes are ok
+		    (let ((token-scopes (split-sequence:split-sequence #\ 
+								       (getf result :scope))))
+		      (if (not (every (lambda (scope)
+					(member scope token-scopes :test #'equalp))
+				      (scope authentication)))
+			  "Scope not sufficient")))))))))

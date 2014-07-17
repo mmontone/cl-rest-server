@@ -4,8 +4,6 @@
 
 ;; OAuth2 API tests
 
-(require :anvil-connect)
-
 (defpackage :oauth2-test
   (:use :rest-server :cl))
 
@@ -26,7 +24,7 @@
 		      :consumes (:json)
 		      :documentation "Users operations"
 		      :path "/users"
-		      :authorizations (:token :oauth2))
+		      :authorizations (:token (:oauth2 :scope (:profile :openid))))
 	   (get-users (:request-method :get
 				       :produces (:json)
 				       :path "/users"
@@ -37,84 +35,30 @@
 				      :produces (:json)
 				      :path "/users/{id}"
 				      :documentation "Retrive an user"
-				      :authorizations (:token (:oauth2 :scopes (:profile))))
+				      :authorizations (:token (:oauth2 :scope (:profile))))
 		     ((id :integer "The user id")
 		      &optional (expand-groups :boolean nil "Expand groups if true")))
 	   (create-user (:request-method :post
 					 :consumes (:json)
 					 :path "/users"
 					 :documentation "Create a user"
-					 :authorizations (:token (:oauth2 :scopes (:profile :admin))))
+					 :authorizations (:token (:oauth2 :scope (:profile :admin))))
 			())
 	   (update-user (:request-method :put
 					 :consumes (:json)
 					 :path "/users/{id}"
 					 :documentation "Update a user"
-					 :authorizations (:token (:oauth2 :scopes (:profile :admin))))
+					 :authorizations (:token (:oauth2 :scope (:profile :admin))))
 			((id :integer "The user id")))
 	   (delete-user (:request-method :delete
 					 :consumes (:json)
 					 :path "/users/{id}"
 					 :documentation "Delete a user"
-					 :authorizations (:token (:oauth2 :scopes (:profile :admin))))
+					 :authorizations (:token (:oauth2 :scope (:profile :admin))))
 			((id :integer "The user id"))))))
 
-;; Add Swagger resource
-(rest-server::define-swagger-resource api-test)
-
-(defpackage :model-test
-  (:use :cl)
-  (:export :get-user
-	   :all-users
-	   :add-user
-	   :update-user))
-
-(in-package :model-test)
-
-(defparameter *user-id* 1)
-(defvar *users* nil)
-
-(defun make-user (id realname)
-  (list (cons :id id)
-	(cons :realname realname)))
-
-(defun user-id (user)
-  (cdr (assoc :id user)))
-
-(defun user-realname (user)
-  (cdr (assoc :realname user)))
-
-(defun set-user-realname (user realname)
-  (setf (cdr (assoc :realname user)) realname))
-
-(defun add-user (realname)
-  (let ((user (make-user (incf *user-id*)
-		   realname)))
-  (push user
-	*users*)
-  user))
-
-(defun update-user (user)
-  (delete-user (user-id user))
-  (push user *users*))
-
-(defun get-user (id)
-  (find id *users* :key (lambda (user)
-			  (cdr (assoc :id user)))))
-
-(defun delete-user (id)
-  (setf *users* (delete id *users* :test #'equalp :key #'first)))
-
-(defun all-users ()
-  *users*)
-
-(defpackage :api-test-implementation
-  (:use :cl :rest-server))
-
-(in-package :api-test-implementation)
-
-(implement-api-function api-test::api-test
-    (api-test::get-users
+(implement-api-function oauth2-api-test
+    (get-users
      (:logging :enabled t)
      (:error-handling :enabled t))
     (&key (expand-groups nil))
@@ -130,8 +74,8 @@
 		    (set-attribute "id" (cdr (assoc :id user)))
 		    (set-attribute "realname" (cdr (assoc :realname user)))))))))))
 
-(implement-api-function api-test::api-test
-    (api-test::get-user
+(implement-api-function oauth2-api-test
+    (get-user
      (:serialization :enabled t)
      (:logging :enabled nil))
     (id &key (expand-groups nil))
@@ -144,14 +88,14 @@
 		 (attribute "id" (cdr (assoc :id user)))
 		 (attribute "realname" (cdr (assoc :realname user)))))))
 
-(implement-api-function api-test::api-test api-test::create-user (posted-content)
+(implement-api-function oauth2-api-test create-user (posted-content)
   (let ((user
 	 (model-test:add-user (cdr (assoc :realname posted-content)))))
     (json:encode-json-alist-to-string user)))
 
 (implement-api-function
-    api-test::api-test
-    api-test::update-user (posted-content id)
+    oauth2-api-test
+    update-user (posted-content id)
     (let ((user (model-test::get-user id)))
       (if (not user)
 	(error 'http-not-found-error)
@@ -160,149 +104,62 @@
 	  (model-test::set-user-realname user (cdr (assoc :realname posted-content)))
 	  (model-test::update-user user)))))
 
-(implement-api-function api-test::api-test
-    api-test::delete-user (id)
+(implement-api-function oauth2-api-test
+    delete-user (id)
   (model-test::delete-user id))
 
 (in-package :rest-server-tests)
 
-(start-api 'api-test::api-test "localhost" 8181)
+(start-api 'oauth2-test::oauth2-api-test "localhost" 8183)
 
-(test api-post-test
-  (drakma:http-request
-   "http://localhost:8181/users"
-   :method :post
-   :content-type "application/json"
-   :accept "application/json"
-   :content (json:encode-json-plist-to-string '(:realname "user1")))
-  (drakma:http-request
-   "http://localhost:8181/users"
-   :method :post
-   :content-type "application/json"
-   :accept "application/json"
-   :content (json:encode-json-plist-to-string '(:realname "user2")))
-  (drakma:http-request
-   "http://localhost:8181/users"
-   :method :post
-   :content-type "application/json"
-   :accept "application/json"
-   :content (json:encode-json-plist-to-string '(:realname "user3"))))   
-  
-(test api-setup-test
-  (multiple-value-bind (result status-code)
-      (drakma:http-request "http://localhost:8181/users" :method :get)
-    (is (equalp status-code 200))
-    (let ((users (json:decode-json-from-string result)))
-      (is (alexandria:set-equal
-	   (mapcar (lambda (user)
-		     (cdr (assoc :realname user)))
-		   users)
-	   (list "user1" "user2" "user3")
-	   :test #'equalp)))))
+(hunchentoot:start (make-instance 'hunchentoot:easy-acceptor
+				  :port 8184))
 
-#+nil(test basic-parameters-test
-  (multiple-value-bind (result status-code)
-      (drakma:http-request "http://localhost:8181/users?expand-groups=true" :method :get)
-    (is (equalp status-code 200))
-    (is (equalp (read-from-string result) (list "user1" "user2" "user3")))))
+(hunchentoot:define-easy-handler (login :uri "/login")
+    ()
+  (hunchentoot:redirect
+   (format nil "http://localhost:3000/authorize?client_id=~A&redirect_uri=~A&response_type=code&scope=openid+profile"
+	   *client-id*
+	   (drakma:url-encode "http://localhost:8184/callback" :utf-8))))
 
-#+nil(test boolean-parameters-test
-  (setf *development-mode* :production)
-  (multiple-value-bind (result status-code)
-      (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
-    (declare (ignore result))
-    (is (equalp status-code 500)))
-  (multiple-value-bind (result status-code)
-      (drakma:http-request "http://localhost:8181/users?expand-groups=true" :method :get)
-    (is (equalp status-code 200))
-    (is (equalp (read-from-string result) (list "user1" "user2" "user3" t)))))
+(hunchentoot:define-easy-handler (callback :uri "/callback")
+    (code)
+  (let ((tokens
+	 (anvil-connect::exchange-authorization-code
+	  code
+	  "http://localhost:8184/callback"
+	  *client-id*
+	  *client-secret*)))
+    (setf (hunchentoot:session-value 'tokens) tokens)
+    (hunchentoot:redirect "http://localhost:8184")))
 
-(test error-handling-test
-  (setf *development-mode* :production)
-  (multiple-value-bind (result status-code)
-      (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
-    (declare (ignore result))
-    (is (equalp status-code 500)))
-  (setf *development-mode* :testing)
-  (multiple-value-bind (result status-code)
-      (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
-    (is (equalp status-code 200))
-    (let ((condition (json:decode-json-from-string result)))
-      (is (equalp (cdr (assoc :condition condition)) "simpleError"))))
-  ;; We can not test development mode like this. We are in a different thread.
-  #+nil(setf *development-mode* :development)
-  #+nil(signals simple-error
-      (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get))
-  )
+(hunchentoot:define-easy-handler (root :uri "/")
+    ()
+  (when (not (hunchentoot:session-value 'tokens))
+    (hunchentoot:redirect "http://localhost:8184/login"))
+  (let ((tokens (hunchentoot:session-value 'tokens)))
+    (multiple-value-bind (result status-code)
+	(drakma:http-request "http://localhost:8183/users"
+			     :method :get
+			     :additional-headers `(("Accept" .  "application/json")
+						   ("Authentication" . ,(format nil "~A ~A" (getf tokens :token-type)
+										(getf tokens :access-token)))))
+      (with-output-to-string (s)
+	(format s "Status: ~A" status-code)
+	(format s "Result: ~A" result)))))
 
-(test accept-content-test
-  (let ((result
-	 (drakma:http-request "http://localhost:8181/users/1"
-			      :method :get
-			      :additional-headers '(("Accept" .  "application/json")))))
-    (finishes (json:decode-json-from-string result)))
-  (let ((result
-	 (drakma:http-request "http://localhost:8181/users/22"
-			      :method :get
-			      :additional-headers '(("Accept" . "application/xml")))))
-    (finishes (cxml:parse result (cxml-xmls:make-xmls-builder))))
-  (let ((result
-	 (drakma:http-request "http://localhost:8181/users/22"
-			      :method :get
-			      :additional-headers '(("Accept" . "text/html")))))
-    (multiple-value-bind (html error)
-	(html5-parser:parse-html5 result :strictp t)
-      (is (null error))))
-  (let ((result
-	 (drakma:http-request "http://localhost:8181/users/22"
-			      :method :get
-			      :additional-headers '(("Accept" . "text/lisp")))))
-    (finishes (read-from-string result))))
-
-(defparameter *api-url* "http://localhost:8181")
-
-(test client-api-access-test
-  ;; Create a new user
-  (multiple-value-bind (result status)
-      (with-api-backend *api-url*
-	(api-test::create-user
-	 (json:encode-json-plist-to-string
-	  (list :realname "Felipe"))))
-    (is (equalp status 200))
-    (let ((created-user (json:decode-json-from-string result)))
-      ;; Retrieve the list of users
-      (multiple-value-bind (users status)
-	  (with-api-backend *api-url*
-	    (api-test::get-users))
-	(finishes (json:decode-json-from-string users))
-	(equalp status 200))
-      ;; Fetch the created user
-      (multiple-value-bind (result status)
-	  (with-api-backend *api-url*
-	    (api-test::get-user (cdr (assoc :id created-user))))
-	(finishes (json:decode-json-from-string result))
-	(is (equalp status 200)))
-      ;; Fetch an unexisting user
-      (multiple-value-bind (result status)
-	 (with-api-backend *api-url*
-	   (api-test::get-user 123456))
-	(is (equalp status 404))))))
-
-(test content-type-test
-  "Specify the content type we are sending explicitly"
-  (setf *development-mode* :production)
+(test basic-oauth2-authentication-test
+  ;; Unauthentication access doesn't work
   (multiple-value-bind (result status-code)
-      (drakma:http-request "http://localhost:8181/users" :method :post
-			   :content "<user><realname>Mariano</realname></user>"
-			   :content-type "text/xml"
-			   :additional-headers '(("Accept" . "text/lisp")))
-    (declare (ignore result))
-    (is (equalp status-code 200))
-    (drakma:http-request "http://localhost:8181/users/" :method :post
-			   :content "<user><realname>Mariano</realname></user>"
-			   :content-type "text/xml")
-    )
+      (drakma:http-request "http://localhost:8183/users"
+			   :method :get
+			   :additional-headers '(("Accept" .  "application/json")))
+    (is (equalp status-code 401)))
+
+  ;; Invalid token access
   (multiple-value-bind (result status-code)
-      (drakma:http-request "http://localhost:8181/users?expand-groups=true" :method :get)
-    (is (equalp status-code 200))
-    (is (equalp (read-from-string result) (list "user1" "user2" "user3" t)))))
+      (drakma:http-request "http://localhost:8183/users"
+			   :method :get
+			   :additional-headers '(("Accept" .  "application/json")
+						 ("Authentication" . "Bearer abc123")))
+    (is (equalp status-code 401))))

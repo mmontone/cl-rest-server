@@ -46,6 +46,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "schema")
 	     (:file "error-handling")
 	     (:file "authentication")
+	     (:file "oauth2")
 	     (:file "api")
 	     (:file "resource")
 	     (:file "api-function")
@@ -66,4 +67,5 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :ironclad
 	       :babel
 	       :closer-mop
-	       :group-by))
+	       :group-by
+	       :anvil-connect))
