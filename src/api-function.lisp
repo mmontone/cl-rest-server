@@ -16,7 +16,8 @@
 	 :initform (error "Provide the name"))
    (path :initarg :path
 	 :accessor path
-	 :initform nil)
+	 :initform nil
+	 :documentation "The api function path")
    (request-method :initarg :request-method
 		   :accessor request-method
 		   :initform :get)
@@ -33,7 +34,16 @@
    (produces :initarg :produces
 	     :accessor produces
 	     :initform nil
-	     :documentation "MIME types that the api-function produces. Overwrites MIME types defined in the resource")     
+	     :documentation "MIME types that the api-function produces. Overwrites MIME types defined in the resource")
+   (resource :initarg :resource
+	     :accessor resource
+	     :initform (when *register-api-function*
+			 (or *api-resource* (error "Provide the api resource")))
+	     :documentation "The api resource the function belongs to")
+   (authorizations :initarg :authorizations
+		   :accessor authorizations
+		   :initform nil
+		   :documentation "Api function authorizations spec")
    (options :initarg :options
             :accessor options
             :initform nil
@@ -70,7 +80,7 @@
 		  arg)
 		(alexandria:copy-sequence '(or cons null)
 					  (optional-arguments api-function))))
-  
+
   ;; Validate the function
   (validate api-function)
 
@@ -156,7 +166,11 @@
 	    (gethash function-name (api-functions resource))))
   (error "api function not found ~A" function-name))
 
-(defun format-api-url (api function-name &rest args)
+(defmethod format-api-url ((api-name symbol) function-name &rest args)
+  (let ((api (find-api api-name)))
+    (apply #'format-api-url api function-name args)))
+
+(defmethod format-api-url ((api api-definition) function-name &rest args)
   (let ((api-function (find-api-function api function-name)))
     (replace-vars-in-url (url-pattern api-function) args)))
 
@@ -186,7 +200,8 @@
      (apply #'execute api-function-implementation args))))
 
 (defmethod execute ((api-function-implementation api-function-implementation) &rest args)
-  (apply (primary api-function-implementation) args))
+  (when (verify-authentication (api-function api-function-implementation))
+    (apply (primary api-function-implementation) args)))
 
 (defmacro implement-api-function (api-name name-and-options args &body body)
   "Define an api function implementation"
@@ -196,15 +211,18 @@
 		  (rest name-and-options))
 	  (values name-and-options nil))
       `(let* ((api (find-api ',api-name))
+	      (api-function (find-api-function api ',name))
 	      (api-function-implementation
 	       (make-instance 'api-function-implementation
-			      :api-function (find-api-function api ',name)
+			      :api-function api-function
 			      :primary (lambda ,args
 					 ,@body)
 			      :options ',options)))
-	 (setf (get ',name :api-function-implementation)
-	       (process-api-function-implementation-options
-		api-function-implementation)))))
+	 (let ((decorated-function
+		(process-api-function-implementation-options
+		 api-function-implementation)))
+	   (setf (get ',name :api-function-implementation)
+		 decorated-function)))))
 
 (defun process-api-function-implementation-options (api-function-implementation)
   (let ((processed-api-function api-function-implementation))

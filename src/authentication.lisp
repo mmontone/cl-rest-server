@@ -111,65 +111,68 @@
 
 ;; Plugging
 
-(defclass authentication-api-function-implementation-decoration
-    (api-function-implementation-decoration)
-  ()
-  (:metaclass closer-mop:funcallable-standard-class))
+(defun parse-authentications (auths)
+  (loop for auth-spec in auths
+       collect
+       (make-authentication auth-spec)))
 
-(defclass token-authentication-api-function-implementation-decoration
-    (authentication-api-function-implementation-decoration)
+(defun make-authentication (auth-spec)
+  "Make an authentication object from the spec"
+  (cond
+    ((keywordp auth-spec)
+     (make-instance (intern
+		     (format nil "~A-AUTHENTICATION" (symbol-name auth-spec))
+		     :rest-server)))
+    ((symbolp auth-spec)
+     (make-instance auth-spec))
+    ((listp auth-spec)
+     (destructuring-bind (auth-type &rest args) auth-spec
+       (let ((class-name (ecase (type-of auth-type)
+			   (keyword (intern auth-type :rest-server))
+			   (symbol auth-type))))
+	 (apply #'make-instance class-name args))))
+    (t (error "Invalid authentication spec ~A" auth-spec))))
+
+(defclass token-authentication ()
   ((authentication-function
     :initarg :authentication-function
     :accessor authentication-function
     :initform (lambda (token)
-		(error "Not implemented"))))
-  (:metaclass closer-mop:funcallable-standard-class))
+		(error "Not implemented")))))
 
-(defmethod authenticate-token ((decoration token-authentication-api-function-implementation-decoration)
+(defmethod authenticate-token ((authentication token-authentication)
 			       token)
-  (funcall (authentication-function decoration) token))
+  (funcall (authentication-function authentication) token))
 
-(defmethod process-api-function-implementation-option
-    ((option (eql :authentication))
-     api-function-implementation
-     &rest args
-     &key
-       (enabled t)
-       (type :token))
-  (if enabled
-      (apply #'make-authentication-decoration
-	     type
-	     api-function-implementation
-	     args)
-      api-function-implementation))
+(defmethod authenticate
+    ((authentication token-authentication))
+  (let ((token (hunchentoot:header-in* "Authentication")))
+    (if (not token)
+	"Provide the token"
+	(if (not (authenticate-token authentication token))
+	    "Invalid token"))))
 
-(defgeneric make-authentication-decoration (type api-function-implementation &rest args)
-  (:documentation "Create an authentication-decoration of specific type"))
+(defun api-function-authorizations (api-function)
+  "Authorizations that apply to an api-function. Merges resources authorizations and
+   api-function authorizations, giving priority to api-function authorizations (overwrites)"
+  (let ((authorizations (copy-list (authorizations api-function))))
+    (flet ((authorization-exists-p (auth)
+	     (cond
+	       ((symbolp auth)
+		(member auth authorizations :test #'equalp))
+	       ((listp auth)
+		(member (first auth) (remove-if-not #'listp authorizations)
+			:key #'first
+			:test #'equalp))
+	       (t (error "Invalid authorization ~A" auth)))))
+      (loop for resource-authorization in (resource-authorizations (resource api-function))
+	 do (when (not (authorization-exists-p resource-authorization))
+	      (push resource-authorization authorizations))))
+    (parse-authentications authorizations)))
 
-(defmethod make-authentication-decoration ((type (eql :token))
-					   api-function-implementation
-					   &rest args)
-  (apply #'make-instance
-	 'token-authentication-api-function-implementation-decoration
-	 :decorates api-function-implementation
-	 args))
-
-(defmethod make-authentication-decoration (type
-					   api-function-implementation
-					   &rest args)
-    (apply #'make-instance type
-	   :decorates api-function-implementation
-	   :allow-other-keys t args))
-
-(defmethod execute :around
-    ((decoration token-authentication-api-function-implementation-decoration)
-     &rest args)
-  (with-condition-handling
-    (let ((token (hunchentoot:header-in* "Authentication")))
-      (if (not token)
-	  (error 'http-authorization-required-error
-		 :format-control "Provide the token")
-	  (if (not (authenticate-token decoration token))
-	      (error 'http-authorization-required-error
-		     :format-control "Authentication error")
-	      (call-next-method))))))
+(defun verify-authentication (api-function)
+  (let ((authentications (api-function-authorizations api-function)))
+    (when (and (plusp (length authentications))
+	       (every #'authenticate authentications))
+      (signal 'http-authorization-required-error)))
+  t)

@@ -34,7 +34,11 @@
    (authorizations :initarg :authorizations
 		   :initform nil
 		   :accessor resource-authorizations
-		   :documentation "A list of authorizations schemes required for the operations listed in this API declaration. Individual operations may override this setting. If there are multiple authorization schemes described here, it means they're all applied."))
+		   :documentation "A list of authorizations schemes required for the operations listed in this API declaration. Individual operations may override this setting. If there are multiple authorization schemes described here, it means they're all applied.")
+   (options :initarg :options
+	    :initform nil
+	    :accessor resource-options
+	    :documentation "Options applied to resource api functions. Can be overwritten in api function options"))
   (:documentation "An api resource. Contains api functions"))
 
 (defmethod print-object ((api-resource api-resource) stream)
@@ -111,3 +115,30 @@
 			(or (and (getf options :package)
 				 (find-package (getf options :package)))
 			    *package*))))))
+
+(defclass api-resource-implementation ()
+  ((resource :initarg :resource
+	     :accessor resource
+	     :initform (error "Provide the resource"))
+   (options :initarg :options
+	    :accessor options
+	    :initform nil)))
+
+(defmacro implement-api-resource (api-name name-and-options &body api-functions-implementations)
+  "Define an api resource implementation"
+  (multiple-value-bind (name options)
+      (if (listp name-and-options)
+	  (values (first name-and-options)
+		  (rest name-and-options))
+	  (values name-and-options nil))
+    `(let* ((api (find-api ',api-name))
+	    (api-resource-implementation
+	     (make-instance 'api-resource-implementation
+			    :resource (find-api-resource ',name :api api)
+			    :options ',options)))
+       (setf (get ',name :api-resource-implementation)
+	     api-resource-implementation)
+
+       ;; Define api function implementations
+       ,@(loop for api-function-implementation in api-functions-implementations
+	    collect `(implement-api-function ,api-name ,@api-function-implementation)))))

@@ -22,7 +22,8 @@
     (users (:produces (:json :xml)
 		      :consumes (:json)
 		      :documentation "Users operations"
-		      :path "/users")
+		      :path "/users"
+		      :authorizations (api-test-token-authentication))
 	   (get-users (:request-method :get
 				       :produces (:json)
 				       :path "/users"
@@ -53,17 +54,18 @@
 (defparameter *username* "test")
 (defparameter *password* "test")
 
-(defclass token-api-test-authentication
-    (rest-server::token-authentication-api-function-implementation-decoration)
-  ()
-  (:metaclass closer-mop:funcallable-standard-class))
+(defclass api-test-token-authentication
+    (rest-server::token-authentication)
+  ())
 
-(defmethod rest-server::authenticate-token ((decoration token-api-test-authentication) token)
+(defmethod rest-server::authenticate-token ((authentication api-test-token-authentication) token)
   (let ((decoded-token (rest-server::decode-token token)))
     (equalp decoded-token *username*)))
 
 (implement-api-function auth-api-test
-    login (posted-content)
+    (login
+     (:error-handling :enabled t))
+    (posted-content)
   (if (and (equalp (cdr (assoc :username posted-content))
 		     *username*)
 	     (equalp (cdr (assoc :password posted-content))
@@ -77,9 +79,7 @@
 (implement-api-function auth-api-test
     (get-users
      (:logging :enabled t)
-     (:error-handling :enabled t)
-     (:authentication :enabled t
-		      :type token-api-test-authentication))
+     (:error-handling :enabled t))
     (&key (expand-groups nil))
   (declare (ignore expand-groups))
   (with-output-to-string (s)
@@ -96,9 +96,7 @@
 (implement-api-function auth-api-test
     (get-user
      (:serialization :enabled t)
-     (:logging :enabled nil)
-     (:authentication :enabled t
-		      :type token-api-test-authentication))
+     (:logging :enabled nil))
     (id &key (expand-groups nil))
   (declare (ignore expand-groups))
   (let ((user (model-test:get-user id)))
@@ -110,17 +108,14 @@
 		 (attribute "realname" (cdr (assoc :realname user)))))))
 
 (implement-api-function auth-api-test
-    (create-user
-     (:authentication :enabled t
-		      :type token-api-test-authentication))
+    create-user
     (posted-content)
   (let ((user
 	 (model-test:add-user (cdr (assoc :realname posted-content)))))
     (json:encode-json-alist-to-string user)))
 
 (implement-api-function auth-api-test
-    (update-user (:authentication :enabled t
-		      :type token-api-test-authentication))
+    update-user
     (posted-content id)
     (let ((user (model-test::get-user id)))
       (if (not user)
@@ -131,10 +126,7 @@
 	  (model-test::update-user user)))))
 
 (implement-api-function auth-api-test
-    (delete-user
-     (:authentication :enabled t
-		      :type token-api-test-authentication))
-    (id)
+    delete-user (id)
   (model-test::delete-user id))
 
 (start-api 'auth-api-test "localhost" 8182)
