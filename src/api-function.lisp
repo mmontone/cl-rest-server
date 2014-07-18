@@ -363,6 +363,16 @@
 	      url-noparams
 	      optional-args))))
 
+(defun format-absolute-api-function-url (api-function &rest args)
+  (let ((base-url (format nil "~A:~A"
+			  (hunchentoot:acceptor-address hunchentoot:*acceptor*)
+			  (hunchentoot:acceptor-port hunchentoot:*acceptor*))))
+    (format nil "~A~A"
+	    base-url
+	    (apply #'format-api-function-url
+		   api-function
+		   args))))
+
 (defun format-optional-url-arg (arg value)
   (destructuring-bind (name type default-value documentation) arg
     (format nil "~A=~A" (string-downcase name)
