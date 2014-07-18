@@ -147,6 +147,9 @@
 
 ;; Json serializer
 
+(defmethod serializer-content-type ((serializer (eql :json)))
+  "application/json")
+
 (defmethod serialize-element ((serializer (eql :json)) element stream)
   (json:with-object (stream)
     (loop for attribute in (attributes element)
@@ -168,6 +171,9 @@
   (json:encode-json value stream))
 
 ;; XML serializer
+
+(defmethod serializer-content-type ((serializer (eql :xml)))
+  "application/xml")
 
 (defmethod serialize-element ((serializer (eql :xml)) element stream)
   (cxml:with-element (format nil "_~A" (element-name element))
@@ -360,16 +366,30 @@
 	       )))
       *default-serializer*))
 
-(defmethod expand-api-function-wrapping (api-function-name
-					 api-function-options
-					 (option (eql :serialization)) enabled args)
-  (declare (ignore args api-function-name api-function-options))
-  (when enabled
-    (let ((serializer (gensym "SERIALIZER-")))
-      `(let ((,serializer (accept-serializer)))
-         (with-output-to-string (s)
-           (with-serializer-output s
-             (with-serializer ,serializer
-               (serialize-toplevel ,serializer s
-                                   (lambda ()
-                                     (serialize (call-next-method)))))))))))
+;; Plugging
+
+(defclass serialization-api-function-implementation-decoration
+    (api-function-implementation-decoration)
+  ()
+  (:metaclass closer-mop:funcallable-standard-class))
+
+(defmethod process-api-function-implementation-option
+    ((option (eql :serialization))
+     api-function-implementation
+     &key enabled)
+  (if enabled
+      (make-instance 'serialization-api-function-implementation-decoration
+		     :decorates api-function-implementation)
+      api-function-implementation))
+
+(defmethod execute :around ((decoration serialization-api-function-implementation-decoration)
+			    &rest args)
+  (let ((serializer (accept-serializer)))
+    (set-reply-content-type (serializer-content-type serializer))
+    (with-output-to-string (s)
+      (with-serializer-output s
+	(with-serializer serializer
+	  (serialize
+	   (call-next-method)
+	   *serializer*
+	   s))))))

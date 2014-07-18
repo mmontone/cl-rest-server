@@ -6,6 +6,26 @@
 	:string
 	:list))
 
+(defparameter *default-reply-content-type* "application/json")
+
+(defun set-reply-content-type (content-type)
+  (setf (hunchentoot:header-out "Content-Type") content-type))
+
+(defun call-with-reply-content-type (content-type function)
+  (set-reply-content-type content-type)
+  (funcall function))
+
+(defmacro with-reply-content-type ((content-type) &body body)
+  `(call-with-reply-content-type ,content-type (lambda () ,@body)))
+
+(defmacro with-json-reply (&body body)
+  `(with-reply-content-type ("application/json")
+     ,@body))
+
+(defmacro with-xml-reply (&body body)
+  `(with-reply-content-type ("application/xml")
+     ,@body))
+
 (defmacro define-api-function (name attributes args &rest options)
   "Helper macro to define an api function"
   `(make-api-function ',name ',attributes ',args ',options))
@@ -261,57 +281,6 @@
 
 (defmethod api-function ((decoration api-function-implementation-decoration))
   (api-function (decorates decoration)))
-
-(defclass logging-api-function-implementation-decoration
-    (api-function-implementation-decoration)
-  ()
-  (:metaclass closer-mop:funcallable-standard-class))
-  
-(defmethod process-api-function-implementation-option
-    ((option (eql :logging))
-     api-function-implementation
-     &key enabled)
-  (if enabled
-      (make-instance 'logging-api-function-implementation-decoration
-		     :decorates api-function-implementation)
-      api-function-implementation))
-  
-(defmethod execute :around ((decoration logging-api-function-implementation-decoration)
-			    &rest args)
-  (log5:log-for (rest-server) "API: Handling ~A ~A by ~A"
-		(hunchentoot:request-method*)
-		(hunchentoot:request-uri*)
-		(name (api-function decoration)))
-  (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
-			  (hunchentoot:raw-post-data :external-format :utf8))))
-    (when posted-content (log5:log-for (rest-server) "Posted content: ~A" posted-content)))
-  (let ((result (call-next-method)))
-    (log5:log-for (rest-server) "Response: ~A" result)
-    result))
-
-(defclass serialization-api-function-implementation-decoration
-    (api-function-implementation-decoration)
-  ()
-  (:metaclass closer-mop:funcallable-standard-class))
-
-(defmethod process-api-function-implementation-option
-    ((option (eql :serialization))
-     api-function-implementation
-     &key enabled)
-  (if enabled
-      (make-instance 'serialization-api-function-implementation-decoration
-		     :decorates api-function-implementation)
-      api-function-implementation))
-
-(defmethod execute :around ((decoration serialization-api-function-implementation-decoration)
-			    &rest args)
-  (with-output-to-string (s)
-    (with-serializer-output s
-      (with-serializer (rest-server::accept-serializer)
-	(serialize
-	 (call-next-method)
-	 *serializer*
-	 s)))))
 
 (defun find-api-function-implementation (name)
   (or (get name :api-function-implementation)

@@ -16,8 +16,13 @@
    #:defgeneric)
   (:export #:define-api
 	   #:implement-api-function
+	   #:set-reply-content-type
+	   #:with-reply-content-type
+	   #:with-json-reply
+	   #:with-xml-reply
 	   #:with-serializer
 	   #:with-serializer-output
+	   #:accept-serializer
 	   #:element
 	   #:attribute
 	   #:elements
@@ -44,6 +49,7 @@
 	   #:define-api-function
 	   #:make-api-function
 	   #:format-api-function-url
+	   #:format-absolute-api-function-url
 	   #:with-api-backend
 	   #:start-api
 	   #:start-api-documentation

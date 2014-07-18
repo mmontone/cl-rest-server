@@ -105,16 +105,18 @@
      (:error-handling :enabled t))
     (&key (expand-groups nil))
   (declare (ignore expand-groups))
-  (with-output-to-string (s)
-    (with-serializer-output s
-      (with-serializer (rest-server::accept-serializer)
-	(with-elements-list ("users")
-	   (loop for user in (model-test:all-users)
-	      do
-		(with-list-member ("user")
-		  (with-element ("user")
-		    (set-attribute "id" (cdr (assoc :id user)))
-		    (set-attribute "realname" (cdr (assoc :realname user)))))))))))
+  (let ((serializer (rest-server:accept-serializer)))
+    (set-reply-content-type (rest-server::serializer-content-type serializer))
+    (with-output-to-string (s)
+      (with-serializer-output s
+	(with-serializer serializer
+	  (with-elements-list ("users")
+	    (loop for user in (model-test:all-users)
+	       do
+		 (with-list-member ("user")
+		   (with-element ("user")
+		     (set-attribute "id" (cdr (assoc :id user)))
+		     (set-attribute "realname" (cdr (assoc :realname user))))))))))))
 
 (implement-api-function api-test::api-test
     (api-test::get-user
@@ -133,7 +135,8 @@
 (implement-api-function api-test::api-test api-test::create-user (posted-content)
   (let ((user
 	 (model-test:add-user (cdr (assoc :realname posted-content)))))
-    (json:encode-json-alist-to-string user)))
+    (with-json-reply
+      (json:encode-json-alist-to-string user))))
 
 (implement-api-function
     api-test::api-test
@@ -152,7 +155,11 @@
 
 (in-package :rest-server-tests)
 
-(start-api 'api-test::api-test "localhost" 8181)
+(defparameter *api-acceptor*
+  (start-api 'api-test::api-test "localhost" 8181))
+
+(push (cons "application" "json") drakma:*text-content-types*)
+(push (cons "application" "xml") drakma:*text-content-types*)
 
 (test api-post-test
   (drakma:http-request
@@ -175,9 +182,10 @@
    :content (json:encode-json-plist-to-string '(:realname "user3"))))   
   
 (test api-setup-test
-  (multiple-value-bind (result status-code)
+  (multiple-value-bind (result status-code headers)
       (drakma:http-request "http://localhost:8181/users" :method :get)
     (is (equalp status-code 200))
+    (is (equalp (cdr (assoc :content-type headers)) "application/json"))
     (let ((users (json:decode-json-from-string result)))
       (is (alexandria:set-equal
 	   (mapcar (lambda (user)
@@ -204,41 +212,45 @@
     (is (equalp (read-from-string result) (list "user1" "user2" "user3" t)))))
 
 (test error-handling-test
-  (setf *development-mode* :production)
-  (multiple-value-bind (result status-code)
-      (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
-    (declare (ignore result))
-    (is (equalp status-code 500)))
-  (setf *development-mode* :testing)
-  (multiple-value-bind (result status-code)
-      (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
-    (is (equalp status-code 200))
-    (let ((condition (json:decode-json-from-string result)))
-      (is (equalp (cdr (assoc :condition condition)) "simpleError"))))
-  ;; We can not test development mode like this. We are in a different thread.
-  #+nil(setf *development-mode* :development)
-  #+nil(signals simple-error
-      (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get))
-  )
+  (let ((development-mode (rest-server::development-mode *api-acceptor*)))
+    (setf (rest-server::development-mode *api-acceptor*) :production)
+    (multiple-value-bind (result status-code)
+	(drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
+      (declare (ignore result))
+      (is (equalp status-code 500)))
+    (setf (rest-server::development-mode *api-acceptor*) :testing)
+    (multiple-value-bind (result status-code)
+	(drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
+      (is (equalp status-code 200))
+      (let ((condition (json:decode-json-from-string result)))
+	(is (equalp (cdr (assoc :condition condition)) "simpleError"))))
+    ;; We can not test development mode like this. We are in a different thread.
+    #+nil(setf *development-mode* :development)
+    #+nil(signals simple-error
+	   (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get))
+    (setf (rest-server::development-mode *api-acceptor*) development-mode)))
 
 (test accept-content-test
-  (let ((result
-	 (drakma:http-request "http://localhost:8181/users/1"
-			      :method :get
-			      :additional-headers '(("Accept" .  "application/json")))))
-    (finishes (json:decode-json-from-string result)))
-  (let ((result
-	 (drakma:http-request "http://localhost:8181/users/22"
-			      :method :get
-			      :additional-headers '(("Accept" . "application/xml")))))
-    (finishes (cxml:parse result (cxml-xmls:make-xmls-builder))))
-  (let ((result
-	 (drakma:http-request "http://localhost:8181/users/22"
-			      :method :get
-			      :additional-headers '(("Accept" . "text/html")))))
+  (multiple-value-bind (result status headers)
+      (drakma:http-request "http://localhost:8181/users/2"
+			   :method :get
+			   :additional-headers '(("Accept" . "application/json")))
+    (finishes (json:decode-json-from-string result))
+    (is (equalp (cdr (assoc :content-type headers)) "application/json")))
+  (multiple-value-bind (result status headers)
+      (drakma:http-request "http://localhost:8181/users/2"
+			   :method :get
+			   :additional-headers '(("Accept" . "application/xml")))
+    (finishes (cxml:parse result (cxml-xmls:make-xmls-builder)))
+    (is (equalp (cdr (assoc :content-type headers)) "application/xml")))
+  (multiple-value-bind (result status headers)
+      (drakma:http-request "http://localhost:8181/users/2"
+			   :method :get
+			   :additional-headers '(("Accept" . "text/html")))
     (multiple-value-bind (html error)
 	(html5-parser:parse-html5 result :strictp t)
-      (is (null error))))
+      (is (null error)))
+    (is (equalp (cdr (assoc :content-type headers)) "text/html")))
   (let ((result
 	 (drakma:http-request "http://localhost:8181/users/22"
 			      :method :get
