@@ -66,6 +66,12 @@
   (loop for api-function being the hash-values of (api-functions api-resource)
        collect api-function))
 
+(defmethod allowed-methods ((api-resource api-resource))
+  (let ((methods nil))
+    (loop for api-function in (list-api-resource-functions api-resource)
+	 do (pushnew (request-method api-function) methods))
+    methods))
+
 (defmacro with-api-resource (resource &body body)
   "Execute body under resource scope.
    Example:
@@ -102,6 +108,7 @@
      (with-api-resource ,name
       ,@(loop for x in functions
          collect `(define-api-function ,@x)))
+     ;; Generate client API access function
      ,@(let ((*register-api-function* nil))
             (loop for x in functions
                collect (client-stub

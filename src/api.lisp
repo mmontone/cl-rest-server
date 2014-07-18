@@ -101,16 +101,38 @@
 	api-or-name)))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
-  (let ((*development-mode* (development-mode acceptor)))
-    (loop for api-function in (api-functions (api acceptor))
-       when (api-function-matches-request-p api-function request)
-       return (let ((result 
-		     (execute-api-function-implementation 
-		      api-function
-		      (find-api-function-implementation (name api-function))
-		      request)))
-		(if (stringp result) result (prin1-to-string result)))
-       finally (call-next-method))))
+  (if (equalp (hunchentoot:request-method request)
+	      :options)
+      (if (equalp (hunchentoot:request-uri request) "*")
+	  ;; http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+	  ;; If the Request-URI is an asterisk ("*"), the OPTIONS request is intended
+	  ;; to apply to the server in general rather than to a specific resource.
+	  (error "Not implemented")
+	  ;; If the Request-URI is not an asterisk, the OPTIONS request applies only to
+	  ;; the options that are available when communicating with that resource.
+	  (loop
+	     for resource in (list-api-resources (api acceptor))
+	     when (equalp (hunchentoot:request-uri request)
+			  (resource-path resource))
+	     return
+	       (flet ((format-allowed-methods (methods)
+			(format nil "~{~A~^, ~}"
+				(mapcar #'symbol-name methods))))
+		 (setf (hunchentoot:header-out "Allow")
+		       (format-allowed-methods (allowed-methods resource)))
+		 "")
+	     finally (call-next-method)))
+      ;; else, dispatch to an api function
+      (let ((*development-mode* (development-mode acceptor)))
+	(loop for api-function in (api-functions (api acceptor))
+	   when (api-function-matches-request-p api-function request)
+	   return (let ((result 
+			 (execute-api-function-implementation 
+			  api-function
+			  (find-api-function-implementation (name api-function))
+			  request)))
+		    (if (stringp result) result (prin1-to-string result)))
+	   finally (call-next-method)))))
 
 ;; The api class
 (defclass api-definition ()
