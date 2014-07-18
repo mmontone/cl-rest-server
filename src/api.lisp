@@ -61,35 +61,56 @@
       ,@(loop for x in resources
 	     collect `(define-api-resource ,@x)))))
 
-(defun start-api (api address port)
+(defun start-api (api address port &optional (development-mode *development-mode*))
   "Start an api at address and port.
-   api-implementation-package: is the package where the api-functions are implemented."
-  (hunchentoot:start
-   (make-instance 'api-acceptor
-                  :address address
-		  :port port
-                  :api (if (symbolp api)
-                           (find-api api)
-                           api))))
+
+   In production mode, we bind the api directly. In development mode, we only bind the API name in order to be able to make modifications to the api"
+  (let ((api (if (equalp development-mode :development)
+		 (if (symbolp api)
+		     api
+		     (api-name api))
+		 ;; else
+		 (if (symbolp api)
+		     (find-api api)
+		     api))))
+  (let ((api-acceptor (make-instance 'api-acceptor
+				     :address address
+				     :port port
+				     :api api
+				     :development-mode development-mode)))
+    (hunchentoot:start api-acceptor)
+    api-acceptor)))
+
+(defun stop-api (api-acceptor)
+  (hunchentoot:stop acceptor))
 
 ;; Hunchentoot api acceptor
 
 (defclass api-acceptor (hunchentoot:acceptor)
   ((api :initarg :api
-        :accessor api
-        :initform (error "Provide the api")))
+	:initform (error "Provide the api"))
+   (development-mode :initarg :development-mode
+		     :accessor development-mode
+		     :initform (error "Provide the development mode")))
   (:documentation "Hunchentoot api acceptor"))
 
+(defmethod api ((acceptor api-acceptor))
+  (let ((api-or-name (slot-value acceptor 'api)))
+    (if (symbolp api-or-name)
+	(find-api api-or-name)
+	api-or-name)))
+
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
-  (loop for api-function in (api-functions (api acceptor))
-     when (api-function-matches-request-p api-function request)
-     return (let ((result 
-		   (execute-api-function-implementation 
-		    api-function
-		    (find-api-function-implementation (name api-function))
-		    request)))
-	      (if (stringp result) result (prin1-to-string result)))
-     finally (call-next-method)))
+  (let ((*development-mode* (development-mode acceptor)))
+    (loop for api-function in (api-functions (api acceptor))
+       when (api-function-matches-request-p api-function request)
+       return (let ((result 
+		     (execute-api-function-implementation 
+		      api-function
+		      (find-api-function-implementation (name api-function))
+		      request)))
+		(if (stringp result) result (prin1-to-string result)))
+       finally (call-next-method))))
 
 ;; The api class
 (defclass api-definition ()
