@@ -175,7 +175,6 @@
 
 (defun verify-authentication (api-function)
   (let ((authentications (api-function-authorizations api-function)))
-    (break "~A" authentications)
     (when (and (plusp (length authentications))
 	       (every #'authenticate authentications))
       (signal 'http-authorization-required-error)))
