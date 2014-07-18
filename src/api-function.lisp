@@ -364,7 +364,10 @@
 	      optional-args))))
 
 (defun format-absolute-api-function-url (api-function &rest args)
-  (let ((base-url (format nil "~A:~A"
+  (let ((base-url (format nil "~A://~A:~A"
+			  (if (hunchentoot:acceptor-ssl-p hunchentoot:*acceptor*)
+			      "https"
+			      "http")
 			  (hunchentoot:acceptor-address hunchentoot:*acceptor*)
 			  (hunchentoot:acceptor-port hunchentoot:*acceptor*))))
     (format nil "~A~A"
