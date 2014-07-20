@@ -200,4 +200,7 @@ post:
 
 * Proper HTTP Content negotiation
 
-* Flow: implement Erlang webmachine flow diagram implementing a Drakon editor plugin? http://drakon-editor.sourceforge.net/
+* Flow: implement Erlang webmachine flow diagram implementing a Drakon editor plugin?
+  * http://drakon-editor.sourceforge.net/
+  * http://wizard4j.org/
+  * http://langnostic.inaimathi.ca/article?name=the-big-problem-and-visual-compilers.html
