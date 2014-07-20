@@ -199,3 +199,5 @@ post:
 * API versioning
 
 * Proper HTTP Content negotiation
+
+* Flow: implement Erlang webmachine flow diagram implementing a Drakon editor plugin? http://drakon-editor.sourceforge.net/
