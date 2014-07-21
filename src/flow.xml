@@ -28,7 +28,65 @@
                                <switch name="invalidContentHeader" label="REQUIRED" help="OPTIONAL">
                                  <branch name="no" label="REQUIRED">
                                    <switch name="unknownContentType" label="REQUIRED" help="OPTIONAL">
-                                     <branch name="no" label="REQUIRED"/>
+                                     <branch name="no" label="REQUIRED">
+                                       <switch name="requestEntityTooLarge" label="REQUIRED" help="OPTIONAL">
+                                         <branch name="no" label="REQUIRED">
+                                           <switch name="options" label="REQUIRED" help="OPTIONAL">
+                                             <branch name="no" label="REQUIRED">
+                                               <switch name="acceptExists" label="REQUIRED" help="OPTIONAL">
+                                                 <branch name="no" label="REQUIRED">
+                                                   <switch name="acceptLanguageExists" label="REQUIRED" help="OPTIONAL">
+                                                     <branch name="yes" label="REQUIRED">
+                                                       <switch name="acceptableLanguageAvailable" label="REQUIRED" help="OPTIONAL">
+                                                         <branch name="no" label="REQUIRED">
+                                                           <info name="notAcceptable406" label="REQUIRED" help="OPTIONAL"/>
+                                                         </branch>
+                                                         <branch name="yes" label="REQUIRED">
+                                                           <info name="dispatch200" label="REQUIRED" help="OPTIONAL"/>
+                                                         </branch>
+                                                       </switch>
+                                                     </branch>
+                                                     <branch name="no" label="REQUIRED">
+                                                       <info name="dispatch200" label="REQUIRED" help="OPTIONAL"/>
+                                                     </branch>
+                                                   </switch>
+                                                 </branch>
+                                                 <branch name="yes" label="REQUIRED">
+                                                   <switch name="acceptableMedaTypeAvailable" label="REQUIRED" help="OPTIONAL">
+                                                     <branch name="no" label="REQUIRED">
+                                                       <info name="notAcceptable406" label="REQUIRED" help="OPTIONAL"/>
+                                                     </branch>
+                                                     <branch name="yes" label="REQUIRED">
+                                                       <switch name="acceptLanguageExists" label="REQUIRED" help="OPTIONAL">
+                                                         <branch name="yes" label="REQUIRED">
+                                                           <switch name="acceptableLanguageAvailable" label="REQUIRED" help="OPTIONAL">
+                                                             <branch name="no" label="REQUIRED">
+                                                               <info name="notAcceptable406" label="REQUIRED" help="OPTIONAL"/>
+                                                             </branch>
+                                                             <branch name="yes" label="REQUIRED">
+                                                               <info name="dispatch200" label="REQUIRED" help="OPTIONAL"/>
+                                                             </branch>
+                                                           </switch>
+                                                         </branch>
+                                                         <branch name="no" label="REQUIRED">
+                                                           <info name="dispatch200" label="REQUIRED" help="OPTIONAL"/>
+                                                         </branch>
+                                                       </switch>
+                                                     </branch>
+                                                   </switch>
+                                                 </branch>
+                                               </switch>
+                                             </branch>
+                                             <branch name="yes" label="REQUIRED">
+                                               <info name="options200" label="REQUIRED" help="OPTIONAL"/>
+                                             </branch>
+                                           </switch>
+                                         </branch>
+                                         <branch name="yes" label="REQUIRED">
+                                           <info name="requestEntityTooLarge413" label="REQUIRED" help="OPTIONAL"/>
+                                         </branch>
+                                       </switch>
+                                     </branch>
                                      <branch name="yes" label="REQUIRED">
                                        <info name="unsupportedMediaType415" label="REQUIRED" help="OPTIONAL"/>
                                      </branch>
