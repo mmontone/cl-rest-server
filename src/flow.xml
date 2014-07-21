@@ -16,7 +16,40 @@
                    <info name="methodNotAllowed405" label="REQUIRED" help="OPTIONAL"/>
                  </branch>
                  <branch name="yes" label="REQUIRED">
-                   <info name="ok" label="REQUIRED" help="OPTIONAL"/>
+                   <switch name="malformed" label="REQUIRED" help="OPTIONAL">
+                     <branch name="no" label="REQUIRED">
+                       <switch name="authorized" label="REQUIRED" help="OPTIONAL">
+                         <branch name="no" label="REQUIRED">
+                           <info name="unauthorized401" label="REQUIRED" help="OPTIONAL"/>
+                         </branch>
+                         <branch name="yes" label="REQUIRED">
+                           <switch name="forbidden" label="REQUIRED" help="OPTIONAL">
+                             <branch name="no" label="REQUIRED">
+                               <switch name="invalidContentHeader" label="REQUIRED" help="OPTIONAL">
+                                 <branch name="no" label="REQUIRED">
+                                   <switch name="unknownContentType" label="REQUIRED" help="OPTIONAL">
+                                     <branch name="no" label="REQUIRED"/>
+                                     <branch name="yes" label="REQUIRED">
+                                       <info name="unsupportedMediaType415" label="REQUIRED" help="OPTIONAL"/>
+                                     </branch>
+                                   </switch>
+                                 </branch>
+                                 <branch name="yes" label="REQUIRED">
+                                   <info name="notImplemented501" label="REQUIRED" help="OPTIONAL"/>
+                                 </branch>
+                               </switch>
+                             </branch>
+                             <branch name="yes" label="REQUIRED">
+                               <info name="forbidden403" label="REQUIRED" help="OPTIONAL"/>
+                             </branch>
+                           </switch>
+                         </branch>
+                       </switch>
+                     </branch>
+                     <branch name="yes" label="REQUIRED">
+                       <info name="badRequest400" label="REQUIRED" help="OPTIONAL"/>
+                     </branch>
+                   </switch>
                  </branch>
                </switch>
              </branch>

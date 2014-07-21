@@ -5,16 +5,6 @@
 ;; compile flow.dia diagram with this: http://wizard4j.org/pc?action=languageDia
 ;; and write the output to flow.xml
 
-(defun flow ()
-  (if (not (available?))
-      (503-service-unavailable)
-      (if (not (known-method?))
-	  (501-not-implemented)
-	  (if (uri-too-long?)
-	      (414-request-uri-too-long)
-	      (if (not (is-method-allowed-on-this-resource?))
-		  (405-method-not-allowed))))))
-
 (defparameter *flow-chart-file* (asdf:system-relative-pathname :rest-server "src/flow.xml"))
 
 (defparameter *flow*
