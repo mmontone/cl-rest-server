@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flowchart xmlns="http://wizard4j.org/flowchart">
+ <root>
+   <!--OPTIONAL: the root element can have a number of optional attributes, see documentation.-->
+   <switch name="available" label="REQUIRED" help="OPTIONAL">
+     <branch name="yes" label="REQUIRED">
+       <switch name="knownMethod" label="REQUIRED" help="OPTIONAL">
+         <branch name="no" label="REQUIRED">
+           <info name="notImplemented501" label="REQUIRED" help="OPTIONAL"/>
+         </branch>
+         <branch name="yes" label="REQUIRED">
+           <switch name="requestUriTooLong" label="REQUIRED" help="OPTIONAL">
+             <branch name="no" label="REQUIRED">
+               <switch name="methodAllowed" label="REQUIRED" help="OPTIONAL">
+                 <branch name="no" label="REQUIRED">
+                   <info name="methodNotAllowed405" label="REQUIRED" help="OPTIONAL"/>
+                 </branch>
+                 <branch name="yes" label="REQUIRED">
+                   <info name="ok" label="REQUIRED" help="OPTIONAL"/>
+                 </branch>
+               </switch>
+             </branch>
+             <branch name="yes" label="REQUIRED">
+               <info name="requestUriTooLong414" label="REQUIRED" help="OPTIONAL"/>
+             </branch>
+           </switch>
+         </branch>
+       </switch>
+     </branch>
+     <branch name="no" label="REQUIRED">
+       <info name="serviceUnavailable503" label="REQUIRED" help="OPTIONAL"/>
+     </branch>
+   </switch>
+ </root>
+</flowchart>
