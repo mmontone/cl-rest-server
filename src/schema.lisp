@@ -347,6 +347,12 @@
 (defun attribute-accessor (attribute)
   (attribute-option :accessor attribute))
 
+(defun attribute-writer (attribute)
+  (attribute-option :writer attribute))
+
+(defun attribute-reader (attribute)
+  (attribute-option :reader attribute))
+
 ;; Unserialization
 
 (defun element-class (element)
