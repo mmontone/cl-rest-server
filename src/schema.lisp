@@ -113,9 +113,11 @@
 	    nil)
 	schema)))
 
-(defun validate-with-schema (schema string &optional (format :json))
-  "Validate input using schema"
-  (let ((data (parse-api-input format string)))
+(defun validate-with-schema (schema string-or-data &optional (format :json))
+  "Validate input using schema. Useful for validate api function posted content (for :post and :put methods). Input can be a string or an association list."
+  (let ((data (if (stringp string-or-data)
+		  (parse-api-input format string-or-data)
+		  string-or-data)))
     (schema-validate-with-element schema data)))
 
 (define-condition validation-error (simple-error)
@@ -125,24 +127,25 @@
   (error 'validation-error :format-control message
 	 :format-arguments args))
 
-(defun schema-validate-with-element (schema input)
-  (destructuring-bind (input-element-name input-attributes)
-      input
-    (destructuring-bind (schema-element-name schema-attributes)
-	schema
-      (when (not (equalp input-element-name schema-element-name))
-	(validation-error "Element schema doesn't match ~a with ~a" input schema))
-      (loop
-	 for schema-attribute in schema-attributes
-	 for input-attribute = (find (first schema-attribute) input-attributes :key #'first
-				     :test #'equalp)
-	   do
-	   (progn 
-	     (when (not input-attribute)
-	       (validation-error "Attribute ~a not found in ~a attributes" schema-attribute input))
-	     (destructuring-bind (input-attribute-name input-attribute-value) input-attribute
-	       (destructuring-bind (schema-attribute-name schema-attribute-type) schema-attribute
-		 (schema-typep input-attribute-value schema-attribute-type))))))))
+(defun schema-validate-with-element (schema data)
+  "Validate data using schema element. "
+  (loop
+     for schema-attribute in (element-attributes schema)
+     for data-attribute = (assoc (string (attribute-name schema-attribute))
+				  data
+				  :test #'equalp
+				  :key #'string)
+     do
+       (when (and (not data-attribute)
+		  (not (attribute-optional-p schema-attribute)))
+	 (validation-error "Attribute ~a not found in ~a"
+			   (attribute-name schema-attribute)
+			   data))
+       (when (not (schema-typep (cdr data-attribute)
+				(attribute-type schema-attribute)))
+	 (validation-error "~A is not of type ~A"
+			   (cdr data-attribute)
+			   (attribute-type schema-attribute)))))
 
 (defgeneric parse-api-input (format string)
   (:documentation "Parses content depending on its format"))
@@ -189,17 +192,70 @@
 (defmethod parse-api-input ((format (eql :sexp)) string)
   (read-from-string string))
 
-(defgeneric parse-with-schema (format schema string)
+(defgeneric parse-with-schema (schema string-or-data &optional format)
   (:documentation "Parses the string to an association list using the schema"))
 
-(defmethod parse-with-schema (format schema string)
-  (parse-api-input format string))
+(defmethod parse-with-schema ((schema symbol) string-or-data &optional (format :json))
+  (parse-with-schema (find-schema schema) string-or-data format))
+
+(defmethod parse-with-schema (schema string-or-data &optional (format :json))
+  (let ((data
+	 (if (stringp string-or-data)
+	     (parse-api-input format string-or-data)
+	     string-or-data)))
+    (%parse-with-schema (schema-type schema)
+			schema
+			data)))
+
+(defmethod %parse-with-schema ((schema-type (eql :element))
+			       schema data)
+  (if (null data)
+      data
+      (loop
+	 for schema-attribute in (element-attributes schema)
+	 for data-attribute = (assoc (string (attribute-name schema-attribute))
+				     data
+				     :test #'equalp
+				     :key #'string)
+	 appending
+	   (progn
+	     (when (and (not data-attribute)
+			(not (attribute-optional-p schema-attribute)))
+	       (validation-error "Attribute ~a not found in ~a"
+				 (attribute-name schema-attribute)
+				 data))
+	     (when (or (equalp (attribute-type schema-attribute) :boolean)
+		       (not (null (cdr data-attribute))))
+	       (list (cons (attribute-name schema-attribute)
+			   (parse-schema-attribute-value (attribute-type schema-attribute)
+							 (cdr data-attribute)))))))))
+
+(defmethod %parse-with-schema ((schema-type (eql :list))
+			       schema data)
+  (let ((list-schema (second schema)))
+    (loop for elem in data
+	 collect (parse-with-schema list-schema elem))))
+
+(defmethod parse-schema-attribute-value ((type (eql :string)) data)
+  (string data))
+
+(defmethod parse-schema-attribute-value ((type (eql :integer)) data)
+  (cond
+    ((integerp data)
+     data)
+    ((stringp data)
+     (parse-integer data))
+    (t (validation-error "~A is not an integer" data))))
+
+(defmethod parse-schema-attribute-value ((type symbol) data)
+  (let ((schema (find-schema type)))
+    (parse-with-schema schema data)))
+
+(defmethod parse-schema-attribute-value ((type cons) data)
+  (parse-with-schema type data))
 
 (defun schema-type (schema)
   (first schema))
-
-(defmethod parse-with-schema ((format (eql :xml)) schema string)
-  (parse-xml-with-schema schema (parse-api-input :xml string)))
 
 (defun parse-xml-with-schema (schema-or-name input)
   (let ((schema (if (symbolp schema-or-name)

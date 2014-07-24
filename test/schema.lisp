@@ -21,7 +21,7 @@
     (:element user
 	      ((id :integer :accessor id)
 	       (realname :string)
-	       (age :integer)
+	       (age :integer :optional t)
 	       (best-friend user-schema
 			    :optional t)
 	       (groups (:list group-schema)
@@ -41,7 +41,7 @@
 	       (users (:list user-schema) 
 		      :optional t
 		      :switch :include-group-users))
-	      (:class group)))  
+	      (:class group)))
 
 (defclass user ()
   ((id :initarg :id
@@ -252,14 +252,70 @@
    (find-schema 'user-schema)
    data))
 
-;; Validation
+;; Parsing
 
-#+nil(let ((data
+(let ((data
        (with-output-to-string (s)
 	 (with-serializer-output s
 	   (with-serializer :json
 	     (serialize-with-schema 
 	      (find-schema 'user-schema) *user*))))))
-  (rest-server::validate-with-schema
+  (rest-server::parse-with-schema
    (find-schema 'user-schema)
    data))
+
+;; Validation
+
+(test schema-parsing-validation-test 
+
+  ;; Fails
+  (signals validation-error
+    (let ((data '((id . 22))))
+      (rest-server::parse-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Ok
+  (finishes
+    (let ((data '((id . 22) (realname . "asdf"))))
+      (rest-server::parse-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Ok
+  (finishes
+    (let ((data '((id . 22) (realname . "asdf") (age . "23"))))
+      (rest-server::parse-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Ok
+  (finishes
+    (let ((data '((id . 22) (realname . "asdf") (age . 454))))
+      (rest-server::parse-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Fails
+  (signals validation-error
+    (let ((data '((id . 22) (realname . "asdf") (age . "23")
+		  (best-friend 33))))
+      (rest-server::parse-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Fails
+  (signals validation-error
+    (let ((data '((id . 22) (realname . "asdf") (age . "23")
+		  (best-friend . ((id . 34))))))
+      (rest-server::parse-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Ok
+  (finishes
+    (let ((data '((id . 22) (realname . "asdf") (age . "23")
+		  (best-friend . ((id . 34) (realname . "dfdf"))))))
+      (rest-server::parse-with-schema
+       (find-schema 'user-schema)
+       data))))

@@ -66,4 +66,5 @@
 	   #:define-schema
 	   #:serializable-class
 	   #:define-serializable-class
-	   #:serializable-class-schema))
+	   #:serializable-class-schema
+	   #:validation-error))
