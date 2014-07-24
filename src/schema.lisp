@@ -253,6 +253,14 @@
 (defun element-attributes (element)
   (third element))
 
+(defun find-element-attribute (element attribute-name &key (error-p t))
+  (loop for attribute in (element-attributes element)
+       when (equalp (string (attribute-name attribute))
+		    (string attribute-name))
+       do (return-from find-element-attribute attribute))
+  (when error-p
+    (error "Attribute ~A not found in ~A" attribute-name element)))
+
 (defun element-options (element)
   (cdddr element))
 
@@ -278,7 +286,10 @@
   (getf (attribute-options attribute) option))
 
 (defun attribute-optional-p (attribute)
-  (attribute-option :optional attribute))      
+  (attribute-option :optional attribute))
+
+(defun attribute-accessor (attribute)
+  (attribute-option :accessor attribute))
 
 ;; Unserialization
 

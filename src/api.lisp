@@ -82,7 +82,7 @@
     api-acceptor)))
 
 (defun stop-api (api-acceptor)
-  (hunchentoot:stop acceptor))
+  (hunchentoot:stop api-acceptor))
 
 ;; Hunchentoot api acceptor
 
