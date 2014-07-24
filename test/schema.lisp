@@ -319,3 +319,57 @@
       (rest-server::parse-with-schema
        (find-schema 'user-schema)
        data))))
+
+(test schema-unserialization-validation-test 
+
+  ;; Fails
+  (signals validation-error
+    (let ((data '((id . 22))))
+      (rest-server::unserialize-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Ok
+  (finishes
+    (let ((data '((id . 22) (realname . "asdf"))))
+      (rest-server::unserialize-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Ok
+  (finishes
+    (let ((data '((id . 22) (realname . "asdf") (age . "23"))))
+      (rest-server::unserialize-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Ok
+  (finishes
+    (let ((data '((id . 22) (realname . "asdf") (age . 454))))
+      (rest-server::unserialize-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Fails
+  (signals validation-error
+    (let ((data '((id . 22) (realname . "asdf") (age . "23")
+		  (best-friend . 33))))
+      (rest-server::unserialize-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Fails
+  (signals validation-error
+    (let ((data '((id . 22) (realname . "asdf") (age . "23")
+		  (best-friend . ((id . 34))))))
+      (rest-server::unserialize-with-schema
+       (find-schema 'user-schema)
+       data)))
+
+  ;; Ok
+  (finishes
+    (let ((data '((id . 22) (realname . "asdf") (age . "23")
+		  (best-friend . ((id . 34) (realname . "dfdf"))))))
+      (rest-server::unserialize-with-schema
+       (find-schema 'user-schema)
+       data))))

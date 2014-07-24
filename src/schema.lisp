@@ -361,9 +361,11 @@
 
 ;; (element-unserializer '(:element user () (:unserializer unserialize-user)))
 
-(defun unserialize-with-schema (schema string &optional (format :json))
-  (let ((input (parse-api-input format string)))
-    (unserialize-schema-element schema input)))  
+(defun unserialize-with-schema (schema string-or-data &optional (format :json))
+  (let ((data (if (stringp string-or-data)
+		  (parse-api-input format string-or-data)
+		  string-or-data)))
+    (unserialize-schema-element schema data)))  
 
 (defun unserialize-schema-element (element input)
   "Unserializes an schema element
@@ -384,11 +386,14 @@ See: parse-api-input (function)"
 (defun unserialize-schema-element-to-class (element input class)
   (let ((instance (allocate-instance (find-class class))))
     (loop for attribute in (element-attributes element)
-       do (progn
-	    (let* ((attribute-input (cdr (assoc (make-keyword (attribute-name attribute)) input
-						)))
-		   (attribute-value (unserialize-schema-attribute attribute attribute-input)))
-	      
+       do (let ((attribute-input (assoc (string (attribute-name attribute))
+					input
+					:test #'equalp
+					:key #'string)))
+	    (when (and (not attribute-input)
+		       (not (attribute-optional-p attribute)))
+	      (validation-error "~A not provided" (attribute-name attribute)))
+	    (let ((attribute-value (unserialize-schema-attribute attribute (cdr attribute-input))))
 	      (setf (slot-value instance (or (attribute-option :slot attribute)
 					     (attribute-name attribute)))
 		    attribute-value))))
@@ -401,7 +406,9 @@ See: parse-api-input (function)"
 	(funcall unserializer)
 	(if (null input)
 	    (when (not (attribute-optional-p attribute))
-	      (error "Attribute ~A is not optional but value was not provided" attribute))
+	      (validation-error
+	       "Attribute ~A is not optional but value was not provided"
+	       (attribute-name attribute)))
 	    ; else
 	    (unserialize-schema-attribute-value (attribute-type attribute) input)))))
 
