@@ -41,7 +41,7 @@
 	    ((getf options :serializer)
 	     (funcall (getf options :serializer) attribute-value))
 	    ((keywordp attribute-type)
-	     (serialize-attribute-value attribute-type attribute-value serializer stream))
+	     (serialize-attribute-value attribute-type attribute-value stream serializer))
 	    ((symbolp attribute-type)
 	     ;; It is a schema reference or a serializable class reference
 	     (let ((attribute-schema (find-schema attribute-type nil)))
@@ -67,7 +67,7 @@
 (defmethod serialize-attribute-value ((attribute-type (eql :timestamp)) attribute-value stream &optional (serializer *serializer*))
   (if (integerp attribute-value)
       ;; Assume a universal time number
-      (write stream (net.telent.date:universal-time-to-rfc-date attribute-value))
+      (write (net.telent.date:universal-time-to-rfc-date attribute-value) :stream stream)
       ;; else, serialize whatever it is
       (call-next-method)))
 

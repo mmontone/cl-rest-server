@@ -14,6 +14,18 @@
   (define-api api-test
       (:title "Api test"
 	      :documentation "This is an api test")
+    (parameters (:produces (:json)
+			   :consumes (:json)
+			   :documentation "Parameters test"
+			   :path "/parameters")
+		(parameters (:produces (:json)
+				       :consumes (:json)
+				       :documentation "Parameters test"
+				       :path "/parameters")
+			    (&optional (boolean :boolean nil "A boolean parameter")
+				       (integer :integer nil "An integer parameter")
+				       (string :string nil "A string parameter")
+				       (list :list nil "A list parameter"))))
     (users (:produces (:json :xml)
 		      :consumes (:json)
 		      :documentation "Users operations"
@@ -22,13 +34,14 @@
 				       :produces (:json)
 				       :path "/users"
 				       :documentation "Retrive the users list")       
-		      (&optional (expand-groups :boolean nil "Expand groups if true")))
+		      (&optional (expand :list nil "Attributes to expand")))
 	   (get-user (:request-method :get
 				      :produces (:json)
 				      :path "/users/{id}"
 				      :documentation "Retrive an user")
 		     ((id :integer "The user id")
-		      &optional (expand-groups :boolean nil "Expand groups if true")))
+		      &optional
+		      (expand :list nil "Attributes to expand")))
 	   (create-user (:request-method :post
 					 :consumes (:json)
 					 :path "/users"
@@ -100,11 +113,18 @@
 (in-package :api-test-implementation)
 
 (implement-api-function api-test::api-test
+    api-test::parameters (&key boolean integer string list)
+  (json:encode-json-plist-to-string
+     (list :boolean boolean
+	   :integer integer
+	   :string string
+	   :list list)))
+
+(implement-api-function api-test::api-test
     (api-test::get-users
      (:logging :enabled t)
      (:error-handling :enabled t))
-    (&key (expand-groups nil))
-  (declare (ignore expand-groups))
+    (&key expand)
   (let ((serializer (rest-server:accept-serializer)))
     (set-reply-content-type (rest-server::serializer-content-type serializer))
     (with-output-to-string (s)
@@ -304,3 +324,106 @@
       (drakma:http-request "http://localhost:8181/users?expand-groups=true" :method :get)
     (is (equalp status-code 200))
     (is (equalp (read-from-string result) (list "user1" "user2" "user3" t)))))
+
+(test api-functions-parameters-test
+  (macrolet ((check (key value)
+	       `(progn
+		  (is (equalp status 200))
+		  (is (equalp (cdr (assoc ,key
+					  (json:decode-json-from-string result)))
+			      ,value)))))
+    ;; No parameters
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters))
+      (is (equalp status 200)))    
+
+    ;; Wrong parameter
+    (multiple-value-bind (result status)
+	(drakma:http-request "http://localhost:8181/parameters?foo=foo" :method :get)
+      (is (equalp status 500)))
+
+    ;; Boolean
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :boolean t))
+      (is (equalp status 200))
+      (is (cdr (assoc :boolean
+		      (json:decode-json-from-string result)))))
+
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :boolean nil))
+      (is (equalp status 200))
+      (is (not (cdr (assoc :boolean
+			   (json:decode-json-from-string result))))))
+
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :boolean 44))
+      (is (equalp status 500)))
+
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :boolean "true"))
+      (is (equalp status 200))
+      (is (cdr (assoc :boolean
+		      (json:decode-json-from-string result)))))
+
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :boolean "false"))
+      (is (equalp status 200))
+      (is (not (cdr (assoc :boolean
+			   (json:decode-json-from-string result))))))
+
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :boolean "lala"))
+      (is (equalp status 500)))
+
+    ;; String
+
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :string "asd"))
+      (is (equalp status 200))
+      (is (equalp (cdr (assoc :string
+			      (json:decode-json-from-string result)))
+		  "asd")))
+
+    ;; Integer
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :integer 34))
+      (check :integer 34))
+
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :integer "34"))
+      (check :integer 34))
+
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :integer t))
+      (is (equalp status 500)))
+
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :integer nil))
+      (is (equalp status 500)))
+
+    ;; Lists
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :list (list "foo" "bar")))
+      (check :list (list "foo" "bar")))
+  
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :list "foo,bar"))
+      (check :list (list "foo" "bar")))
+
+    (multiple-value-bind (result status)
+	(drakma:http-request "http://localhost:8181/parameters?list=foo,bar" :method :get)
+      (check :list (list "foo" "bar")))))

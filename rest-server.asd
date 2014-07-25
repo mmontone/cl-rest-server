@@ -70,4 +70,5 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :closer-mop
 	       :group-by
 	       :anvil-connect
-	       :chronicity))
+	       :chronicity
+	       :net-telent-date))

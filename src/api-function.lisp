@@ -409,7 +409,8 @@
 		      (when optional-args
 			(loop for x in optional-args collect 
 			     (list (intern (symbol-name (first x)) package) 
-				   (third x))))
+				   (third x)
+				   (intern (format nil "~A-PROVIDED-P" (symbol-name (first x))) package))))
 		      (when (member (request-method api-function) '(:post :put))
 			(list '(content-type "application/json"))))))
 	   ,(api-documentation api-function)
@@ -437,16 +438,16 @@
 					  '(:post :put))
 				  `(babel:string-to-octets posted-content))
 		  :content-type ,(when (member (request-method api-function) 
-					  '(:post :put))
+					       '(:post :put))
 				       'content-type)
-		  :parameters (list 
+		  :parameters (append
 			       ,@(loop for x in optional-args
 				    collect
-				      (progn
-					`(cons 
-					  ,(symbol-name (car x))
-					  (format nil "~A" ,(intern (symbol-name 
-								     (car x)) package))))))
+				      `(when ,(intern (format nil "~A-PROVIDED-P" (symbol-name (car x))) package)
+					 (list (cons 
+						,(symbol-name (car x))
+						(format nil "~A" ,(intern (symbol-name 
+									   (car x)) package)))))))
 		  :additional-headers (list (cons "Accept" accept))) 
 	       (log5:log-for (rest-server) "Response: ~A" ,response)
 	       (values ,response ,status-code))))))))
