@@ -69,4 +69,5 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :babel
 	       :closer-mop
 	       :group-by
-	       :anvil-connect))
+	       :anvil-connect
+	       :chronicity))

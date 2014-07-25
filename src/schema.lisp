@@ -37,9 +37,11 @@
       (when (not (and (getf options :optional) (not attribute-value)))
 	(with-attribute (attribute-name :serializer serializer
 					:stream stream)
-	  (cond 
+	  (cond
+	    ((getf options :serializer)
+	     (funcall (getf options :serializer) attribute-value))
 	    ((keywordp attribute-type)
-	     (serialize attribute-value serializer stream))
+	     (serialize-attribute-value attribute-type attribute-value serializer stream))
 	    ((symbolp attribute-type)
 	     ;; It is a schema reference or a serializable class reference
 	     (let ((attribute-schema (find-schema attribute-type nil)))
@@ -58,6 +60,21 @@
 				     serializer
 				     attribute-value
 				     stream))))))))
+
+(defmethod serialize-attribute-value (attribute-type attribute-value stream &optional (serializer *serializer*))
+  (serialize attribute-value serializer stream))
+
+(defmethod serialize-attribute-value ((attribute-type (eql :timestamp)) attribute-value stream &optional (serializer *serializer*))
+  (if (integerp attribute-value)
+      ;; Assume a universal time number
+      (write stream (net.telent.date:universal-time-to-rfc-date attribute-value))
+      ;; else, serialize whatever it is
+      (call-next-method)))
+
+(defmethod serialize ((thing local-time:timestamp)
+		      &optional (serializer *serializer*)
+			(stream *serializer-output*))
+  (local-time:format-rfc1123-timestring stream thing)) 
 
 (defun serialize-schema-list (schema-list serializer input stream)
   (destructuring-bind (_ list-type) schema-list
@@ -246,6 +263,15 @@
     ((stringp data)
      (parse-integer data))
     (t (validation-error "~A is not an integer" data))))
+
+(defmethod parse-schema-attribute-value ((type (eql :timestamp)) data)
+  (chronicity:parse data))
+
+(defmethod parse-schema-attribute-value ((type (eql :time)) data)
+  (chronicity:parse data))
+
+(defmethod parse-schema-attribute-value ((type (eql :date)) data)
+  (chronicity:parse data))
 
 (defmethod parse-schema-attribute-value ((type symbol) data)
   (let ((schema (find-schema type)))

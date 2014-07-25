@@ -129,7 +129,7 @@
 
 ;; Serializer format plug
 
-(DEFGENERIC SERIALIZE (ELEMENT &OPTIONAL (REST-SERVER::SERIALIZER) (STREAM))
+(defgeneric serialize (element &optional serializer stream)
   (:documentation "Main serialization function. Takes the element to serialize, the serializer and the output stream"))
 
 (defmethod serialize ((element element) &optional (serializer *serializer*) (stream *serializer-output*))
