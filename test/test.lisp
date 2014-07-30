@@ -1,6 +1,6 @@
 (defpackage :rest-server-tests
   (:use :cl :rest-server :fiveam)
-  (:export :run-tests))
+  (:export :run-tests :debug-tests))
 
 (in-package :rest-server-tests)
 
@@ -8,5 +8,8 @@
 
 (defun run-tests ()
   (run 'rest-server-tests))
+
+(defun debug-tests ()
+  (debug! 'rest-server-tests))
 
 (in-suite rest-server-tests)
