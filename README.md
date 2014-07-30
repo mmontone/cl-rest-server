@@ -1,4 +1,9 @@
-rest-server is a library for writing Web APIs
+Common Lisp REST Server
+=======================
+
+*rest-server* is a library for writing REST Web APIs in Common Lisp
+
+[![Build Status](https://travis-ci.org/mmontone/cl-rest-server.svg?branch=master)](https://travis-ci.org/mmontone/cl-rest-server)
 
 Purpose of the library:
 
