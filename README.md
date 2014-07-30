@@ -8,53 +8,53 @@ Common Lisp REST Server
 Purpose of the library:
 
 * Method matching
-- Based on HTTP method (GET, PUT, POST, DELETE)
-- Based on Accept request header
-- URL parsing (argument types)
-- Matching based on "extension": i.e. /users.json or /users.xml, etc
-- Method combinations?
+  - Based on HTTP method (GET, PUT, POST, DELETE)
+  - Based on Accept request header
+  - URL parsing (argument types)
+  - Matching based on "extension": i.e. /users.json or /users.xml, etc
+  - Method combinations?
 
 * Serialization
-- Different serialization types (JSON, XML, S-expressions)
+  - Different serialization types (JSON, XML, S-expressions)
 
 * Materialization (unserialization)
-- Types
+  - Types
 
 * Error handling
-- Condition serialization
-- Error codes configuration
+  - Condition serialization
+  - Error codes configuration
 
 * Validation
-- Types
-- Schemas (JSON, XML schemas)
+  - Types
+  - Schemas (JSON, XML schemas)
 
 * Versioning
-Support for api versioning?
+  - Support for api versioning?
 
 * Logging
 
 * Cache handling
 
 * Extensible
-- Backends (JSON, XML, etc)
-- Types
-- Validation
+  - Backends (JSON, XML, etc)
+  - Types
+  - Validation
 
 * Authentication
-- Different methods (token based, oauth)
-- Avoid changing the api interface spec because of this
+  - Different methods (token based, oauth)
+  - Avoid changing the api interface spec because of this
 
 * Modes
-- Debugging mode -> outputs full error serialization/backtrace
-- Production -> 500 internal server error
+  - Debugging mode -> outputs full error serialization/backtrace
+  - Production -> 500 internal server error
 
 * Documentation
-- For the (lisp) developer
-- For the api consumer:
-https://github.com/mashery/iodocs
-http://swagger.wordnik.com/
+  - For the (lisp) developer
+  - For the api consumer:
+     - https://github.com/mashery/iodocs
+     - http://swagger.wordnik.com/
 
 * Resources
-- Good source of ideas:
-http://django-rest-framework.org/
-http://www.restlet.org/
+  - Good source of ideas:
+    - http://django-rest-framework.org/
+
