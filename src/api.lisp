@@ -3,6 +3,7 @@
 (defparameter *apis* (make-hash-table :test #'equalp)
   "Global hashtable containing the apis defined")
 (defparameter *api* nil "The current api")
+
 (defvar *rest-server-proxy* nil)
 
 (defparameter *register-api-resource* t "Wether to register the created resource in the current API")
@@ -126,11 +127,12 @@
       (let ((*development-mode* (development-mode acceptor)))
 	(loop for api-function in (api-functions (api acceptor))
 	   when (api-function-matches-request-p api-function request)
-	   return (let ((result 
-			 (execute-api-function-implementation 
-			  api-function
-			  (find-api-function-implementation (name api-function))
-			  request)))
+	   return (let* ((*api-function* api-function)
+			 (result 
+			  (execute-api-function-implementation 
+			   api-function
+			   (find-api-function-implementation (name api-function))
+			   request)))
 		    (if (stringp result) result (prin1-to-string result)))
 	   finally (call-next-method)))))
 

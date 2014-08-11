@@ -4,6 +4,8 @@
 
 (defvar *api-logging-output* *standard-output* "Where the API logging message go")
 
+(defparameter *api-function* nil "The current api function")
+
 (defun start-api-logging ()
   (log5:start-sender 'api-info  
 		     (log5:stream-sender :location *api-logging-output*)

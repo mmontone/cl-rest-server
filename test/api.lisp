@@ -34,7 +34,8 @@
 				       :produces (:json)
 				       :path "/users"
 				       :documentation "Retrive the users list")       
-		      (&optional (expand :list nil "Attributes to expand")))
+		      (&optional (page :integer 1 "The page")
+				 (expand :list nil "Attributes to expand")))
 	   (get-user (:request-method :get
 				      :produces (:json)
 				      :path "/users/{id}"
@@ -104,8 +105,13 @@
 (defun delete-user (id)
   (setf *users* (delete id *users* :test #'equalp :key #'first)))
 
-(defun all-users ()
-  *users*)
+(defun all-users (&optional offset segment)
+  (let ((users (copy-list *users*)))
+    (if offset
+      (apply #'subseq users (cons (min offset (length users))
+				  (and segment (list (min (+ offset segment)
+							  (length users))))))
+      users)))    
 
 (defpackage :api-test-implementation
   (:use :cl :rest-server))
@@ -124,19 +130,20 @@
     (api-test::get-users
      (:logging :enabled t)
      (:error-handling :enabled t))
-    (&key expand)
+    (&rest args &key expand (page 1))
   (let ((serializer (rest-server:accept-serializer)))
     (set-reply-content-type (rest-server::serializer-content-type serializer))
     (with-output-to-string (s)
       (with-serializer-output s
 	(with-serializer serializer
-	  (with-elements-list ("users")
-	    (loop for user in (model-test:all-users)
-	       do
-		 (with-list-member ("user")
-		   (with-element ("user")
-		     (set-attribute "id" (cdr (assoc :id user)))
-		     (set-attribute "realname" (cdr (assoc :realname user))))))))))))
+	  (with-pagination (:page page :expand expand)
+	    (with-elements-list ("users")
+	      (loop for user in (model-test:all-users (* 10 (1- page)) 10)
+		 do
+		   (with-list-member ("user")
+		     (with-element ("user")
+		       (set-attribute "id" (cdr (assoc :id user)))
+		       (set-attribute "realname" (cdr (assoc :realname user)))))))))))))
 
 (implement-api-function api-test::api-test
     (api-test::get-user
@@ -149,7 +156,8 @@
 	(error 'http-not-found-error)
 	; else
 	(element "user"
-		 (attribute "id" (cdr (assoc :id user)))
+		 (self-reference :id id)
+		 (attribute "id" id)
 		 (attribute "realname" (cdr (assoc :realname user)))))))
 
 (implement-api-function api-test::api-test api-test::create-user (posted-content)
@@ -176,7 +184,7 @@
 (in-package :rest-server-tests)
 
 (defparameter *api-acceptor*
-  (start-api 'api-test::api-test "localhost" 8181))
+  (start-api 'api-test::api-test "localhost" 8181 :development))
 
 (push (cons "application" "json") drakma:*text-content-types*)
 (push (cons "application" "xml") drakma:*text-content-types*)

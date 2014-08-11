@@ -145,6 +145,9 @@
   (serialize-value serializer value stream))
 
 
+(defmethod serializer-content-type ((serializer (eql :html)))
+  "text/html")
+
 ;; Json serializer
 
 (defmethod serializer-content-type ((serializer (eql :json)))
@@ -393,3 +396,10 @@
 	   (call-next-method)
 	   *serializer*
 	   s))))))
+
+;; Utilities
+
+(defun self-reference (&rest args)
+  (set-attribute
+   :href
+   (apply #'format-absolute-api-function-url *api-function* args)))

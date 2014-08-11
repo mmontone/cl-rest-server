@@ -51,6 +51,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "resource")
 	     (:file "api-function")
 	     (:file "logging")
+	     (:file "pagination")
 	     (:file "swagger")
 	     (:file "api-documentation"))
 	    :serial t))
