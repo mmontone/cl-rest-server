@@ -29,6 +29,7 @@
     (users (:produces (:json :xml)
 		      :consumes (:json)
 		      :documentation "Users operations"
+		      :models (user)
 		      :path "/users")
 	   (get-users (:request-method :get
 				       :produces (:json)
@@ -46,18 +47,25 @@
 	   (create-user (:request-method :post
 					 :consumes (:json)
 					 :path "/users"
-					 :documentation "Create a user")
+					 :documentation "Create a user"
+					 :body-type user)
 			())
 	   (update-user (:request-method :put
 					 :consumes (:json)
 					 :path "/users/{id}"
-					 :documentation "Update a user")
+					 :documentation "Update a user"
+					 :body-type user)
 			((id :integer "The user id")))
 	   (delete-user (:request-method :delete
 					 :consumes (:json)
 					 :path "/users/{id}"
 					 :documentation "Delete a user")
 			((id :integer "The user id"))))))
+
+(define-schema user
+    (:element user
+	      ((:id :integer :documentation "The user id")
+	       (:realname :string :documentation "The user realname"))))
 
 ;; Add Swagger resource
 (rest-server::define-swagger-resource api-test)

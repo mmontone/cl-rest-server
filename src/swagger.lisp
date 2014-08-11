@@ -105,7 +105,7 @@
 	    (json:as-array-member ()
 	      (json:with-object ()
 		(json:encode-object-member :name "body")
-		(json:encode-object-member :type "string")
+		(json:encode-object-member :type (string-downcase (princ-to-string (body-type operation))))
 		(json:encode-object-member :param-type "body")
 		(json:encode-object-member :description "The content")
 		(json:encode-object-member :required t)
@@ -138,7 +138,10 @@
 		       (json:with-array ()
 			 (loop for operation in operations
 			    do (json:as-array-member ()
-				 (encode-swagger-operation operation))))))))))))))
+				 (encode-swagger-operation operation)))))))))))
+      (json:as-object-member (:models)
+	(encode-swagger-models (mapcar #'find-schema (resource-models resource))))
+	)))
 
 (defun mime-to-string (mime-type)
   (cond
@@ -152,3 +155,53 @@
        (:html "text/html")
        (:sexp "application/sexp")))
     (t (error "Invalid mime type ~S" mime-type))))
+
+(defun encode-swagger-model (schema-element)
+  (flet ((encode-model-property (attribute)
+	   (json:as-object-member ((attribute-name attribute))
+	     (json:with-object ()
+	       (let ((attribute-type (attribute-type attribute)))
+		 (cond
+		   ((keywordp attribute-type) ;; A primitive type
+		    (json:encode-object-member
+		     :type
+		     (string-downcase (princ-to-string attribute-type))))
+		   ((symbolp attribute-type) ;; A schema reference
+		    (json:encode-object-member
+		     "$ref" (string-downcase (princ-to-string attribute-type))))
+		   ((listp attribute-type) ;; A composite type
+		    (ecase (first attribute-type)
+		      (:list (json:encode-object-member
+			      :type "array")
+			     (json:as-object-member (:items)
+			       (json:with-object ()
+				 (cond
+				   ((keywordp (second attribute-type))
+				    (json:encode-object-member :type
+							       (string-downcase
+								(princ-to-string (second attribute-type)))))
+				   ((symbolp (second attribute-type))
+				    (json:encode-object-member "$ref"
+							       (string-downcase (princ-to-string (second attribute-type)))))
+				   (t (error "Don't know how to encode this"))))))
+		      (:option (json:encode-object-member :enum
+							  (rest attribute-type)))
+		      (:element (error "Not implemented yet"))))))		     
+	       (let ((desc (or (attribute-option :description attribute)
+			       (attribute-option :documentation attribute))))
+		 (when desc
+		   (json:encode-object-member :description desc)))))))
+    (json:with-object ()
+      (json:encode-object-member :id (element-name schema-element))
+      (json:as-object-member (:properties)
+	(json:with-object ()
+	  (loop for attribute in (element-attributes schema-element)
+	     do
+	       (encode-model-property attribute)))))))
+
+(defun encode-swagger-models (schemas)
+  (json:with-object ()
+    (loop for schema in schemas
+	 do
+	 (json:as-object-member ((element-name schema))
+	   (encode-swagger-model schema)))))

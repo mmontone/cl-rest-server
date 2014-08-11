@@ -47,6 +47,10 @@
    (optional-arguments :initarg :optional-arguments
                        :accessor optional-arguments
                        :initform nil)
+   (body-type :initarg :body-type
+	      :initform :string
+	      :accessor body-type
+	      :documentation "The type of the body argument (when request-method is :PUT or :POST)")
    (consumes :initarg :consumes
 	     :accessor consumes
 	     :initform nil
