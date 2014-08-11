@@ -15,6 +15,27 @@
        (with-attribute (:results)
 	 ,@body))))
 
+(defun make-pagination-element (&rest args
+				&key (page (error "Provide the page"))
+				  (element-name "pagination")
+				  (results (error "Provide the results"))
+				  &allow-other-keys)
+  (let* ((fargs (copy-list args)))
+    (remf fargs :page)
+    (remf fargs :element-name)
+    (remf fargs :results)
+    (element element-name
+	     (attribute :page page)
+	     (attribute :next
+			(format-absolute-api-function-url *api-function*
+							  `(:page (1+ ,page)
+								  ,@fargs)))
+	     (attribute :previous
+			(format-absolute-api-function-url *api-function*
+							  `(:page (1- ,page)
+								  ,@fargs)))
+	     (attribute :results results))))	     
+
 ;; (defclass pagination ()
 ;;   ((function :initarg :function
 ;; 	     :initform (error "Provide the function")
