@@ -156,7 +156,8 @@
 	(error 'http-not-found-error)
 	; else
 	(element "user"
-		 (self-reference :id id)
+		 (attribute "href"
+			    (format-absolute-api-function-url rest-server::*api-function* :id id))
 		 (attribute "id" id)
 		 (attribute "realname" (cdr (assoc :realname user)))))))
 
