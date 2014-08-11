@@ -185,7 +185,7 @@
 (in-package :rest-server-tests)
 
 (defparameter *api-acceptor*
-  (start-api 'api-test::api-test "localhost" 8181 :development))
+  (start-api 'api-test::api-test "localhost" 8181))
 
 (push (cons "application" "json") drakma:*text-content-types*)
 (push (cons "application" "xml") drakma:*text-content-types*)
