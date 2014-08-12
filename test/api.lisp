@@ -44,6 +44,13 @@
 		     ((id :integer "The user id")
 		      &optional
 		      (expand :list nil "Attributes to expand")))
+	   (cached-get-user (:request-method :get
+					     :produces (:json)
+					     :path "/cached-users/{id}"
+					     :documentation "Retrive an user")
+		     ((id :integer "The user id")
+		      &optional
+		      (expand :list nil "Attributes to expand")))	   
 	   (create-user (:request-method :post
 					 :consumes (:json)
 					 :path "/users"
@@ -157,7 +164,24 @@
     (api-test::get-user
      (:serialization :enabled t)
      (:logging :enabled nil))
-    (id &key (expand-groups nil))
+    (id &key expand)
+  (declare (ignore expand-groups))
+  (let ((user (model-test:get-user id)))
+    (if (not user)
+	(error 'http-not-found-error)
+	; else
+	(element "user"
+		 (attribute "href"
+			    (format-absolute-api-function-url rest-server::*api-function* :id id))
+		 (attribute "id" id)
+		 (attribute "realname" (cdr (assoc :realname user)))))))
+
+(implement-api-function api-test::api-test
+    (api-test::cached-get-user
+     (:caching :type :etag)
+     (:serialization :enabled t)
+     (:logging :enabled nil))
+    (id &key expand)
   (declare (ignore expand-groups))
   (let ((user (model-test:get-user id)))
     (if (not user)
@@ -444,3 +468,67 @@
     (multiple-value-bind (result status)
 	(drakma:http-request "http://localhost:8181/parameters?list=foo,bar" :method :get)
       (check :list (list "foo" "bar")))))
+
+(test caching-test
+  ;; Create a new user
+  (multiple-value-bind (result status)
+      (with-api-backend *api-url*
+	(api-test::create-user
+	 (json:encode-json-plist-to-string
+	  (list :realname "Cached user"))))
+    (is (equalp status 200))
+    ;; Fetch the created user
+    (let ((created-user (json:decode-json-from-string result)))
+      (let ((user-id (cdr (assoc :id created-user))))
+	(multiple-value-bind (result status headers)
+	    (drakma:http-request
+	     (format nil "http://localhost:8181/cached-users/~A" user-id)
+	     :method :get
+	     :additional-headers '(("Accept" . "application/json")))
+	  ;; Test there's an ETag
+	  (let ((etag (cdr (assoc :etag headers))))
+	    (is (not (null etag)))
+	    ;; When using the etag, we obtain a content not modified response
+	    (multiple-value-bind (result status)
+		(drakma:http-request
+		 (format nil "http://localhost:8181/cached-users/~A" user-id)
+		 :method :get
+		 :additional-headers '(("Accept" . "application/json")
+				       ("If-None-Match" . etag)))
+	      (is (equalp status 304)))
+	    ;; If we use an invalid etag, we get the user and an etag
+	    (multiple-value-bind (result status headers)
+		(drakma:http-request
+		 (format nil "http://localhost:8181/cached-users/~A" user-id)
+		 :method :get
+		 :additional-headers '(("Accept" . "application/json")
+				       ("If-None-Match" . "foo")))
+	      (is (equalp status 200))
+	      (finishes (json:decode-json-from-string result)))
+	      
+	    ;; If we use the etag again, we obtain a content not modified response
+	    (multiple-value-bind (result status)
+		(drakma:http-request
+		 (format nil "http://localhost:8181/cached-users/~A" user-id)
+		 :method :get
+		 :additional-headers '(("Accept" . "application/json")
+				       ("If-None-Match" . etag)))
+	      (is (equalp status 304)))
+	    
+	    ;; Update the user
+	    (with-api-backend *api-url*
+	      (api-test::update-user
+	       (json:encode-json-plist-to-string
+		(list :realname "Felipe"))
+	       user-id))
+
+	    ;; If we try to use the old etag, we get another and the new user info
+	    (multiple-value-bind (result status)
+		(drakma:http-request
+		 (format nil "http://localhost:8181/cached-users/~A" user-id)
+		 :method :get
+		 :additional-headers '(("Accept" . "application/json")
+				       ("If-None-Match" . etag)))
+	      (is (equalp status 200))
+	      (is (cdr (assoc :etag headers)))
+	      (finishes (json:decode-json-from-string result)))))))))

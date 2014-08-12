@@ -51,6 +51,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "resource")
 	     (:file "api-function")
 	     (:file "logging")
+	     (:file "caching")
 	     (:file "pagination")
 	     (:file "swagger")
 	     (:file "api-documentation"))
@@ -72,4 +73,5 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :group-by
 	       :anvil-connect
 	       :chronicity
-	       :net-telent-date))
+	       :net-telent-date
+	       :md5))

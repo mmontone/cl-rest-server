@@ -8,7 +8,7 @@
 (defmethod process-api-function-implementation-option
     ((option (eql :logging))
      api-function-implementation
-     &key enabled)
+     &key (enabled t))
   (if enabled
       (make-instance 'logging-api-function-implementation-decoration
 		     :decorates api-function-implementation)
