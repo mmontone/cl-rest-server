@@ -178,9 +178,10 @@
 
 (implement-api-function api-test::api-test
     (api-test::cached-get-user
-     (:caching :type :etag)
-     (:serialization :enabled t)
-     (:logging :enabled nil))
+     (:logging :enabled nil)
+     (:caching :type :etag
+	       :content-id :id)
+     (:serialization :enabled t))
     (id &key expand)
   (declare (ignore expand-groups))
   (let ((user (model-test:get-user id)))
@@ -207,7 +208,7 @@
 	(error 'http-not-found-error)
 	; else
 	(progn
-	  (clear-cache 'api-test::cached-get-user)
+	  (clear-cache 'api-test::cached-get-user id)
 	  (model-test::set-user-realname user (cdr (assoc :realname posted-content)))
 	  (model-test::update-user user)))))
 

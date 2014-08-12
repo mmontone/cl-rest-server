@@ -250,7 +250,7 @@
 
 (defun process-api-function-implementation-options (api-function-implementation)
   (let ((processed-api-function api-function-implementation))
-    (loop for option in (options api-function-implementation)
+    (loop for option in (reverse (options api-function-implementation))
 	 do (destructuring-bind (option-name &rest args) option
 	      (setf processed-api-function
 		    (apply #'process-api-function-implementation-option
