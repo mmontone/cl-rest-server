@@ -1,5 +1,14 @@
 (in-package :rest-server)
 
+(defgeneric clear-cache (api-function-implementation)
+  (:method ((api-function-name symbol))
+    (clear-cache (find-api-function-implementation api-function-name)))
+  (:method ((decoration api-function-implementation-decoration))
+    (clear-cache (decorates decoration)))
+  (:method ((api-function-implementation t))
+    ;; Do nothing
+    ))
+
 (defclass caching-api-function-implementation-decoration
     (api-function-implementation-decoration)
   ()
@@ -10,6 +19,9 @@
 	 :initform nil
 	 :accessor etag))
   (:metaclass closer-mop:funcallable-standard-class))
+
+(defmethod clear-cache ((etag-validation etag-validation-decoration))
+  (setf (etag etag-validation) nil))
 
 (defclass last-modified-validation-decoration (caching-api-function-implementation-decoration)
   ()

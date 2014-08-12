@@ -207,6 +207,7 @@
 	(error 'http-not-found-error)
 	; else
 	(progn
+	  (clear-cache 'api-test::cached-get-user)
 	  (model-test::set-user-realname user (cdr (assoc :realname posted-content)))
 	  (model-test::update-user user)))))
 
@@ -493,8 +494,8 @@
 		(drakma:http-request
 		 (format nil "http://localhost:8181/cached-users/~A" user-id)
 		 :method :get
-		 :additional-headers '(("Accept" . "application/json")
-				       ("If-None-Match" . etag)))
+		 :additional-headers `(("Accept" . "application/json")
+				       ("If-None-Match" . ,etag)))
 	      (is (equalp status 304)))
 	    ;; If we use an invalid etag, we get the user and an etag
 	    (multiple-value-bind (result status headers)
@@ -511,8 +512,8 @@
 		(drakma:http-request
 		 (format nil "http://localhost:8181/cached-users/~A" user-id)
 		 :method :get
-		 :additional-headers '(("Accept" . "application/json")
-				       ("If-None-Match" . etag)))
+		 :additional-headers `(("Accept" . "application/json")
+				       ("If-None-Match" . ,etag)))
 	      (is (equalp status 304)))
 	    
 	    ;; Update the user
@@ -527,8 +528,8 @@
 		(drakma:http-request
 		 (format nil "http://localhost:8181/cached-users/~A" user-id)
 		 :method :get
-		 :additional-headers '(("Accept" . "application/json")
-				       ("If-None-Match" . etag)))
+		 :additional-headers `(("Accept" . "application/json")
+				       ("If-None-Match" . ,etag)))
 	      (is (equalp status 200))
 	      (is (cdr (assoc :etag headers)))
 	      (finishes (json:decode-json-from-string result)))))))))

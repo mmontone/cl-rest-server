@@ -69,4 +69,5 @@
 	   #:serializable-class-schema
 	   #:validation-error
 	   #:self-reference
-	   #:with-pagination))
+	   #:with-pagination
+	   #:clear-cache))
