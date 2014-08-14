@@ -119,7 +119,10 @@
     (funcall function))
 
 (defmethod serialize-toplevel ((serializer (eql :xml)) stream function)
-  (cxml:with-xml-output (cxml:make-character-stream-sink stream :indentation nil :omit-xml-declaration-p t)
+  (cxml:with-xml-output (cxml:make-character-stream-sink
+			 stream
+			 :indentation nil
+			 :omit-xml-declaration-p t)
     (funcall function)))
 
 (defmethod serialize-toplevel ((serialize (eql :html)) stream function)
@@ -179,7 +182,7 @@
   "application/xml")
 
 (defmethod serialize-element ((serializer (eql :xml)) element stream)
-  (cxml:with-element (format nil "_~A" (element-name element))
+  (cxml:with-element (name element)
     (loop for attribute in (attributes element)
          do (serialize attribute serializer stream))))
 
@@ -197,12 +200,15 @@
 
 ;; SEXP serializer
 
+(defmethod serializer-content-type ((serializer (eql :sexp)))
+  "text/lisp")
+
 (defmethod serialize-element ((serializer (eql :sexp)) element stream)
   (format stream "(~s (" (name element))
   (mapcar (lambda (attribute)
             (serialize attribute serializer stream))
           (attributes element))
-  (format stream ")"))
+  (format stream "))"))
 
 (defmethod serialize-elements-list ((serializer (eql :sexp)) elements-list stream)
   (format stream "(")
@@ -218,7 +224,7 @@
   (format stream ")"))
 
 (defmethod serialize-value ((serializer (eql :sexp)) value stream)
-  (format stream "~A" value))
+  (prin1 value stream))
 
 ;; HTML serializer
 
@@ -260,7 +266,7 @@
 
 (defmethod call-with-element ((serializer (eql :xml)) name body stream)
   (declare (ignore stream))
-  (cxml:with-element (format nil "_~A" name)
+  (cxml:with-element name
       (funcall body)))
 
 (defmethod call-with-element ((serializer (eql :html)) name body stream)

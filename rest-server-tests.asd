@@ -36,7 +36,8 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "api")
 	     (:file "schema")
 	     (:file "authentication")
-	     (:file "oauth2-api"))
+	     #+oauth2(:file "oauth2-api")
+	     )
 	    :serial t))
   :serial t
   :depends-on (:rest-server :fiveam :cl-html5-parser))

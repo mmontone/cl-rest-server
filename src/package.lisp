@@ -55,6 +55,7 @@
 	   #:start-api-documentation
 	   #:start-api-logging
 	   #:*development-mode*
+	   #:*server-development-mode*
 	   #:http-error
 	   #:http-not-found-error
 	   #:http-internal-server-error

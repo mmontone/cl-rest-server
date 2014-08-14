@@ -4,6 +4,8 @@
 
 (defvar *development-mode* :production "Api development mode. One of :development, :testing, :production. Influences how errors are handled from the api")
 
+(defvar *server-development-mode* nil "Global server development mode. Takes precedence over *development-mode* when handling errors")
+
 ;; We have to disable hunchentoot handler and enable ours
 (setf hunchentoot:*catch-errors-p* nil)
 
@@ -108,25 +110,27 @@
   (setf (hunchentoot:header-out "Retry-After") *retry-after-seconds*))
 
 (defun %with-condition-handling (function)
-  (labels ((serialize-condition (condition)
-	     (with-output-to-string (s)
-	       (with-serializer-output s
-		 (with-serializer *default-serializer*
-		   (serialize condition)))))
-           (handle-condition (condition)
-             (if (equalp *development-mode* :production)
-		 (setup-reply-from-error condition)
-		 ; else, we are in :testing, serialize the condition
-		 (serialize-condition condition))))
-    (if (equalp *development-mode* :development)
-	(handler-case (funcall function)
-	  (harmless-condition (c)
-	    (serialize-condition c)))
-        (handler-case (funcall function)
-	  (harmless-condition (c)
-	    (serialize-condition c))
-          (error (c)
-            (handle-condition c))))))
+  (let ((development-mode (or *server-development-mode*
+			      *development-mode*)))
+    (labels ((serialize-condition (condition)
+	       (with-output-to-string (s)
+		 (with-serializer-output s
+		   (with-serializer *default-serializer*
+		     (serialize condition)))))
+	     (handle-condition (condition)
+	       (if (equalp development-mode :production)
+		   (setup-reply-from-error condition)
+					; else, we are in :testing, serialize the condition
+		   (serialize-condition condition))))
+      (if (equalp development-mode :development)
+	  (handler-case (funcall function)
+	    (harmless-condition (c)
+	      (serialize-condition c)))
+	  (handler-case (funcall function)
+	    (harmless-condition (c)
+	      (serialize-condition c))
+	    (error (c)
+	      (handle-condition c)))))))
 
 (defmethod serialize-value ((serializer (eql :json)) (error simple-error) stream) 
   "Serialize error condition"
