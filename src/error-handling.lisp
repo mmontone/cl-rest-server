@@ -24,32 +24,37 @@
 (define-condition http-not-found-error (http-error)
   ()
   (:default-initargs
-   :status-code 404))
+   :status-code hunchentoot:+http-not-found+))
 
 (define-condition http-internal-server-error (http-error)
   ()
   (:default-initargs
-   :status-code 500))
+   :status-code hunchentoot:+http-internal-server-error+))
 
 (define-condition http-authorization-required-error (http-error)
   ()
   (:default-initargs
-   :status-code 401))
+   :status-code hunchentoot:+http-authorization-required+))
 
 (define-condition http-forbidden-error (http-error)
   ()
   (:default-initargs
-   :status-code 403))
+   :status-code hunchentoot:+http-forbidden+))
 
-(define-condition http-service-unavailable (http-error)
+(define-condition http-service-unavailable-error (http-error)
   ()
   (:default-initargs
-   :status-code 503))
+   :status-code hunchentoot:+http-service-unavailable+))
 
 (define-condition http-unsupported-media-type-error (http-error)
   ()
   (:default-initargs
-   :status-code 415))
+   :status-code hunchentoot:+http-unsupported-media-type+))
+
+(define-condition http-not-acceptable-error (http-error)
+  ()
+  (:default-initargs
+   :status-code hunchentoot:+http-not-acceptable+))   
 
 (defparameter *http-status-codes-conditions*
   '((404 . http-not-found-error)
@@ -104,7 +109,7 @@
 
 (defvar *retry-after-seconds* 5)
 
-(defmethod setup-reply-from-error ((error http-service-unavailable))
+(defmethod setup-reply-from-error ((error http-service-unavailable-error))
   "We add a retry-after header for the user to try again. The retry-after header value is in seconds"
   (call-next-method)
   (setf (hunchentoot:header-out "Retry-After") *retry-after-seconds*))

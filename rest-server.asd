@@ -74,4 +74,5 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :anvil-connect
 	       :chronicity
 	       :net-telent-date
-	       :md5))
+	       :md5
+	       :cl-annot))

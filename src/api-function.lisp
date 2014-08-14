@@ -248,6 +248,22 @@
 	   (setf (get ',name :api-function-implementation)
 		 decorated-function)))))
 
+(defun configure-api-function-implementation
+    (name &rest options)
+  "Configure or reconfigure an already existent api function implementation"
+  (let* ((api-function-implementation
+	  (find-api-function-implementation name)))
+    (let ((processed-api-function api-function-implementation))
+      (loop for option in (reverse options)
+	 do (destructuring-bind (option-name &rest args) option
+	      (setf processed-api-function
+		    (apply #'process-api-function-implementation-option
+			   option-name
+			   processed-api-function
+			   args))))
+      (setf (get name :api-function-implementation)
+	    processed-api-function))))
+
 (defun process-api-function-implementation-options (api-function-implementation)
   (let ((processed-api-function api-function-implementation))
     (loop for option in (reverse (options api-function-implementation))
@@ -463,3 +479,52 @@
     (if pos
 	(subseq pattern 0 pos)
 	pattern)))
+
+;; Conditional dispatching
+
+(defclass conditional-dispatch-decoration (api-function-implementation-decoration)
+  ((predicate :initarg :predicate
+	      :initform (error "Provide the predicate")
+	      :accessor predicate
+	      :documentation "The dispatching predicate. Execution takes place only when it is true.")
+   (when-true :initarg :when-true
+	      :initform (error "Provide the function to evaluate when the predicate it true")
+	      :accessor when-true
+	      :documentation "The function to evaluate when the predicate is true"))
+  (:metaclass closer-mop:funcallable-standard-class))
+
+(defmethod process-api-function-implementation-option
+    ((option (eql :conditional-dispatch))
+     api-function-implementation
+     &key (enabled t)
+       predicate
+       when-true)
+  (if enabled
+      (make-instance 'conditional-dispatch-decoration
+		     :decorates api-function-implementation
+		     :predicate predicate
+		     :when-true when-true)
+      api-function-implementation))
+
+(defmethod execute :around ((decoration conditional-dispatch-decoration)
+			    &rest args)
+  (if (apply (predicate decoration) args)
+      (apply (when-true decoration) args)
+      ; else
+      (call-next-method)))
+    
+(defmacro implement-api-function-case (name accept-content-type args &body body)
+  "Implement an api function case"
+  `(configure-api-function-implementation
+    ',name
+    (list
+     :conditional-dispatch
+     :predicate (lambda (&rest args)
+		  (declare (ignore args))
+		  (and (hunchentoot:header-in* "accept")
+		       (let ((accepts (split-sequence:split-sequence #\, (hunchentoot:header-in* "accept"))))
+			 (intersection (list ,accept-content-type)
+				       accepts :test #'equalp))))
+     :when-true (lambda ,args
+		  (with-reply-content-type (,accept-content-type)
+		    ,@body)))))

@@ -16,6 +16,8 @@
    #:defgeneric)
   (:export #:define-api
 	   #:implement-api-function
+	   #:configure-api-function-implementation
+	   #:implement-api-function-case
 	   #:set-reply-content-type
 	   #:with-reply-content-type
 	   #:with-json-reply
@@ -61,6 +63,7 @@
 	   #:http-internal-server-error
 	   #:http-authorization-required-error
 	   #:http-forbidden-error
+	   #:http-not-acceptable-error
 	   #:serialize-with-schema
 	   #:find-schema
 	   #:schema

@@ -67,7 +67,17 @@
 					 :consumes (:json)
 					 :path "/users/{id}"
 					 :documentation "Delete a user")
-			((id :integer "The user id"))))))
+			((id :integer "The user id"))))
+    (conditional-dispatch (:produces (:json :xml :html)
+			   :consumes (:json :xml :html)
+			   :documentation "Conditional dispatch test"
+			   :path "/conditional-dispatch")
+		(conditional-dispatch (:produces (:json :xml :html)
+				       :consumes (:json :xml :html)
+				       :documentation "Parameters test"
+				       :path "/conditional-dispatch")
+			    ()))
+    ))
 
 (define-schema user
     (:element user
@@ -215,6 +225,26 @@
 (implement-api-function api-test::api-test
     api-test::delete-user (id)
   (model-test::delete-user id))
+
+;; Conditional dispatch
+(implement-api-function api-test::api-test
+    api-test::conditional-dispatch ()
+  (error 'http-not-acceptable-error))
+
+(implement-api-function-case
+    api-test::conditional-dispatch "text/html"
+    ()
+  "<p>Hello</p>")
+
+(implement-api-function-case
+    api-test::conditional-dispatch "application/json"
+    ()
+  "\"hello\"")
+
+(implement-api-function-case
+    api-test::conditional-dispatch "application/xml"
+    ()
+  "<p>Hello</p>")
 
 (in-package :rest-server-tests)
 
@@ -536,3 +566,37 @@
 	      (is (equalp status 200))
 	      (is (cdr (assoc :etag headers)))
 	      (finishes (json:decode-json-from-string result)))))))))
+
+(test conditional-dispatch-test
+  ;; No accept content-type
+  (multiple-value-bind (result status)
+      (drakma:http-request
+		 (format nil "http://localhost:8181/conditional-dispatch")
+		 :method :get)
+      (is (equalp status hunchentoot:+http-not-acceptable+)))
+
+  ;; Html accept
+  (multiple-value-bind (result status headers)
+      (drakma:http-request
+		 (format nil "http://localhost:8181/conditional-dispatch")
+		 :method :get
+		 :additional-headers `(("Accept" . "text/html")))
+      (is (equalp status 200))
+      (is (ppcre:scan "text/html" (cdr (assoc :content-type headers)))))
+
+  ;; Json accept
+  (multiple-value-bind (result status headers)
+      (drakma:http-request
+       (format nil "http://localhost:8181/conditional-dispatch")
+       :method :get
+       :additional-headers `(("Accept" . "application/json")))
+    (is (equalp status 200))
+    (is (ppcre:scan "application/json" (cdr (assoc :content-type headers)))))
+
+  (multiple-value-bind (result status headers)
+      (drakma:http-request
+       (format nil "http://localhost:8181/conditional-dispatch")
+       :method :get
+       :additional-headers `(("Accept" . "application/xml")))
+    (is (equalp status 200))
+    (is (ppcre:scan "application/xml" (cdr (assoc :content-type headers))))))
