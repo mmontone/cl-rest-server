@@ -156,4 +156,18 @@
 		 (with-attribute ("not-empty")
 		   (list-value (list 1 2 3)))))))))
     (is (equalp result
-		"{\"false\":false,\"true\":true,\"empty\":[],\"not-empty\":[1,2,3]}"))))
+		"{\"false\":false,\"true\":true,\"empty\":[],\"not-empty\":[1,2,3]}")))
+
+  (let ((result
+	 (with-output-to-string (s)
+	   (with-serializer-output s
+	     (with-serializer :json
+	       (with-element ("my-element")
+		 (set-attribute "false" nil :type :boolean)
+		 (set-attribute "true" t :type :boolean)
+		 (set-attribute "empty" nil :type :list)
+		 (set-attribute "not-empty" (list 1 2 3) :type :list)))))))
+    (is (equalp result
+		"{\"false\":false,\"true\":true,\"empty\":[],\"not-empty\":[1,2,3]}")))
+
+  )

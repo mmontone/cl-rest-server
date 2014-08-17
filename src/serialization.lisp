@@ -343,12 +343,14 @@
   (funcall body)
   (format stream ")"))
 
-(defun set-attribute (name value &key (serializer *serializer*)
-		      (stream *serializer-output*))
+(defun set-attribute (name value &rest args
+		      &key
+			(serializer *serializer*)
+			(stream *serializer-output*) &allow-other-keys)
   "Serializes an element attribute and value"
   (with-attribute (name :serializer serializer
 			:stream stream)
-    (serialize value serializer stream)))
+    (apply #'serialize value serializer stream args)))
 
 (defmethod call-with-list ((serializer (eql :json)) name body stream)
   (declare (ignore name))
