@@ -114,17 +114,41 @@
 	    (let ((title (find "title" children :test #'equalp :key #'first)))
 	      (is (equalp (third title) "My group")))))))))
 
-;; TODO: HTML and SEXP streaming serialization tests
+(test html-serialization-test
+  (multiple-value-bind (doc errors)
+      (let ((html
+	     (with-output-to-string (s)
+	       (with-serializer-output s
+		 (with-serializer :html
+		   (with-element ("user")
+		     (set-attribute "realname" "Hola")))))))
+	(html5-parser:parse-html5 html))
+    (is (not errors)))
+  (multiple-value-bind (doc errors)
+      (let ((html
+	     (with-output-to-string (s)
+	       (with-serializer-output s
+		 (with-serializer :html
+		   (serialize *element*))))))
+	(html5-parser:parse-html5 html))
+    (is (not errors))))
 
-;; (with-serializer-output t
-;;   (with-serializer :html
-;;     (with-element ("user")
-;;       (set-attribute "realname" "Hola"))))
-
-;; (with-serializer-output t
-;;   (with-serializer :sexp
-;;     (with-element ("user")
-;;       (set-attribute "realname" "Hola"))))
+(test sexp-serialization-test
+  (let ((str
+	 (with-output-to-string (s)
+	   (with-serializer-output s
+	     (with-serializer :sexp
+	       (with-element ("user")
+		 (set-attribute "realname" "Hola")
+		 (set-attribute "age" 33)))))))
+    (finishes
+      (read-from-string str)))
+  (let ((str (with-output-to-string (s)
+	       (with-serializer-output s
+		 (with-serializer :sexp
+		   (serialize *element*))))))
+    (finishes
+      (read-from-string str))))
 
 (defparameter *typed-element*
   (element "user"

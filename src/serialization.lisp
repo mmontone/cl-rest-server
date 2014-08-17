@@ -141,7 +141,8 @@
 
 (defmethod serialize-toplevel ((serialize (eql :html)) stream function)
   (let ((cl-who::*html-mode* :html5))
-    (cl-who:with-html-output (html stream :prologue t)
+    (format stream "<!DOCTYPE html>")
+    (cl-who:with-html-output (html stream :prologue nil)
       (funcall function))))
 
 ;; Serializer format plug
@@ -242,17 +243,16 @@
 
 (defmethod serialize-element ((serializer (eql :sexp)) element stream)
   (format stream "(~s (" (name element))
-  (mapcar (lambda (attribute)
-            (serialize attribute serializer stream))
-          (attributes element))
+  (loop for attribute in (attributes element)
+       do (serialize attribute serializer stream))
   (format stream "))"))
 
 (defmethod serialize-elements-list ((serializer (eql :sexp)) elements-list stream)
   (format stream "(")
-  (mapcar (lambda (element)
-            (serialize element serializer stream)
-            (format stream " "))
-          (list-elements elements-list))
+  (loop for element in (list-elements elements-list)
+       do
+       (serialize element serializer stream)
+       (format stream " "))       
   (format stream ")"))
 
 (defmethod serialize-attribute ((serializer (eql :sexp)) attribute stream)
@@ -279,11 +279,13 @@
 
 (defmethod serialize-elements-list ((serializer (eql :html)) elements-list stream)
   (cl-who:with-html-output (html stream)
-    (:ol :class "elements"
-         (mapcar (lambda (element)
-                   (cl-who:htm
-                    (:li (serialize element serializer stream))))
-          (list-elements elements-list)))))
+    ;(:ol :class "elements"
+    (format stream "<ol class=\"elements\">")
+    (loop for element in (list-elements elements-list)
+       do
+	 (cl-who:htm
+	  (:li (serialize element serializer stream))))
+    (format stream "</ol>")))
 
 (defmethod serialize-attribute ((serializer (eql :html)) attribute stream)
   (cl-who:with-html-output (html stream)
@@ -320,7 +322,7 @@
 (defmethod call-with-element ((serializer (eql :sexp)) name body stream)
   (format stream "(~s (" name)
   (funcall body)
-  (format stream ")"))
+  (format stream "))"))
 
 (defmethod call-with-attribute ((serializer (eql :json)) name body stream)
   (json:as-object-member (name stream)
