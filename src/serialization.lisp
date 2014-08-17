@@ -85,7 +85,15 @@
          :initform (error "Provide the attribute name"))
    (value :initarg :value
           :accessor value
-          :initform (error "Provide the attribute value")))
+          :initform (error "Provide the attribute value"))
+   (type :initarg :type
+	 :accessor attr-type
+	 :initform nil
+	 :documentation "The attribute type")
+   (formatter :initarg :formatter
+	      :accessor attribute-formatter
+	      :initform nil
+	      :documentation "Attribute formatter"))   
   (:documentation "Serializer intermediate representation element attribute class"))
 
 (defclass elements-list ()
