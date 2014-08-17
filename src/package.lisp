@@ -79,4 +79,5 @@
 	   #:logging
 	   #:serialization
 	   #:error-handling
+	   #:caching
 	   ))

@@ -127,3 +127,10 @@ For instance, if the api-function fetches users, then it's the api function {id}
 		      content-etag)
 		;; Output response
 		content)))))))
+
+(cl-annot:defannotation caching (args api-function-implementation)
+    (:arity 2)
+  `(configure-api-function-implementation
+    (name (api-function ,api-function-implementation))
+    (list :caching ,@args)))
+
