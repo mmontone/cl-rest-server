@@ -74,4 +74,9 @@
 	   #:validation-error
 	   #:self-reference
 	   #:with-pagination
-	   #:clear-cache))
+	   #:clear-cache
+	   ;; Decorations
+	   #:logging
+	   #:serialization
+	   #:error-handling
+	   ))

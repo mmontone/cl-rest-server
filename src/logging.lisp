@@ -26,3 +26,9 @@
   (let ((result (call-next-method)))
     (log5:log-for (rest-server) "Response: ~A" result)
     result))
+
+(cl-annot:defannotation logging (args api-function-implementation)
+    (:arity 2)
+  `(configure-api-function-implementation
+    (name (api-function ,api-function-implementation))
+    (list :logging ,@args)))

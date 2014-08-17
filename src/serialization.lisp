@@ -403,6 +403,12 @@
 	   *serializer*
 	   s))))))
 
+(cl-annot:defannotation serialization (args api-function-implementation)
+    (:arity 2)
+  `(configure-api-function-implementation
+    (name (api-function ,api-function-implementation))
+    (list :serialization ,@args)))
+
 ;; Utilities
 
 (defun self-reference (&rest args)

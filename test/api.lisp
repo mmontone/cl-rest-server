@@ -48,9 +48,9 @@
 					     :produces (:json)
 					     :path "/cached-users/{id}"
 					     :documentation "Retrive an user")
-		     ((id :integer "The user id")
-		      &optional
-		      (expand :list nil "Attributes to expand")))	   
+			    ((id :integer "The user id")
+			     &optional
+			     (expand :list nil "Attributes to expand")))	   
 	   (create-user (:request-method :post
 					 :consumes (:json)
 					 :path "/users"
@@ -69,15 +69,30 @@
 					 :documentation "Delete a user")
 			((id :integer "The user id"))))
     (conditional-dispatch (:produces (:json :xml :html)
-			   :consumes (:json :xml :html)
-			   :documentation "Conditional dispatch test"
-			   :path "/conditional-dispatch")
-		(conditional-dispatch (:produces (:json :xml :html)
-				       :consumes (:json :xml :html)
-				       :documentation "Parameters test"
-				       :path "/conditional-dispatch")
-			    ()))
-    ))
+				     :consumes (:json :xml :html)
+				     :documentation "Conditional dispatch test"
+				     :path "/conditional-dispatch")
+			  (conditional-dispatch (:produces (:json :xml :html)
+							   :consumes (:json :xml :html)
+							   :documentation "Parameters test"
+							   :path "/conditional-dispatch")
+						()))
+    (decorations (:produces (:json)
+			    :consumes (:json)
+			    :documentation "Decorations tests"
+			    :path "/decorations")
+		 (logging-decoration (:produces (:json)
+						:consumes (:json)
+						:documentation "Logging decoration test")
+				     ())
+		 (error-handling-decoration (:produces (:json)
+						       :consumes (:json)
+						       :documentation "Error handling decoration test")
+					    ())
+		 (multiple-decorations (:produces (:json)
+						  :consumes (:json)
+						  :documentation "Multiple decorations test")
+				       ()))))
 
 (define-schema user
     (:element user
@@ -245,6 +260,26 @@
     api-test::conditional-dispatch "application/xml"
     ()
   "<p>Hello</p>")
+
+;; Decorations
+
+(cl-annot:enable-annot-syntax)
+
+@logging ()
+(implement-api-function api-test::api-test
+    api-test::logging-decoration ()
+  "Hello")
+
+@error-handling ()
+(implement-api-function api-test::api-test
+    api-test::error-handling-decoration ()
+  (error 'http-not-found-error))
+
+@logging ()
+@error-handling ()
+(implement-api-function api-test::api-test
+    api-test::multiple-decorations ()
+  (error 'http-not-found-error))
 
 (in-package :rest-server-tests)
 

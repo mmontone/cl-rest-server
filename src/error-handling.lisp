@@ -174,3 +174,9 @@
 			    &rest args)
   (with-condition-handling
     (call-next-method)))
+
+(cl-annot:defannotation error-handling (args api-function-implementation)
+    (:arity 2)
+  `(configure-api-function-implementation
+    (name (api-function ,api-function-implementation))
+    (list :error-handling ,@args)))
