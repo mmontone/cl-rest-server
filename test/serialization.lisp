@@ -74,7 +74,7 @@
       (with-attribute ("realname")
 	(serialize "Mike"))
       (with-attribute ("groups")
-	(with-elements-list ("groups")
+	(with-list ("groups")
 	  (with-list-member ("group")
 	    (with-element ("group")
 	      (set-attribute "id" 33)

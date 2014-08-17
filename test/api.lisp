@@ -177,7 +177,7 @@
       (with-serializer-output s
 	(with-serializer serializer
 	  (with-pagination (:page page :expand expand)
-	    (with-elements-list ("users")
+	    (with-list ("users")
 	      (loop for user in (model-test:all-users (* 10 (1- page)) 10)
 		 do
 		   (with-list-member ("user")

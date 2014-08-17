@@ -85,7 +85,7 @@
   (with-output-to-string (s)
     (with-serializer-output s
       (with-serializer (rest-server::accept-serializer)
-	(with-elements-list ("users")
+	(with-list ("users")
 	   (loop for user in (model-test:all-users)
 	      do
 		(with-list-member ("user")

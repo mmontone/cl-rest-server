@@ -79,7 +79,7 @@
 (defun serialize-schema-list (schema-list serializer input stream)
   (destructuring-bind (_ list-type) schema-list
     (declare (ignore _))
-    (with-elements-list ("LIST" :serializer serializer
+    (with-list ("LIST" :serializer serializer
 				:stream stream)
       (cond 
 	((keywordp list-type)

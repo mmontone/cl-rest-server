@@ -31,7 +31,7 @@
 	   #:serialize
 	   #:with-element
 	   #:with-attribute
-	   #:with-elements-list
+	   #:with-list
 	   #:with-list-member
 	   #:add-list-member
 	   #:set-attribute

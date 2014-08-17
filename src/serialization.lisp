@@ -52,12 +52,12 @@
     "Serializes an element attribute"
     `(call-with-attribute ,serializer ,name (lambda () ,@body) ,stream))
 
-  (defmacro with-elements-list 
+  (defmacro with-list 
       ((name &key (serializer '*serializer*)
 	     (stream '*serializer-output*)) 
        &body body)
     "Serializes an list of elements"
-    `(call-with-elements-list ,serializer ,name (lambda () ,@body) ,stream))
+    `(call-with-list ,serializer ,name (lambda () ,@body) ,stream))
 
   (defmacro with-list-member ((name 
 			       &key (serializer '*serializer*)
@@ -317,21 +317,21 @@
 			:stream stream)
     (serialize value serializer stream)))
 
-(defmethod call-with-elements-list ((serializer (eql :json)) name body stream)
+(defmethod call-with-list ((serializer (eql :json)) name body stream)
   (declare (ignore name))
   (json:with-array (stream)
     (funcall body)))
 
-(defmethod call-with-elements-list ((serializer (eql :xml)) name body stream)
+(defmethod call-with-list ((serializer (eql :xml)) name body stream)
   (declare (ignore name stream))
   (funcall body))
 
-(defmethod call-with-elements-list ((serializer (eql :html)) name body stream)
+(defmethod call-with-list ((serializer (eql :html)) name body stream)
   (cl-who:with-html-output (html stream)
     (:ol :class "elements"
          (funcall body))))
 
-(defmethod call-with-elements-list ((serializer (eql :sexp)) name body stream)
+(defmethod call-with-list ((serializer (eql :sexp)) name body stream)
   (format stream "(")
   (funcall body)
   (format stream ")"))
