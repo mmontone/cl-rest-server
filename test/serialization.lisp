@@ -125,3 +125,35 @@
 ;;   (with-serializer :sexp
 ;;     (with-element ("user")
 ;;       (set-attribute "realname" "Hola"))))
+
+(defparameter *typed-element*
+  (element "user"
+	   (attribute "false" nil :boolean)
+	   (attribute "true" t :boolean)
+	   (attribute "empty" nil :list)
+	   (attribute "not-empty" (list 1 2 3) :list)))
+
+(test typed-serialization-test
+  (let ((result (with-output-to-string (s)
+		  (with-serializer-output s
+		    (with-serializer :json
+		      (serialize *typed-element*))))))
+    (is
+     (equalp result
+	     "{\"false\":false,\"true\":true,\"empty\":[],\"not-empty\":[1,2,3]}")))
+
+  (let ((result
+	 (with-output-to-string (s)
+	   (with-serializer-output s
+	     (with-serializer :json
+	       (with-element ("my-element")
+		 (with-attribute ("false")
+		   (boolean-value nil))
+		 (with-attribute ("true")
+		   (boolean-value t))
+		 (with-attribute ("empty")
+		   (list-value nil))
+		 (with-attribute ("not-empty")
+		   (list-value (list 1 2 3)))))))))
+    (is (equalp result
+		"{\"false\":false,\"true\":true,\"empty\":[],\"not-empty\":[1,2,3]}"))))

@@ -73,7 +73,7 @@
 
 (defmethod serialize ((thing local-time:timestamp)
 		      &optional (serializer *serializer*)
-			(stream *serializer-output*))
+			(stream *serializer-output*) &rest args)
   (local-time:format-rfc1123-timestring stream thing)) 
 
 (defun serialize-schema-list (schema-list serializer input stream)

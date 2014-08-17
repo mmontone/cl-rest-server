@@ -38,6 +38,8 @@
 	   #:name
 	   #:attributes
 	   #:value
+	   #:boolean-value
+	   #:list-value
 	   #:find-api
 	   #:find-api-function
 	   #:with-api

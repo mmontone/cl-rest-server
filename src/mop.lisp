@@ -225,7 +225,7 @@
 			   (list :optional t))))))))	   
 
 (defmethod serialize ((object serializable-object) &optional (serializer *serializer*)
-		      (stream *serializer-output*))
+		      (stream *serializer-output*) &rest args)
   (serialize-with-schema (serializable-class-schema (class-of object))
 			 object
 			 serializer

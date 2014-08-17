@@ -137,7 +137,7 @@
 	    (error (c)
 	      (handle-condition c)))))))
 
-(defmethod serialize-value ((serializer (eql :json)) (error simple-error) stream) 
+(defmethod serialize-value ((serializer (eql :json)) (error simple-error) stream &rest args) 
   "Serialize error condition"
   (json:encode-json-alist 
    (list (cons :condition (type-of error))
@@ -146,7 +146,7 @@
 
 (defmethod serialize-value ((serializer (eql :json))
 			    (error simple-error) 
-			    stream)
+			    stream &rest args)
   "Serialize simple error condition"
   (json:with-object (stream)
     (json:as-object-member (:condition stream)
