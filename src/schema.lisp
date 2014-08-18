@@ -482,3 +482,86 @@ See: parse-api-input (function)"
 	  (error "Invalid type ~A" type-name)
 					; else
 	  (unserialize-schema-attribute-value schema input)))))
+
+;; Plugging
+
+;; Validation
+
+(defclass validation-api-function-implementation-decoration
+    (api-function-implementation-decoration)
+  ((schema :initarg :schema
+	   :accessor validation-schema
+	   :initform (error "Provide the validation schema"))
+   (format :initarg :format
+	   :accessor validation-format
+	   :initform :json))
+  (:metaclass closer-mop:funcallable-standard-class))
+  
+(defmethod process-api-function-implementation-option
+    ((option (eql :validation))
+     api-function-implementation
+     &key (enabled t)
+       (schema (error "Provide the validation schema"))
+       (format :json))
+  (if enabled
+      (make-instance 'validation-api-function-implementation-decoration
+		     :schema schema
+		     :format format
+		     :decorates api-function-implementation)
+      api-function-implementation))
+  
+(defmethod execute :around ((decoration validation-api-function-implementation-decoration)
+			    &rest args)
+  (let ((posted-content (first args))) ;; Asume the posted content is in the first argument
+    (let ((valid-p (validate-with-schema (validation-schema decoration)
+					 posted-content
+					 (validation-format decoration))))
+      (if (not valid-p)
+	  (error "The posted content is invalid")
+	  (call-next-method)))))
+
+(cl-annot:defannotation validation (args api-function-implementation)
+    (:arity 2)
+  `(configure-api-function-implementation
+    (name (api-function ,api-function-implementation))
+    (list :validation ,@args)))
+
+;; Unserialization
+
+(defclass unserialization-api-function-implementation-decoration
+    (api-function-implementation-decoration)
+  ((schema :initarg :schema
+	   :accessor unserialization-schema
+	   :initform (error "Provide the unserialization schema"))
+   (format :initarg :format
+	   :accessor unserialization-format
+	   :initform :json))
+  (:metaclass closer-mop:funcallable-standard-class))
+  
+(defmethod process-api-function-implementation-option
+    ((option (eql :unserialization))
+     api-function-implementation
+     &key (enabled t)
+       (schema (error "Provide the unserialization schema"))
+       (format :json))
+  (if enabled
+      (make-instance 'unserialization-api-function-implementation-decoration
+		     :schema schema
+		     :format format
+		     :decorates api-function-implementation)
+      api-function-implementation))
+  
+(defmethod execute :around ((decoration unserialization-api-function-implementation-decoration)
+			    &rest args)
+  (let ((posted-content (first args))) ;; Asume the posted content is in the first argument
+    (apply #'call-next-method
+	   (unserialize-with-schema (unserialization-schema decoration)
+				    posted-content
+				    (unserialization-format decoration))
+	   (rest args))))
+
+(cl-annot:defannotation unserialization (args api-function-implementation)
+    (:arity 2)
+  `(configure-api-function-implementation
+    (name (api-function ,api-function-implementation))
+    (list :unserialization ,@args)))

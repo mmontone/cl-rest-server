@@ -362,3 +362,50 @@
     ;; Infer the posted content format. Try parsing with different
     ;; methods until success
     (:raw posted-content)))
+
+;; Content fetching decoration
+
+(defmacro with-content ((var content) &body body)
+  `(let ((,var ,content))
+     (if (not ,var)
+	 (error 'http-not-found-error)
+	 (progn ,@body))))
+
+(defclass content-fetching-api-function-implementation-decoration
+    (api-function-implementation-decoration)
+  ((function :initarg :function
+	     :accessor content-fetching-function
+	     :initform (error "Provide the content fetching function")
+	     :documentation "Function for content fetching")
+   (argument :initarg :argument
+	     :accessor content-fetching-argument
+	     :initform (error "Provide the argument to use for fetching")
+	     :documentation "Argument to pass to content-fetching-function")
+   (bind :initarg :bind
+	 :accessor content-fetching-bind
+	 :initform '(:append :first)
+	 :documentation "Content binding spec"))
+  (:metaclass closer-mop:funcallable-standard-class))
+  
+(defmethod process-api-function-implementation-option
+    ((option (eql :fetch-content))
+     api-function-implementation
+     &rest args &key enabled)
+  (if enabled
+      (apply #'make-instance 'content-fetching-api-function-implementation-decoration
+		     `(:decorates api-function-implementation ,@args :allow-other-keys t))
+      api-function-implementation))
+  
+(defmethod execute :around ((decoration content-fetching-api-function-implementation-decoration)
+			    &rest args)
+  (let ((fargs 
+	 (extract-function-arguments-to-plist *api-function* hunchentoot:*request*)))
+    (with-content (content (funcall (content-fetching-function decoration)
+				    (getf (content-fetching-argument decoration) fargs)))
+      (apply #'call-next-method (cons content args)))))
+
+(cl-annot:defannotation fetch-content (args api-function-implementation)
+    (:arity 2)
+  `(configure-api-function-implementation
+    (name (api-function ,api-function-implementation))
+    (list :fetch-content ,@args)))

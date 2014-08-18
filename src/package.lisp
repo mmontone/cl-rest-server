@@ -76,10 +76,13 @@
 	   #:validation-error
 	   #:self-reference
 	   #:with-pagination
+	   #:with-content
 	   #:clear-cache
 	   ;; Decorations
 	   #:logging
 	   #:serialization
 	   #:error-handling
 	   #:caching
-	   ))
+	   #:validation
+	   #:unserialization
+	   #:fetch-content))
