@@ -77,6 +77,7 @@
 	   #:self-reference
 	   #:with-pagination
 	   #:with-content
+	   #:with-permission-checking
 	   #:clear-cache
 	   ;; Decorations
 	   #:logging
@@ -85,4 +86,5 @@
 	   #:caching
 	   #:validation
 	   #:unserialization
-	   #:fetch-content))
+	   #:fetch-content
+	   #:permission-checking))

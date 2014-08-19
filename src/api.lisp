@@ -364,12 +364,12 @@
     (:raw posted-content)))
 
 ;; Content fetching decoration
-
-(defmacro with-content ((var content) &body body)
-  `(let ((,var ,content))
-     (if (not ,var)
-	 (error 'http-not-found-error)
-	 (progn ,@body))))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-content ((var content) &body body)
+    `(let ((,var ,content))
+       (if (not ,var)
+	   (error 'http-not-found-error)
+	   (progn ,@body)))))
 
 (defclass content-fetching-api-function-implementation-decoration
     (api-function-implementation-decoration)
@@ -393,7 +393,7 @@
      &rest args &key enabled)
   (if enabled
       (apply #'make-instance 'content-fetching-api-function-implementation-decoration
-		     `(:decorates api-function-implementation ,@args :allow-other-keys t))
+		     `(:decorates ,api-function-implementation ,@args :allow-other-keys t))
       api-function-implementation))
   
 (defmethod execute :around ((decoration content-fetching-api-function-implementation-decoration)
@@ -409,3 +409,42 @@
   `(configure-api-function-implementation
     (name (api-function ,api-function-implementation))
     (list :fetch-content ,@args)))
+
+;; Generic permission checking
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-permission-checking (check &body body)
+    `(call-with-permission-checking ,check (lambda () ,@body))))
+
+(defun call-with-permission-checking (check function)
+  (if (not check)
+      (error 'http-forbidden-error)
+      (funcall function)))
+
+(defclass permission-checking-api-function-implementation-decoration
+    (api-function-implementation-decoration)
+  ((check :initarg :check
+	  :accessor permission-check
+	  :initform (error "Provide the permission checking function")
+	  :documentation "Function for permission checking"))
+  (:metaclass closer-mop:funcallable-standard-class))
+  
+(defmethod process-api-function-implementation-option
+    ((option (eql :permission-checking))
+     api-function-implementation
+     &rest args &key enabled)
+  (if enabled
+      (apply #'make-instance 'permission-checking-api-function-implementation-decoration
+		     `(:decorates ,api-function-implementation ,@args :allow-other-keys t))
+      api-function-implementation))
+  
+(defmethod execute :around ((decoration permission-checking-api-function-implementation-decoration)
+			    &rest args)
+    (with-permission-checking (apply (permission-check decoration) args)
+      (call-next-method)))
+
+(cl-annot:defannotation permission-checking (args api-function-implementation)
+    (:arity 2)
+  `(configure-api-function-implementation
+    (name (api-function ,api-function-implementation))
+    (list :permission-checking ,@args)))
