@@ -1,1 +1,2 @@
 * Read accepted content types from uri suffix. i.e. /api/users/1.xml or /api/users/1.json
+* API versioning
