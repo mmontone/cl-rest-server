@@ -13,4 +13,4 @@ install:
   - curl https://gist.githubusercontent.com/mmontone/87a4a3d361fa4ebfba72/raw/b9293af001776ca16f28d2f4b59526dd909b5d38/install.sh | bash
 
 script:
-  - cl-launch -i "(ql:quickload :rest-server-tests)(rest-server-tests:debug-tests)"
+  - cl-launch -i "(setf *readtable* (copy-readtable nil))(ql:quickload :rest-server-tests)(rest-server-tests:debug-tests)"
