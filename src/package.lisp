@@ -1,19 +1,5 @@
 (defpackage :rest-server
-  (:use :cl :closer-mop)
-  (:shadowing-import-from
-   :closer-mop
-   #:defclass
-   #:standard-class
-   #:defmethod
-   #:standard-generic-function
-   #:ensure-generic-function
-   #:defgeneric
-   #:defclass
-   #:standard-class
-   #:defmethod
-   #:standard-generic-function
-   #:ensure-generic-function
-   #:defgeneric)
+  (:use :cl)
   (:export #:define-api
 	   #:implement-api-function
 	   #:configure-api-function-implementation

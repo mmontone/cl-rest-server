@@ -10,7 +10,7 @@
 		       :initform nil))
   (:documentation "Metaclass for serializable objects"))
 
-(defclass serializable-slot-definition (standard-slot-definition)
+(defclass serializable-slot-definition (closer-mop:standard-slot-definition)
   ((serializable
     :initform t
     :type boolean
@@ -44,17 +44,17 @@
 
 ;; Slots
 
-(defclass serializable-direct-slot-definition (serializable-slot-definition standard-direct-slot-definition)
+(defclass serializable-direct-slot-definition (serializable-slot-definition closer-mop:standard-direct-slot-definition)
   ())
 
-(defclass serializable-effective-slot-definition (serializable-slot-definition standard-effective-slot-definition)
+(defclass serializable-effective-slot-definition (serializable-slot-definition closer-mop:standard-effective-slot-definition)
   ())
 
-(defmethod direct-slot-definition-class ((class serializable-class) &rest initargs)
+(defmethod closer-mop:direct-slot-definition-class ((class serializable-class) &rest initargs)
   (declare (ignore initargs))
   (find-class 'serializable-direct-slot-definition))
 
-(defmethod effective-slot-definition-class ((class serializable-class) &rest initargs)
+(defmethod closer-mop:effective-slot-definition-class ((class serializable-class) &rest initargs)
   (declare (ignore initargs))
   (find-class 'serializable-effective-slot-definition))
 
@@ -65,7 +65,7 @@
 	  nil
 	  "Provide the serialization type for slot ~A" serializable-slot))
 
-(defmethod compute-effective-slot-definition ((class serializable-class)
+(defmethod closer-mop:compute-effective-slot-definition ((class serializable-class)
                                               slot-name direct-slots)
   (declare (ignore slot-name))
   (let ((effective-slot (call-next-method))
@@ -91,8 +91,8 @@
 
 ;; Inheritance
 
-(defmethod validate-superclass ((sub serializable-class)
-                                (sup standard-class))
+(defmethod closer-mop:validate-superclass ((sub serializable-class)
+					   (sup standard-class))
   (declare (ignore sub sup))
   t)
 
@@ -205,12 +205,12 @@
 		  (first (serialization-name serializable-class)))
 	     (class-name serializable-class))))
     (list :element serialization-name
-	  (loop for slot in (class-slots serializable-class)
+	  (loop for slot in (closer-mop:class-slots serializable-class)
 	     when (and (typep slot 'serializable-effective-slot-definition)
 		       (serializable-slot-p slot))
 	     collect
 	       (let ((serialization-name (or (serialization-name slot)
-					     (slot-definition-name slot)))
+					     (closer-mop:slot-definition-name slot)))
 		     (serialization-accessor (serialization-accessor slot))
 		     (toggle-option (toggle-option slot))
 		     (serialization-type (serialization-type slot))
