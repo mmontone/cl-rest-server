@@ -50,6 +50,7 @@
 	   #:resource-path
 	   #:define-api-resource
 	   #:list-api-resource-functions
+	   #:define-swagger-resource
 	   #:define-api-function
 	   #:make-api-function
 	   #:format-api-function-url
