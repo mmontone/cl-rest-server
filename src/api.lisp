@@ -53,7 +53,7 @@
 
 (defmacro define-api (name options &body resources)
   "Define an api."
-  `(progn
+  `(eval-when (:compile-toplevel :load-toplevel :execute)
      (apply #'make-instance 
 	    'api-definition 
 	    :name ',name
