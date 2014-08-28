@@ -155,7 +155,7 @@
       (drakma:http-request "http://localhost:8182/users"
 			   :method :get
 			   :additional-headers '(("Accept" .  "application/json")
-						 ("Authentication" . "Invalid token")))
+						 ("Authorization" . "Invalid token")))
     (is (equalp status-code 401)))
   
   ;; Successful login
@@ -175,6 +175,6 @@
       (drakma:http-request "http://localhost:8182/users"
 			   :method :get
 			   :additional-headers `(("Accept" .  "application/json")
-						 ("Authentication" . ,token)))
+						 ("Authorization" . ,token)))
       (finishes (json:decode-json-from-string result))
       (is (equalp status-code 200)))))
