@@ -170,7 +170,8 @@
 (defclass api-implementation (api-definition)
   ((options :initarg :options
 	    :initform nil
-	    :accessor api-options))
+	    :accessor api-options
+	    :decorate nil))
   (:metaclass decorator-class))
 
 (defmethod api-definition ((api-implementation api-implementation))
@@ -220,7 +221,7 @@
       (let* ((api-definition (find-api api-name))
 	     (api-implementation
 	      (make-instance 'api-implementation
-			     :api-definition api-definition
+			     :decoratee api-definition
 			     :options options)))
 	(let ((decorated-api-implementation
 	       (process-api-implementation-options

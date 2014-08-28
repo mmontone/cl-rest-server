@@ -9,93 +9,91 @@
 
 (in-package :api-test)
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-
-  (define-api api-test
-      (:title "Api test"
-	      :documentation "This is an api test")
-    (parameters (:produces (:json)
-			   :consumes (:json)
-			   :documentation "Parameters test"
-			   :path "/parameters")
-		(parameters (:produces (:json)
+(define-api api-test
+    (:title "Api test"
+	    :documentation "This is an api test")
+  (parameters (:produces (:json)
+			 :consumes (:json)
+			 :documentation "Parameters test"
+			 :path "/parameters")
+	      (parameters (:produces (:json)
+				     :consumes (:json)
+				     :documentation "Parameters test"
+				     :path "/parameters")
+			  (&optional (boolean :boolean nil "A boolean parameter")
+				     (integer :integer nil "An integer parameter")
+				     (string :string nil "A string parameter")
+				     (list :list nil "A list parameter"))))
+  (users (:produces (:json :xml)
+		    :consumes (:json)
+		    :documentation "Users operations"
+		    :models (user)
+		    :path "/users")
+	 (get-users (:request-method :get
+				     :produces (:json)
+				     :path "/users"
+				     :documentation "Retrive the users list")       
+		    (&optional (page :integer 1 "The page")
+			       (expand :list nil "Attributes to expand")))
+	 (get-user (:request-method :get
+				    :produces (:json)
+				    :path "/users/{id}"
+				    :documentation "Retrive an user")
+		   ((id :integer "The user id")
+		    &optional
+		    (expand :list nil "Attributes to expand")))
+	 (cached-get-user (:request-method :get
+					   :produces (:json)
+					   :path "/users/{id}/cached"
+					   :documentation "Retrive an user")
+			  ((id :integer "The user id")
+			   &optional
+			   (expand :list nil "Attributes to expand")))	   
+	 (create-user (:request-method :post
 				       :consumes (:json)
-				       :documentation "Parameters test"
-				       :path "/parameters")
-			    (&optional (boolean :boolean nil "A boolean parameter")
-				       (integer :integer nil "An integer parameter")
-				       (string :string nil "A string parameter")
-				       (list :list nil "A list parameter"))))
-    (users (:produces (:json :xml)
-		      :consumes (:json)
-		      :documentation "Users operations"
-		      :models (user)
-		      :path "/users")
-	   (get-users (:request-method :get
-				       :produces (:json)
 				       :path "/users"
-				       :documentation "Retrive the users list")       
-		      (&optional (page :integer 1 "The page")
-				 (expand :list nil "Attributes to expand")))
-	   (get-user (:request-method :get
-				      :produces (:json)
-				      :path "/users/{id}"
-				      :documentation "Retrive an user")
-		     ((id :integer "The user id")
-		      &optional
-		      (expand :list nil "Attributes to expand")))
-	   (cached-get-user (:request-method :get
-					     :produces (:json)
-					     :path "/users/{id}/cached"
-					     :documentation "Retrive an user")
-			    ((id :integer "The user id")
-			     &optional
-			     (expand :list nil "Attributes to expand")))	   
-	   (create-user (:request-method :post
-					 :consumes (:json)
-					 :path "/users"
-					 :documentation "Create a user"
-					 :body-type user)
-			())
-	   (update-user (:request-method :put
-					 :consumes (:json)
-					 :path "/users/{id}"
-					 :documentation "Update a user"
-					 :body-type user)
-			((id :integer "The user id")))
-	   (delete-user (:request-method :delete
-					 :consumes (:json)
-					 :path "/users/{id}"
-					 :documentation "Delete a user")
-			((id :integer "The user id"))))
-    (conditional-dispatch (:produces (:json :xml :html)
-				     :consumes (:json :xml :html)
-				     :documentation "Conditional dispatch test"
-				     :path "/conditional-dispatch")
-			  (conditional-dispatch (:produces (:json :xml :html)
-							   :consumes (:json :xml :html)
-							   :documentation "Parameters test"
-							   :path "/conditional-dispatch")
-						()))
-    (decorations (:produces (:json)
-			    :consumes (:json)
-			    :documentation "Decorations tests"
-			    :path "/decorations")
-		 (logging-decoration (:produces (:json)
+				       :documentation "Create a user"
+				       :body-type user)
+		      ())
+	 (update-user (:request-method :put
+				       :consumes (:json)
+				       :path "/users/{id}"
+				       :documentation "Update a user"
+				       :body-type user)
+		      ((id :integer "The user id")))
+	 (delete-user (:request-method :delete
+				       :consumes (:json)
+				       :path "/users/{id}"
+				       :documentation "Delete a user")
+		      ((id :integer "The user id"))))
+  (conditional-dispatch (:produces (:json :xml :html)
+				   :consumes (:json :xml :html)
+				   :documentation "Conditional dispatch test"
+				   :path "/conditional-dispatch")
+			(conditional-dispatch (:produces (:json :xml :html)
+							 :consumes (:json :xml :html)
+							 :documentation "Parameters test"
+							 :path "/conditional-dispatch")
+					      ()))
+  (decorations (:produces (:json)
+			  :consumes (:json)
+			  :documentation "Decorations tests"
+			  :path "/decorations")
+	       (logging-decoration (:produces (:json)
+					      :consumes (:json)
+					      :documentation "Logging decoration test"
+					      :path "/decorations/logging")
+				   ())
+	       (error-handling-decoration (:produces (:json)
+						     :consumes (:json)
+						     :documentation "Error handling decoration test"
+						     :path "/decorations/error-handling")
+					  ())
+	       (multiple-decorations (:produces (:json)
 						:consumes (:json)
-						:documentation "Logging decoration test"
-						:path "/decorations/logging")
-				     ())
-		 (error-handling-decoration (:produces (:json)
-						       :consumes (:json)
-						       :documentation "Error handling decoration test"
-						       :path "/decorations/error-handling")
-					    ())
-		 (multiple-decorations (:produces (:json)
-						  :consumes (:json)
-						  :documentation "Multiple decorations test"
-						  :path "/decorations/multiple")
-				       ()))))
+						:documentation "Multiple decorations test"
+						:path "/decorations/multiple")
+				     ())))
 
 (define-schema user
     (:element user

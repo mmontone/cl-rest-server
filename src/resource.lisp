@@ -126,7 +126,8 @@
 (defclass api-resource-implementation (api-resource)
   ((options :initarg :options
 	    :accessor options
-	    :initform nil))
+	    :initform nil
+	    :decorate nil))
   (:metaclass decorator-class))
 
 (defmethod resource ((resource-implementation api-resource-implementation))
@@ -165,3 +166,44 @@
 (defmethod resource-matches-request-p ((resource api-resource) request)
   (cl-ppcre:scan (format nil "^~A" (resource-path resource))
 		 (hunchentoot:request-uri request)))
+
+(defun find-api-resource-implementation (resource-name)
+  (get resource-name :api-resource-implementation))
+
+(defgeneric process-resource-implementation-option (option-name resource &rest args)
+  )
+
+(defun configure-api-resource-implementation (resource-name &rest options)
+  (let ((resource-implementation (find-api-resource-implementation resource-name)))
+    (let ((processed-resource resource-implementation))
+      (loop for option in (reverse options)
+	 do (destructuring-bind (option-name &rest args) option
+	      (setf processed-resource
+		    (apply #'process-resource-implementation-option
+			   option-name
+			   processed-resource
+			   args))))
+      (setf (get resource-name :resource-implementation)
+	    processed-resource))))
+
+(defmacro implement-resource (api-name name-and-options &body api-functions-implementations)
+  "Implement an api resource"
+  (multiple-value-bind (resource-name options)
+      (if (listp name-and-options)
+	  (values (first name-and-options)
+		  (rest name-and-options))
+	  (values name-and-options nil))
+    `(let* ((resource (find-api-resource ',resource-name :api (find-api ',api-name)))
+	    (resource-implementation
+	     (make-instance 'api-resource-implementation
+			    :api-definition api-definition
+			    :options ',options)))
+       (let ((decorated-resource-implementation
+	      (process-resource-implementation-options
+	       resource-implementation)))
+	 (setf (get ',resource-name :resource-implementation)
+	       decorated-resource-implementation)
+	   
+	 ;; Implement api functions
+	 ,@(loop for api-function-implementation in api-functions-implementations
+	      collect `(implement-api-function ,api-name ,@api-function-implementation))))))
