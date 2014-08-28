@@ -1,4 +1,5 @@
 (defpackage :rest-server
+  (:nicknames :rs)
   (:use :cl)
   (:export #:define-api
 	   #:implement-api-function
