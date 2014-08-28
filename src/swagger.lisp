@@ -15,7 +15,7 @@
 		collect
 		  (let ((fname (intern (format nil "API-DOCS-~A" (string-upcase (resource-name resource))))))
 		    `(,fname (:request-method :get
-					      :path ,(format nil "/api-docs/~A" (string-downcase (resource-name resource)))
+					      :path ,(format nil "/api-docs~A" (resource-path resource))
 					      :produces (:json))
 			     ()))))
 
@@ -30,7 +30,9 @@
 		     (let ((api (find-api ',api-name)))
 		       (swagger-resource-spec api
 					      (find-api-resource ',(resource-name resource) :api api)
-					      "http://localhost:8181")))))))))
+					      (format nil "http://~A:~A"
+						      (hunchentoot:acceptor-address hunchentoot:*acceptor*)
+						      (hunchentoot:acceptor-port hunchentoot:*acceptor*)))))))))))
   
 (defun swagger-api-spec (api)
   (setf (hunchentoot:header-out "Content-Type") "application/json")
