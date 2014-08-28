@@ -9,6 +9,7 @@
 	   #:with-reply-content-type
 	   #:with-json-reply
 	   #:with-xml-reply
+	   #:with-posted-content
 	   #:with-serializer
 	   #:with-serializer-output
 	   #:accept-serializer

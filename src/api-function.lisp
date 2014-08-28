@@ -26,6 +26,11 @@
   `(with-reply-content-type ("application/xml")
      ,@body))
 
+(defmacro with-posted-content (args posted-content &body body)
+  `(let ,(loop for arg in args
+	    collect `(,arg (cdr (assoc ,(make-keyword arg) ,posted-content))))
+     ,@body))
+
 (defmacro define-api-function (name attributes args &rest options)
   "Helper macro to define an api function"
   `(make-api-function ',name ',attributes ',args ',options))
