@@ -98,7 +98,8 @@
 (defmethod api ((acceptor api-acceptor))
   (let ((api-or-name (slot-value acceptor 'api)))
     (if (symbolp api-or-name)
-	(find-api api-or-name)
+	(or (find-api-implementation api-or-name)
+	    (find-api api-or-name))
 	api-or-name)))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
@@ -158,6 +159,133 @@
 		  :initarg :documentation
 		  :initform nil))
   (:documentation "The api class"))
+
+(defclass api-implementation (api-definition)
+  ((api-definition :initarg :api-definition
+		   :initform (error "Provide the api definition")
+		   :accessor api-definition
+		   :documentation "The api definition")
+   (options :initarg :options
+	    :initform nil
+	    :accessor api-options)))
+
+(defmethod name ((api-implementation api-implementation))
+  (name (api-definition api-implementation)))
+
+(defmethod title ((api-implementation api-implementation))
+  (title (api-definition api-implementation)))
+
+(defmethod resources ((api-implementation api-implementation))
+  (resource (api-definition api-implementation)))
+
+(defmethod version ((api-implementation api-implementation))
+  (version (api-definition api-implementation)))
+
+(defmethod api-documentation ((api-implementation api-implementation))
+  (api-documentation (api-definition api-implementation)))
+
+(defclass api-implementation-decoration (api-implementation)
+  ((decorated-api :initarg :decorated-api
+		  :initform (error "Provide the api implementation")
+		  :accessor decorated-api)))
+
+(defmethod name ((api-decoration api-implementation-decoration))
+  (name (decorated-api api-decoration)))
+
+(defmethod title ((api-decoration api-implementation-decoration))
+  (title (decorated-api api-decoration)))
+
+(defmethod resources ((api-decoration api-implementation-decoration))
+  (resource (decorated-api api-decoration)))
+
+(defmethod version ((api-decoration api-implementation-decoration))
+  (version (decorated-api api-decoration)))
+
+(defmethod api-documentation ((api-decoration api-implementation-decoration))
+  (api-documentation (decorated-api api-decoration)))
+
+(defmethod api-definition ((decoration api-implementation-decoration))
+  (api-definition (decorated-api decoration)))
+
+(defun find-api-implementation (api-name)
+  (get api-name :api-implementation))
+
+(defun implement-api (api-name &rest options)
+  "Define an api implementation"
+  (let* ((api-definition (find-api api-name))
+	 (api-implementation
+	  (make-instance 'api-implementation
+			 :api-definition api-definition
+			 :options options)))
+    (let ((decorated-api-implementation
+	   (process-api-implementation-options
+	    api-implementation)))
+      (setf (get api-name :api-implementation)
+	    decorated-api-implementation))))
+
+(defun configure-api-implementation
+    (api-name &rest options)
+  "Configure or reconfigure an already existent api implementation"
+  (if (find-api-implementation api-name)
+      (let* ((api-implementation
+	      (find-api-implementation api-name)))
+	(let ((processed-api-implementation api-implementation))
+	  (loop for option in (reverse options)
+	 do (destructuring-bind (option-name &rest args) option
+	      (setf processed-api-implementation
+		    (apply #'process-api-implementation-option
+			   option-name
+			   processed-api-implementation
+			   args))))
+	  (setf (get api-name :api-implementation)
+		processed-api-implementation)))
+      ; else
+      (apply #'implement-api api-name options)))
+
+(defun process-api-implementation-options (api-implementation)
+  (let ((processed-api-implementation api-implementation))
+    (loop for option in (reverse (options api-implementation))
+	 do (destructuring-bind (option-name &rest args) option
+	      (setf processed-api-implementation
+		    (apply #'process-api-implementation-option
+			   option-name
+			   processed-api-implementation
+			   args))))
+    processed-api-implementation))
+
+(defgeneric process-api-implementation-option
+    (option-name api-implementation &rest args)
+  (:method (option-name api-implementation &rest args)
+    (declare (ignore args))
+    (error "Option ~A is not valid" option-name))
+  (:documentation "Overwrite this in decorations"))
+
+(defmethod api-execute-function-implementation ((api-definition api-definition)
+						api-function-implementation
+						resource
+						request)
+  (resource-execute-function-implementation
+   resource
+   api-function-implementation
+   request))
+
+(defmethod api-execute-function-implementation ((api-implementation api-implementation)
+						api-function-implementation
+						resource
+						request)
+  (api-execute-function-implementation (api-definition api-implementation)
+				       api-function-implementation
+				       resource
+				       request))
+
+(defmethod api-execute-function-implementation ((api-decoration api-implementation-decoration)
+						api-function-implementation
+						resource
+						request)
+  (api-execute-function-implementation (decorated-api api-decoration)
+				       api-function-implementation
+				       resource
+				       request))
 
 (defmethod list-api-resources ((api-definition api-definition))
   (loop for resource being the hash-values of (resources api-definition)
