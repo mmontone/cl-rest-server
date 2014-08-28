@@ -149,7 +149,7 @@
 
 (defmethod authenticate
     ((authentication token-authentication))
-  (let ((token (hunchentoot:header-in* "Authentication")))
+  (let ((token (hunchentoot:header-in* "Authorization")))
     (if (not token)
 	"Provide the token"
 	(if (not (authenticate-token authentication token))
