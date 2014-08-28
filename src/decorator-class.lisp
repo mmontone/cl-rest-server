@@ -3,15 +3,49 @@
 (defclass decorator-class (standard-class)
   ())
 
+(defmethod closer-mop:validate-superclass ((class decorator-class)
+					   (superclass standard-class))
+    t)
+
+(defclass decorated-slot-definition (closer-mop:standard-slot-definition)
+  ((decorate
+    :initform t
+    :type boolean
+    :accessor decorate-slot-p
+    :initarg :decorate)))
+
+;; Slots
+
+(defclass decorated-direct-slot-definition (decorated-slot-definition closer-mop:standard-direct-slot-definition)
+  ())
+
+(defclass decorated-effective-slot-definition (decorated-slot-definition closer-mop:standard-effective-slot-definition)
+  ())
+
+(defmethod closer-mop:direct-slot-definition-class ((class decorator-class) &rest initargs)
+  (declare (ignore initargs))
+  (find-class 'decorated-direct-slot-definition))
+
+(defmethod closer-mop:effective-slot-definition-class ((class decorator-class) &rest initargs)
+  (declare (ignore initargs))
+  (find-class 'decorated-effective-slot-definition))
+
+(defmethod closer-mop:compute-effective-slot-definition
+    ((class decorator-class)
+     slot-name direct-slots)
+  (declare (ignore slot-name))
+  (let ((effective-slot (call-next-method)))
+    (setf (decorate-slot-p effective-slot)
+	  (some #'decorate-slot-p direct-slots))
+    effective-slot))
+
 (defclass decorator-object (standard-object)
   ((decoratee :initarg :decoratee
 	      :initform (error "Provide the decoratee")
 	      :accessor decoratee
-	      :documentation "The object being decorated")))
-
-(defmethod closer-mop:validate-superclass ((class decorator-class)
-					   (superclass standard-class))
-    t)
+	      :documentation "The object being decorated"
+	      :decorate nil))
+  (:metaclass decorator-class))
 
 (defmethod initialize-instance :around
   ((class decorator-class) &rest initargs
@@ -57,7 +91,7 @@
     ((class decorator-class)
      (object decorator-object)
      slot)
-  (if (equalp (closer-mop:slot-definition-name slot) 'decoratee)
+  (if (not (decorate-slot-p slot))
       (call-next-method)
       (slot-value (decoratee object)
 		  (closer-mop:slot-definition-name slot))))
@@ -67,7 +101,7 @@
      (class decorator-class)
      (object decorator-object)
      slot)
-  (if (equalp (closer-mop:slot-definition-name slot) 'decoratee)
+  (if (not (decorate-slot-p slot))
       (call-next-method)
       (setf (slot-value (decoratee object)
 			(closer-mop:slot-definition-name slot))
@@ -77,7 +111,7 @@
     ((class decorator-class)
      (object decorator-object)
      slot)
-  (if (equalp (closer-mop:slot-definition-name slot) 'decoratee)
+  (if (not (decorate-slot-p slot))
       (call-next-method)
       (slot-boundp (decoratee object)
 		   (closer-mop:slot-definition-name slot))))
@@ -86,10 +120,16 @@
     ((class decorator-class)
      (object decorator-object)
      slot)
-  (if (equalp (closer-mop:slot-definition-name slot) 'decoratee)
+  (if (not (decorate-slot-p slot))
       (call-next-method)
       (slot-makunbound (decoratee object)
 		       (closer-mop:slot-definition-name slot))))
+
+(defmethod decorate-slot-p (slot)
+  t)
+
+(closer-mop:finalize-inheritance (find-class 'decorator-class))
+(closer-mop:finalize-inheritance (find-class 'decorator-object))
 
 ;; Test
 
@@ -100,6 +140,8 @@
 (defclass decorator (decoratee)
   ()
   (:metaclass decorator-class))
+
+(closer-mop:finalize-inheritance (find-class 'decorator))
 
 (defparameter *o* (make-instance 'decoratee))
 
