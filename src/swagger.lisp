@@ -111,7 +111,10 @@
 		(json:encode-object-member :param-type "body")
 		(json:encode-object-member :description "The content")
 		(json:encode-object-member :required t)
-		(json:encode-object-member :allow-multiple :false)))))))))
+		(json:encode-object-member :allow-multiple :false))))))
+      (json:as-object-member (:authorizations)
+	(encode-swagger-authorizations (authorizations operation)))
+      )))
       
 (defun swagger-resource-spec (api resource base-url)
   (setf (hunchentoot:header-out "Content-Type") "application/json")
@@ -140,7 +143,7 @@
 		       (json:with-array ()
 			 (loop for operation in operations
 			    do (json:as-array-member ()
-				 (encode-swagger-operation operation)))))))))))
+				 (encode-swagger-operation operation)))))))))))      
       (json:as-object-member (:models)
 	(encode-swagger-models (mapcar #'find-schema (resource-models resource))))
 	)))
@@ -207,3 +210,21 @@
 	 do
 	 (json:as-object-member ((element-name schema))
 	   (encode-swagger-model schema)))))
+
+(defun encode-swagger-authorization (authorization)
+  (json:with-object ()
+    (json:encode-object-member :type (cond
+					 ((subtypep authorization 'token-authentication)
+					  "apiKey")
+					 ((subtypep authorization 'oauth2-authentication)
+					  "oauth2")
+					 (t (error "Not implemented"))))
+    (json:encode-object-member :pass-as "header")
+    (when (subtypep authorization 'token-authentication)
+      (json:encode-object-member :keyname ""))))
+
+(defun encode-swagger-authorizations (authorizations)
+  (json:with-object ()
+    (loop for authorization in authorizations
+	 do (json:as-object-member ((class-name (class-of authorization)))
+	      (encode-swagger-authorization authorization)))))
