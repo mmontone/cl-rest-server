@@ -46,7 +46,7 @@
 		      (expand :list nil "Attributes to expand")))
 	   (cached-get-user (:request-method :get
 					     :produces (:json)
-					     :path "/cached-users/{id}"
+					     :path "/users/{id}/cached"
 					     :documentation "Retrive an user")
 			    ((id :integer "The user id")
 			     &optional
@@ -83,15 +83,18 @@
 			    :path "/decorations")
 		 (logging-decoration (:produces (:json)
 						:consumes (:json)
-						:documentation "Logging decoration test")
+						:documentation "Logging decoration test"
+						:path "/decorations/logging")
 				     ())
 		 (error-handling-decoration (:produces (:json)
 						       :consumes (:json)
-						       :documentation "Error handling decoration test")
+						       :documentation "Error handling decoration test"
+						       :path "/decorations/error-handling")
 					    ())
 		 (multiple-decorations (:produces (:json)
 						  :consumes (:json)
-						  :documentation "Multiple decorations test")
+						  :documentation "Multiple decorations test"
+						  :path "/decorations/multiple")
 				       ()))))
 
 (define-schema user
@@ -551,7 +554,7 @@
       (let ((user-id (cdr (assoc :id created-user))))
 	(multiple-value-bind (result status headers)
 	    (drakma:http-request
-	     (format nil "http://localhost:8181/cached-users/~A" user-id)
+	     (format nil "http://localhost:8181/users/~A/cached" user-id)
 	     :method :get
 	     :additional-headers '(("Accept" . "application/json")))
 	  ;; Test there's an ETag
@@ -560,7 +563,7 @@
 	    ;; When using the etag, we obtain a content not modified response
 	    (multiple-value-bind (result status)
 		(drakma:http-request
-		 (format nil "http://localhost:8181/cached-users/~A" user-id)
+		 (format nil "http://localhost:8181/users/~A/cached" user-id)
 		 :method :get
 		 :additional-headers `(("Accept" . "application/json")
 				       ("If-None-Match" . ,etag)))
@@ -568,7 +571,7 @@
 	    ;; If we use an invalid etag, we get the user and an etag
 	    (multiple-value-bind (result status headers)
 		(drakma:http-request
-		 (format nil "http://localhost:8181/cached-users/~A" user-id)
+		 (format nil "http://localhost:8181/users/~A/cached" user-id)
 		 :method :get
 		 :additional-headers '(("Accept" . "application/json")
 				       ("If-None-Match" . "foo")))
@@ -578,7 +581,7 @@
 	    ;; If we use the etag again, we obtain a content not modified response
 	    (multiple-value-bind (result status)
 		(drakma:http-request
-		 (format nil "http://localhost:8181/cached-users/~A" user-id)
+		 (format nil "http://localhost:8181/users/~A/cached" user-id)
 		 :method :get
 		 :additional-headers `(("Accept" . "application/json")
 				       ("If-None-Match" . ,etag)))
@@ -594,7 +597,7 @@
 	    ;; If we try to use the old etag, we get another and the new user info
 	    (multiple-value-bind (result status)
 		(drakma:http-request
-		 (format nil "http://localhost:8181/cached-users/~A" user-id)
+		 (format nil "http://localhost:8181/users/~A/cached" user-id)
 		 :method :get
 		 :additional-headers `(("Accept" . "application/json")
 				       ("If-None-Match" . ,etag)))

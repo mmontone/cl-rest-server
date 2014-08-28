@@ -156,3 +156,12 @@
        ;; Define api function implementations
        ,@(loop for api-function-implementation in api-functions-implementations
 	    collect `(implement-api-function ,api-name ,@api-function-implementation)))))
+
+(defmethod resource-execute-function-implementation ((resource api-resource)
+						     api-function-implementation
+						     request)
+  (execute-api-function-implementation api-function-implementation request))
+
+(defmethod resource-matches-request-p ((resource api-resource) request)
+  (cl-ppcre:scan (format nil "^~A" (resource-path resource))
+		 (hunchentoot:request-uri request)))

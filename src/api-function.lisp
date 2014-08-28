@@ -41,7 +41,7 @@
 	 :initform (error "Provide the name"))
    (path :initarg :path
 	 :accessor path
-	 :initform nil
+	 :initform (error "Provide the api function path")
 	 :documentation "The api function path")
    (request-method :initarg :request-method
 		   :accessor request-method
@@ -95,20 +95,20 @@
 
   ;; Parse the uri to obtain the required parameters
   #+nil(let ((args-in-uri (multiple-value-bind (scanner vars)
-                         (parse-api-function-path (path api-function))
-                       (declare (ignore scanner))
-                       vars)))
-    (setf (required-arguments api-function)
-          (append args-in-uri (required-arguments api-function))))
+			      (parse-api-function-path (path api-function))
+			    (declare (ignore scanner))
+			    vars)))
+	 (setf (required-arguments api-function)
+	       (append args-in-uri (required-arguments api-function))))
 
   ;; Parse the optional parameters
   #+nil(setf (optional-arguments api-function)
-	(mapcar (lambda (arg)
-		  (setf (first arg)
-			(make-keyword (symbol-name (first arg))))
-		  arg)
-		(alexandria:copy-sequence '(or cons null)
-					  (optional-arguments api-function))))
+	     (mapcar (lambda (arg)
+		       (setf (first arg)
+			     (make-keyword (symbol-name (first arg))))
+		       arg)
+		     (alexandria:copy-sequence '(or cons null)
+					       (optional-arguments api-function))))
 
   ;; Validate the function
   (validate api-function)
@@ -116,6 +116,12 @@
   ;; Install the api function
   (when *register-api-function*
     (let ((resource (or *api-resource* (error "Specify the api resource"))))
+      ;; Validate the resource path and the api function path
+      (when (not (cl-ppcre:scan (format nil "^~A" (resource-path resource))
+				(path api-function)))
+	(error "The resource path ~A and the api function path ~A don't match"
+	       (resource-path resource)
+	       (path api-function)))
       (setf (gethash (name api-function) (api-functions resource))
             api-function))))
 
@@ -311,18 +317,19 @@
   (or (get name :api-function-implementation)
       (error "Api function ~A not implemented" name)))
 
-(defun execute-api-function-implementation (api-function function-implementation request)
-  (with-condition-handling
-    (let ((args (extract-function-arguments api-function request)))
-      (apply function-implementation
-	     (append 
-	      (when (member (request-method api-function) (list :put :post))
-		(let ((posted-content
-		       (when (hunchentoot:raw-post-data :external-format :utf8)
-			 (hunchentoot:raw-post-data :external-format :utf8))))
-		  (log5:log-for (rest-server) "Posted content: ~A" posted-content)
-		  (list (parse-posted-content posted-content))))
-	      args)))))
+(defun execute-api-function-implementation (function-implementation request)
+  (let ((api-function (api-function function-implementation)))
+    (with-condition-handling
+      (let ((args (extract-function-arguments api-function request)))
+	(apply function-implementation
+	       (append 
+		(when (member (request-method api-function) (list :put :post))
+		  (let ((posted-content
+			 (when (hunchentoot:raw-post-data :external-format :utf8)
+			   (hunchentoot:raw-post-data :external-format :utf8))))
+		    (log5:log-for (rest-server) "Posted content: ~A" posted-content)
+		    (list (parse-posted-content posted-content))))
+		args))))))
 
 (defun find-optional-argument (name api-function)
   (or

@@ -125,17 +125,24 @@
 		 "")
 	     finally (call-next-method)))
       ;; else, dispatch to an api function
-      (let ((*development-mode* (development-mode acceptor)))
-	(loop for api-function in (api-functions (api acceptor))
-	   when (api-function-matches-request-p api-function request)
-	   return (let* ((*api-function* api-function)
-			 (result 
-			  (execute-api-function-implementation 
-			   api-function
-			   (find-api-function-implementation (name api-function))
-			   request)))
-		    (if (stringp result) result (prin1-to-string result)))
-	   finally (call-next-method)))))
+      (let ((api (api acceptor)))
+	(let ((*development-mode* (development-mode acceptor)))
+	  (loop for resource in (list-api-resources api)
+	     when (resource-matches-request-p resource request)
+	     do
+	       (loop for api-function in (list-api-resource-functions resource)
+		  when (api-function-matches-request-p api-function request)
+		  do (return-from hunchentoot:acceptor-dispatch-request
+		       (let* ((*api-function* api-function)
+			      (result 
+			       (api-execute-function-implementation
+				api
+				(find-api-function-implementation (name api-function))
+				resource
+				request)))
+			 (if (stringp result) result (prin1-to-string result))))))
+	  ;; If no match, call next handler
+	  (call-next-method)))))
 
 ;; The api class
 (defclass api-definition ()
@@ -169,42 +176,9 @@
 (defmethod api-definition ((api-implementation api-implementation))
   (decoratee api-implementation))  
 
-(defmethod name ((api-implementation api-implementation))
-  (name (api-definition api-implementation)))
-
-(defmethod title ((api-implementation api-implementation))
-  (title (api-definition api-implementation)))
-
-(defmethod resources ((api-implementation api-implementation))
-  (resource (api-definition api-implementation)))
-
-(defmethod version ((api-implementation api-implementation))
-  (version (api-definition api-implementation)))
-
-(defmethod api-documentation ((api-implementation api-implementation))
-  (api-documentation (api-definition api-implementation)))
-
 (defclass api-implementation-decoration (api-implementation)
   ()
   (:metaclass decorator-class))
-
-(defmethod name ((api-decoration api-implementation-decoration))
-  (name (decorated-api api-decoration)))
-
-(defmethod title ((api-decoration api-implementation-decoration))
-  (title (decorated-api api-decoration)))
-
-(defmethod resources ((api-decoration api-implementation-decoration))
-  (resource (decorated-api api-decoration)))
-
-(defmethod version ((api-decoration api-implementation-decoration))
-  (version (decorated-api api-decoration)))
-
-(defmethod api-documentation ((api-decoration api-implementation-decoration))
-  (api-documentation (decorated-api api-decoration)))
-
-(defmethod api-definition ((decoration api-implementation-decoration))
-  (api-definition (decorated-api decoration)))
 
 (defun find-api-implementation (api-name)
   (get api-name :api-implementation))
@@ -256,7 +230,7 @@
 
 (defun process-api-implementation-options (api-implementation)
   (let ((processed-api-implementation api-implementation))
-    (loop for option in (reverse (options api-implementation))
+    (loop for option in (reverse (api-options api-implementation))
 	 do (destructuring-bind (option-name &rest args) option
 	      (setf processed-api-implementation
 		    (apply #'process-api-implementation-option
@@ -280,24 +254,6 @@
    resource
    api-function-implementation
    request))
-
-(defmethod api-execute-function-implementation ((api-implementation api-implementation)
-						api-function-implementation
-						resource
-						request)
-  (api-execute-function-implementation (api-definition api-implementation)
-				       api-function-implementation
-				       resource
-				       request))
-
-(defmethod api-execute-function-implementation ((api-decoration api-implementation-decoration)
-						api-function-implementation
-						resource
-						request)
-  (api-execute-function-implementation (decorated-api api-decoration)
-				       api-function-implementation
-				       resource
-				       request))
 
 (defmethod list-api-resources ((api-definition api-definition))
   (loop for resource being the hash-values of (resources api-definition)

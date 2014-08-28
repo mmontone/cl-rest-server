@@ -12,12 +12,12 @@
     (authentication (:produces (:json)
 			       :consumes (:json)
 			       :documentation "Authentication operations"
-			       :path "auth")
+			       :path "/auth")
 		    (login (:request-method :post
 					    :produces (:json)
 					    :consumes (:json)
 					    :documentation "Login"
-					    :path "/login")
+					    :path "/auth/login")
 			   ()))
     (users (:produces (:json :xml)
 		      :consumes (:json)
@@ -141,7 +141,7 @@
 
   ;; Failed login
   (multiple-value-bind (token status-code)
-      (drakma:http-request "http://localhost:8182/login"
+      (drakma:http-request "http://localhost:8182/auth/login"
 			   :method :post
 			   :content-type "application/json"
 			   :content (json:encode-json-plist-to-string
@@ -160,7 +160,7 @@
   
   ;; Successful login
   (multiple-value-bind (token status-code)
-      (drakma:http-request "http://localhost:8182/login"
+      (drakma:http-request "http://localhost:8182/auth/login"
 			   :method :post
 			   :content-type "application/json"
 			   :content (json:encode-json-plist-to-string
