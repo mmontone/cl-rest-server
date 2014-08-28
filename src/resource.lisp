@@ -123,13 +123,18 @@
 				 (find-package (getf options :package)))
 			    *package*))))))
 
-(defclass api-resource-implementation ()
-  ((resource :initarg :resource
-	     :accessor resource
-	     :initform (error "Provide the resource"))
-   (options :initarg :options
+(defclass api-resource-implementation (api-resource)
+  ((options :initarg :options
 	    :accessor options
-	    :initform nil)))
+	    :initform nil))
+  (:metaclass decorator-class))
+
+(defmethod resource ((resource-implementation api-resource-implementation))
+  (decoratee resource-implementation))
+
+(defclass api-resource-decoration (api-resource-implementation)
+  ()
+  (:metaclass decorator-class))
 
 (defmacro implement-api-resource (api-name name-and-options &body api-functions-implementations)
   "Define an api resource implementation"
@@ -143,8 +148,10 @@
 	     (make-instance 'api-resource-implementation
 			    :resource (find-api-resource ',name :api api)
 			    :options ',options)))
-       (setf (get ',name :api-resource-implementation)
-	     api-resource-implementation)
+       (let ((decorated-resource-implementation
+	      (process-resource-implementation-options api-resource-implementation)))
+	 (setf (get ',name :api-resource-implementation)
+	       decorated-resource-implementation))
 
        ;; Define api function implementations
        ,@(loop for api-function-implementation in api-functions-implementations

@@ -161,13 +161,13 @@
   (:documentation "The api class"))
 
 (defclass api-implementation (api-definition)
-  ((api-definition :initarg :api-definition
-		   :initform (error "Provide the api definition")
-		   :accessor api-definition
-		   :documentation "The api definition")
-   (options :initarg :options
+  ((options :initarg :options
 	    :initform nil
-	    :accessor api-options)))
+	    :accessor api-options))
+  (:metaclass decorator-class))
+
+(defmethod api-definition ((api-implementation api-implementation))
+  (decoratee api-implementation))  
 
 (defmethod name ((api-implementation api-implementation))
   (name (api-definition api-implementation)))
@@ -185,9 +185,8 @@
   (api-documentation (api-definition api-implementation)))
 
 (defclass api-implementation-decoration (api-implementation)
-  ((decorated-api :initarg :decorated-api
-		  :initform (error "Provide the api implementation")
-		  :accessor decorated-api)))
+  ()
+  (:metaclass decorator-class))
 
 (defmethod name ((api-decoration api-implementation-decoration))
   (name (decorated-api api-decoration)))
@@ -210,18 +209,22 @@
 (defun find-api-implementation (api-name)
   (get api-name :api-implementation))
 
-(defun implement-api (api-name &rest options)
-  "Define an api implementation"
-  (let* ((api-definition (find-api api-name))
-	 (api-implementation
-	  (make-instance 'api-implementation
-			 :api-definition api-definition
-			 :options options)))
-    (let ((decorated-api-implementation
-	   (process-api-implementation-options
-	    api-implementation)))
-      (setf (get api-name :api-implementation)
-	    decorated-api-implementation))))
+(defmacro implement-api (api-name options &body resource-implementations)
+  "Implement an api"
+  `(let* ((api-definition (find-api ',api-name))
+	  (api-implementation
+	   (make-instance 'api-implementation
+			  :api-definition api-definition
+			  :options ',options)))
+     (let ((decorated-api-implementation
+	    (process-api-implementation-options
+	     api-implementation)))
+       (setf (get ',api-name :api-implementation)
+	     decorated-api-implementation)
+      
+       ;; Implement resources
+       ,@(loop for resource-implementation in resource-implementations
+	    collect `(implement-api-resource ,api-name ,@resource-implementation)))))
 
 (defun configure-api-implementation
     (api-name &rest options)
@@ -240,7 +243,16 @@
 	  (setf (get api-name :api-implementation)
 		processed-api-implementation)))
       ; else
-      (apply #'implement-api api-name options)))
+      (let* ((api-definition (find-api api-name))
+	     (api-implementation
+	      (make-instance 'api-implementation
+			     :api-definition api-definition
+			     :options options)))
+	(let ((decorated-api-implementation
+	       (process-api-implementation-options
+		api-implementation)))
+       (setf (get api-name :api-implementation)
+	     decorated-api-implementation)))))
 
 (defun process-api-implementation-options (api-implementation)
   (let ((processed-api-implementation api-implementation))
