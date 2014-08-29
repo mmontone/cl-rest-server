@@ -22,6 +22,9 @@
 	 ;; Swagger docs API  implementation
 	 (implement-api-function ,api-name api-docs-index ()
 	   (swagger-api-spec (find-api ',api-name)))
+
+	 ;; Configure the API to work with Swagger
+	 (configure-api ',api-name '(:swagger))
      
 	 ,@(loop for resource in (list-api-resources api)
 	      collect
@@ -205,3 +208,27 @@
 	 do
 	 (json:as-object-member ((element-name schema))
 	   (encode-swagger-model schema)))))
+
+(defclass swagger-resource (api-resource)
+  ())
+
+(defmethod resource-execute-function-implementation
+    :after
+    ((resource swagger-resource)
+     api-function-implementation
+     request)
+  (setf (hunchentoot:header-out "Access-Control-Allow-Origin") "*"))
+
+(defmethod process-api-resource-option ((option (eql :swagger)) resource &rest args)
+  (dynamic-mixins:ensure-mix resource 'swagger-resource))
+
+(defclass swagger-api (api-definition)
+  ())
+
+(defmethod api-execute-function-implementation :after
+    ((api swagger-api) api-function-implementation
+     resource request)
+  (setf (hunchentoot:header-out "Access-Control-Allow-Origin") "*"))
+
+(defmethod process-api-option ((option (eql :swagger)) api &rest args)
+  (dynamic-mixins:ensure-mix api 'swagger-api))

@@ -42,7 +42,6 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "rest-server")
 	     (:file "serialization")
 	     (:file "mop")
-	     (:file "decorator-class")
 	     (:file "xml")
 	     (:file "schema")
 	     (:file "error-handling")
@@ -75,4 +74,5 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :chronicity
 	       :net-telent-date
 	       :md5
-	       :cl-annot))
+	       :cl-annot
+	       :dynamic-mixins))

@@ -13,9 +13,11 @@
 					     :path "/decorations/simple-decoration")
 				  ())))
 
-(defclass simple-api-decoration (rs::api-implementation-decoration)
-  ()
-  (:metaclass rs::decorator-class))
+(implement-api-function decorated-api simple-decoration ()
+  "hello")
+
+(defclass simple-api-decoration (rs::api-definition)
+  ())
 
 (defmethod rs::api-execute-function-implementation :around
     ((api-definition simple-api-decoration)
@@ -25,23 +27,36 @@
   (let ((reply (call-next-method)))
     (format nil "<API DECORATION>~A</API DECORATION>" reply)))
 
-(defmethod rs::process-api-implementation-option ((option-name (eql :simple-decoration))
-						  api-implementation &rest args)
-  (make-instance 'simple-api-decoration :decoratee api-implementation))
+(defmethod rs::process-api-option
+    ((option-name (eql :simple-decoration))
+     api &rest args)
+  (dynamic-mixins:ensure-mix api 'simple-api-decoration))
 
-(rs::configure-api-implementation 'decorated-api '(:simple-decoration))
+(rs::configure-api 'decorated-api '(:simple-decoration))
 
-(defclass swagger-resource-decoration (rs::api-resource-decoration)
-  ()
-  (:metaclass rs::decorator-class))
+(find-api 'decorated-api)
+
+(start-api 'decorated-api "localhost" 8085)
+
+(drakma:http-request "http://localhost:8085/decorations/simple-decoration")
+
+(rs::configure-api 'decorated-api '(:swagger))
+
+(drakma:http-request "http://localhost:8085/decorations/simple-decoration")
+
+(defclass simple-resource-decoration ()
+  ())
+
+(defmethod rs::process-api-resource-option ((option (eql :simple-decoration)) resource &rest args)
+  (dynamic-mixins:ensure-mix resource 'simple-resource-decoration))
 
 (defmethod rs::resource-execute-function-implementation :around
-    ((resource swagger-resource-decoration)
+    ((resource simple-resource-decoration)
      api-function-implementation
      request)
   (let ((reply (call-next-method)))
-    (format nil "<SWAGGER>~A</SWAGGER>" reply)))
+    (format nil "<RESOURCE DECORATION>~A</RESOURCE DECORATION>" reply)))
 
-(defmethod rs::process-resource-implementation-option ((option-name (eql :swagger))
-						       resource &rest args)
-  (make-instance 'swagger-resource-decoration :decoratee resource))
+(rs::configure-api-resource 'decorated-api 'decorations '(:simple-decoration))
+
+(drakma:http-request "http://localhost:8085/decorations/simple-decoration")

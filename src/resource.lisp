@@ -123,20 +123,6 @@
 				 (find-package (getf options :package)))
 			    *package*))))))
 
-(defclass api-resource-implementation (api-resource)
-  ((options :initarg :options
-	    :accessor options
-	    :initform nil
-	    :decorate nil))
-  (:metaclass decorator-class))
-
-(defmethod resource ((resource-implementation api-resource-implementation))
-  (decoratee resource-implementation))
-
-(defclass api-resource-decoration (api-resource-implementation)
-  ()
-  (:metaclass decorator-class))
-
 (defmacro implement-api-resource (api-name name-and-options &body api-functions-implementations)
   "Define an api resource implementation"
   (multiple-value-bind (name options)
@@ -145,14 +131,8 @@
 		  (rest name-and-options))
 	  (values name-and-options nil))
     `(let* ((api (find-api ',api-name))
-	    (api-resource-implementation
-	     (make-instance 'api-resource-implementation
-			    :resource (find-api-resource ',name :api api)
-			    :options ',options)))
-       (let ((decorated-resource-implementation
-	      (process-resource-implementation-options api-resource-implementation)))
-	 (setf (get ',name :api-resource-implementation)
-	       decorated-resource-implementation))
+	    (resource (find-api-resource ',name :api api)))
+       (process-api-resource-options resource ',options)
 
        ;; Define api function implementations
        ,@(loop for api-function-implementation in api-functions-implementations
@@ -167,43 +147,17 @@
   (cl-ppcre:scan (format nil "^~A" (resource-path resource))
 		 (hunchentoot:request-uri request)))
 
-(defun find-api-resource-implementation (resource-name)
-  (get resource-name :api-resource-implementation))
+(defgeneric process-api-resource-option (option-name resource &rest args)
+  (:method (option-name resource &rest args)
+    (error "~A is not a valid resource option" option-name)))
 
-(defgeneric process-resource-implementation-option (option-name resource &rest args)
-  )
+(defun process-api-resource-options (resource options)
+  (loop for option in options
+       do (process-api-resource-option (first option) resource (rest option))))
 
-(defun configure-api-resource-implementation (resource-name &rest options)
-  (let ((resource-implementation (find-api-resource-implementation resource-name)))
-    (let ((processed-resource resource-implementation))
-      (loop for option in (reverse options)
-	 do (destructuring-bind (option-name &rest args) option
-	      (setf processed-resource
-		    (apply #'process-resource-implementation-option
-			   option-name
-			   processed-resource
-			   args))))
-      (setf (get resource-name :resource-implementation)
-	    processed-resource))))
-
-(defmacro implement-resource (api-name name-and-options &body api-functions-implementations)
-  "Implement an api resource"
-  (multiple-value-bind (resource-name options)
-      (if (listp name-and-options)
-	  (values (first name-and-options)
-		  (rest name-and-options))
-	  (values name-and-options nil))
-    `(let* ((resource (find-api-resource ',resource-name :api (find-api ',api-name)))
-	    (resource-implementation
-	     (make-instance 'api-resource-implementation
-			    :api-definition api-definition
-			    :options ',options)))
-       (let ((decorated-resource-implementation
-	      (process-resource-implementation-options
-	       resource-implementation)))
-	 (setf (get ',resource-name :resource-implementation)
-	       decorated-resource-implementation)
-	   
-	 ;; Implement api functions
-	 ,@(loop for api-function-implementation in api-functions-implementations
-	      collect `(implement-api-function ,api-name ,@api-function-implementation))))))
+(defun configure-api-resource (api-or-name resource-name &rest options)
+  (let ((api (if (symbolp api-or-name)
+		 (find-api api-or-name)
+		 api-or-name)))
+    (let ((resource (find-api-resource resource-name :api api)))
+      (process-api-resource-options resource options))))

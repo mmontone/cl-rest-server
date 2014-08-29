@@ -98,8 +98,7 @@
 (defmethod api ((acceptor api-acceptor))
   (let ((api-or-name (slot-value acceptor 'api)))
     (if (symbolp api-or-name)
-	(or (find-api-implementation api-or-name)
-	    (find-api api-or-name))
+	(find-api api-or-name)
 	api-or-name)))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
@@ -167,84 +166,33 @@
 		  :initform nil))
   (:documentation "The api class"))
 
-(defclass api-implementation (api-definition)
-  ((options :initarg :options
-	    :initform nil
-	    :accessor api-options
-	    :decorate nil))
-  (:metaclass decorator-class))
-
-(defmethod api-definition ((api-implementation api-implementation))
-  (decoratee api-implementation))  
-
-(defclass api-implementation-decoration (api-implementation)
-  ()
-  (:metaclass decorator-class))
-
-(defun find-api-implementation (api-name)
-  (get api-name :api-implementation))
-
 (defmacro implement-api (api-name options &body resource-implementations)
   "Implement an api"
-  `(let* ((api-definition (find-api ',api-name))
-	  (api-implementation
-	   (make-instance 'api-implementation
-			  :api-definition api-definition
-			  :options ',options)))
-     (let ((decorated-api-implementation
-	    (process-api-implementation-options
-	     api-implementation)))
-       (setf (get ',api-name :api-implementation)
-	     decorated-api-implementation)
-      
-       ;; Implement resources
-       ,@(loop for resource-implementation in resource-implementations
-	    collect `(implement-api-resource ,api-name ,@resource-implementation)))))
+  `(let* ((api-definition (find-api ',api-name)))
+     (process-api-options api-definition ',options)
 
-(defun configure-api-implementation
+     ;; Implement resources
+     ,@(loop for resource-implementation in resource-implementations
+	  collect `(implement-api-resource ,api-name ,@resource-implementation))))
+
+(defun configure-api
     (api-name &rest options)
-  "Configure or reconfigure an already existent api implementation"
-  (if (find-api-implementation api-name)
-      (let* ((api-implementation
-	      (find-api-implementation api-name)))
-	(let ((processed-api-implementation api-implementation))
-	  (loop for option in (reverse options)
-	 do (destructuring-bind (option-name &rest args) option
-	      (setf processed-api-implementation
-		    (apply #'process-api-implementation-option
-			   option-name
-			   processed-api-implementation
-			   args))))
-	  (setf (get api-name :api-implementation)
-		processed-api-implementation)))
-      ; else
-      (let* ((api-definition (find-api api-name))
-	     (api-implementation
-	      (make-instance 'api-implementation
-			     :decoratee api-definition
-			     :options options)))
-	(let ((decorated-api-implementation
-	       (process-api-implementation-options
-		api-implementation)))
-       (setf (get api-name :api-implementation)
-	     decorated-api-implementation)))))
+  "Configure or reconfigure an already existent api"
+  (let ((api (find-api api-name)))
+    (process-api-options api options)))
 
-(defun process-api-implementation-options (api-implementation)
-  (let ((processed-api-implementation api-implementation))
-    (loop for option in (reverse (api-options api-implementation))
-	 do (destructuring-bind (option-name &rest args) option
-	      (setf processed-api-implementation
-		    (apply #'process-api-implementation-option
-			   option-name
-			   processed-api-implementation
-			   args))))
-    processed-api-implementation))
+(defun process-api-options (api options)
+  (loop for option in (reverse options)
+     do (destructuring-bind (option-name &rest args) option
+	  (process-api-option option-name
+			      api
+			      args))))
 
-(defgeneric process-api-implementation-option
-    (option-name api-implementation &rest args)
-  (:method (option-name api-implementation &rest args)
+(defgeneric process-api-option
+    (option-name api &rest args)
+  (:method (option-name api &rest args)
     (declare (ignore args))
-    (error "Option ~A is not valid" option-name))
+    (error "~A is not a valid api option" option-name))
   (:documentation "Overwrite this in decorations"))
 
 (defmethod api-execute-function-implementation ((api-definition api-definition)
