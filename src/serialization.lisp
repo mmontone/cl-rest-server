@@ -423,16 +423,20 @@
 
 (defclass serialization-api-function-implementation-decoration
     (api-function-implementation-decoration)
-  ()
+  ((streamed :initarg :streamed
+	     :accessor streamed-p
+	     :initform nil
+	     :documentation "If the content is serialized with the streaming api"))
   (:metaclass closer-mop:funcallable-standard-class))
 
 (defmethod process-api-function-implementation-option
     ((option (eql :serialization))
      api-function-implementation
-     &key enabled)
+     &key enabled streamed)
   (if enabled
       (make-instance 'serialization-api-function-implementation-decoration
-		     :decorates api-function-implementation)
+		     :decorates api-function-implementation
+		     :streamed streamed)
       api-function-implementation))
 
 (defmethod execute :around ((decoration serialization-api-function-implementation-decoration)
@@ -442,10 +446,12 @@
     (with-output-to-string (s)
       (with-serializer-output s
 	(with-serializer serializer
-	  (serialize
-	   (call-next-method)
-	   *serializer*
-	   s))))))
+	  (if (streamed-p decoration)
+	      (call-next-method)
+	      (serialize
+	       (call-next-method)
+	       *serializer*
+	       s)))))))
 
 (cl-annot:defannotation serialization (args api-function-implementation)
     (:arity 2)
