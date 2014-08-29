@@ -14,6 +14,8 @@ install:
 before_script:
   - wget --no-check-certificate https://bitbucket.org/mmontone/cl-anvil-connect/get/HEAD.tar.gz -O /tmp/cl-anvil-connect.tar.gz
   - tar -xvf /tmp/cl-anvil-connect.tar.gz -C $HOME/quicklisp/local-projects/
+  - wget --no-check-certificate https://github.com/mmontone/dynamic-mixins/archive/master.tar.gz -O /tmp/dynamic-mixins.tar.gz
+  - tar -xvf /tmp/dynamic-mixins.tar.gz -C $HOME/quicklisp/local-projects/
 
 script:
   - cl-launch -i "(setf *readtable* (copy-readtable nil))(ql:quickload :rest-server-tests)(rest-server-tests:debug-tests)"
