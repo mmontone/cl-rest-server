@@ -45,6 +45,7 @@
 	   #:format-absolute-api-function-url
 	   #:with-api-backend
 	   #:start-api
+	   #:stop-api
 	   #:start-api-documentation
 	   #:start-api-logging
 	   #:*development-mode*
