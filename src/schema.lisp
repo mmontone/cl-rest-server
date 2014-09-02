@@ -164,6 +164,18 @@
 			   (cdr data-attribute)
 			   (attribute-type schema-attribute)))))
 
+(defgeneric schema-typep (value type)
+  (:method (value (type (eql :string)))
+    (stringp value))
+  (:method (value (type (eql :integer)))
+    (numberp value))
+  (:method (value (type (eql :list)))
+    (listp value))
+  (:method (value (type (eql :date)))
+    (or (typep value 'local-time:timestamp)
+	(and (stringp value)
+	     (chronicity:parse value)))))
+
 (defgeneric parse-api-input (format string)
   (:documentation "Parses content depending on its format"))
 
