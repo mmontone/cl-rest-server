@@ -102,46 +102,7 @@
 	api-or-name)))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
-  (if (equalp (hunchentoot:request-method request)
-	      :options)
-      (if (equalp (hunchentoot:request-uri request) "*")
-	  ;; http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
-	  ;; If the Request-URI is an asterisk ("*"), the OPTIONS request is intended
-	  ;; to apply to the server in general rather than to a specific resource.
-	  (error "Not implemented")
-	  ;; If the Request-URI is not an asterisk, the OPTIONS request applies only to
-	  ;; the options that are available when communicating with that resource.
-	  (loop
-	     for resource in (list-api-resources (api acceptor))
-	     when (equalp (hunchentoot:request-uri request)
-			  (resource-path resource))
-	     return
-	       (flet ((format-allowed-methods (methods)
-			(format nil "~{~A~^, ~}"
-				(mapcar #'symbol-name methods))))
-		 (setf (hunchentoot:header-out "Allow")
-		       (format-allowed-methods (allowed-methods resource)))
-		 "")
-	     finally (call-next-method)))
-      ;; else, dispatch to an api function
-      (let ((api (api acceptor)))
-	(let ((*development-mode* (development-mode acceptor)))
-	  (loop for resource in (list-api-resources api)
-	     when (resource-matches-request-p resource request)
-	     do
-	       (loop for api-function in (list-api-resource-functions resource)
-		  when (api-function-matches-request-p api-function request)
-		  do (return-from hunchentoot:acceptor-dispatch-request
-		       (let* ((*api-function* api-function)
-			      (result 
-			       (api-execute-function-implementation
-				api
-				(find-api-function-implementation (name api-function))
-				resource
-				request)))
-			 (if (stringp result) result (prin1-to-string result))))))
-	  ;; If no match, call next handler
-	  (call-next-method)))))
+  (api-dispatch-request (api acceptor) request))
 
 ;; The api class
 (defclass api-definition ()
@@ -165,6 +126,45 @@
 		  :initarg :documentation
 		  :initform nil))
   (:documentation "The api class"))
+
+(defgeneric api-dispatch-request (api request)
+  (:method ((api api-definition) request)
+    (if (equalp (hunchentoot:request-method request)
+		:options)
+	(if (equalp (hunchentoot:request-uri request) "*")
+	    ;; http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+	    ;; If the Request-URI is an asterisk ("*"), the OPTIONS request is intended
+	    ;; to apply to the server in general rather than to a specific resource.
+	    (error "Not implemented")
+	    ;; If the Request-URI is not an asterisk, the OPTIONS request applies only to
+	    ;; the options that are available when communicating with that resource.
+	    (loop
+	       for resource in (list-api-resources api)
+	       when (equalp (hunchentoot:request-uri request)
+			    (resource-path resource))
+	       return
+		 (flet ((format-allowed-methods (methods)
+			  (format nil "~{~A~^, ~}"
+				  (mapcar #'symbol-name methods))))
+		   (setf (hunchentoot:header-out "Allow")
+			 (format-allowed-methods (allowed-methods resource)))
+		   "")))
+	;; else, dispatch to an api function
+	(let ((*development-mode* (development-mode hunchentoot:*acceptor*)))
+	  (loop for resource in (list-api-resources api)
+	     when (resource-matches-request-p resource request)
+	     do
+	       (loop for api-function in (list-api-resource-functions resource)
+		  when (api-function-matches-request-p api-function request)
+		  do (return-from api-dispatch-request
+		       (let* ((*api-function* api-function)
+			      (result 
+			       (api-execute-function-implementation
+				api
+				(find-api-function-implementation (name api-function))
+				resource
+				request)))
+			 (if (stringp result) result (prin1-to-string result))))))))))
 
 (defmacro implement-api (api-name options &body resource-implementations)
   "Implement an api"
