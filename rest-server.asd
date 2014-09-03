@@ -53,6 +53,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "logging")
 	     (:file "caching")
 	     (:file "pagination")
+	     (:file "cors")
 	     (:file "swagger")
 	     (:file "api-documentation"))
 	    :serial t))

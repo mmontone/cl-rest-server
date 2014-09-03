@@ -77,4 +77,6 @@
 	   #:validation
 	   #:unserialization
 	   #:fetch-content
-	   #:permission-checking))
+	   #:permission-checking
+	   #:cors-api
+	   #:cors-resource))
