@@ -17,8 +17,10 @@
     (setf (hunchentoot:header-out "Access-Control-Allow-Origin")
 	  (cors-origin resource))))
 
-(defmethod process-api-resource-option ((option (eql :cors)) resource &rest args)
-  (dynamic-mixins:ensure-mix resource 'cors-resource))
+(defmethod process-api-resource-option ((option (eql :cors)) resource &key (enabled t) (origin "*"))
+  (dynamic-mixins:ensure-mix resource 'cors-resource)
+  (setf (cors-enabled resource) enabled)
+  (setf (cors-origin resource) origin))
 
 (defclass cors-api (api-definition)
   ((cors-enabled :initarg :cors-enabled
@@ -35,5 +37,7 @@
     (setf (hunchentoot:header-out "Access-Control-Allow-Origin")
 	  (cors-origin api))))
 
-(defmethod process-api-option ((option (eql :cors)) api &rest args)
-  (dynamic-mixins:ensure-mix api 'cors-api))
+(defmethod process-api-option ((option (eql :cors)) api &key (enabled t) (origin "*"))
+  (dynamic-mixins:ensure-mix api 'cors-api)
+  (setf (cors-enabled api) enabled)
+  (setf (cors-origin api) origin))
