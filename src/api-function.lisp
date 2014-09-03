@@ -209,6 +209,11 @@
   (let ((api-function (find-api-function api function-name)))
     (replace-vars-in-url (url-pattern api-function) args)))
 
+(defmethod api-function-http-options ((api api-definition)
+				      (api-function api-function))
+  (setf (hunchentoot:header-out "Allow")
+	(string-upcase (string (request-method api-function)))))
+
 (defclass api-function-implementation ()
   ((api-function :initarg :api-function
 		 :initform (error "Provide the api function")
@@ -343,7 +348,9 @@
 (defun api-function-matches-request-p (api-function request)
   (let ((scanner (parse-api-function-path (path api-function))))
     (and (cl-ppcre:scan scanner (hunchentoot:request-uri request)) 
-         (equalp (request-method api-function) (hunchentoot:request-method request)))))
+         (or (equalp (hunchentoot:request-method request) :options)
+	     (equalp (request-method api-function)
+		     (hunchentoot:request-method request))))))
 
 ;; url formatting
 

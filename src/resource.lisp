@@ -72,6 +72,14 @@
 	 do (pushnew (request-method api-function) methods))
     methods))
 
+(defgeneric resource-http-options (resource api)
+  (:method ((resource api-resource) api)
+    (flet ((format-allowed-methods (methods)
+	   (format nil "~{~A~^, ~}"
+		   (mapcar #'string methods))))
+    (setf (hunchentoot:header-out "Allow")
+	  (format-allowed-methods (allowed-methods resource))))))
+
 (defmacro with-api-resource (resource &body body)
   "Execute body under resource scope.
    Example:

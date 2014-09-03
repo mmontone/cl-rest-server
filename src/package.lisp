@@ -4,6 +4,8 @@
   (:export #:define-api
 	   #:implement-api-function
 	   #:configure-api-function-implementation
+	   #:configure-api
+	   #:configure-api-resource
 	   #:implement-api-function-case
 	   #:set-reply-content-type
 	   #:with-reply-content-type

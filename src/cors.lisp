@@ -67,6 +67,14 @@
      resource request)
   (send-cors-headers api))
 
+(defmethod api-function-http-options :after
+  ((api cors-api) api-function)
+  (send-cors-headers api))
+
+(defmethod resource-http-options :after
+  (resource (api cors-api))
+  (send-cors-headers api))
+
 (defmethod process-api-option ((option (eql :cors)) api
 			       &key
 				 (enabled t)

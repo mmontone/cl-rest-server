@@ -127,44 +127,59 @@
 		  :initform nil))
   (:documentation "The api class"))
 
+(defgeneric api-http-options (api)
+  (:method api-http-options ((api api-definition))
+	   (setf (hunchentoot:header-out "Server") "Hunchentoot")))
+
 (defgeneric api-dispatch-request (api request)
   (:method ((api api-definition) request)
-    (if (equalp (hunchentoot:request-method request)
-		:options)
-	(if (equalp (hunchentoot:request-uri request) "*")
-	    ;; http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
-	    ;; If the Request-URI is an asterisk ("*"), the OPTIONS request is intended
-	    ;; to apply to the server in general rather than to a specific resource.
-	    (error "Not implemented")
-	    ;; If the Request-URI is not an asterisk, the OPTIONS request applies only to
-	    ;; the options that are available when communicating with that resource.
-	    (loop
-	       for resource in (list-api-resources api)
-	       when (equalp (hunchentoot:request-uri request)
-			    (resource-path resource))
-	       return
-		 (flet ((format-allowed-methods (methods)
-			  (format nil "~{~A~^, ~}"
-				  (mapcar #'symbol-name methods))))
-		   (setf (hunchentoot:header-out "Allow")
-			 (format-allowed-methods (allowed-methods resource)))
-		   "")))
-	;; else, dispatch to an api function
-	(let ((*development-mode* (development-mode hunchentoot:*acceptor*)))
-	  (loop for resource in (list-api-resources api)
-	     when (resource-matches-request-p resource request)
-	     do
-	       (loop for api-function in (list-api-resource-functions resource)
-		  when (api-function-matches-request-p api-function request)
-		  do (return-from api-dispatch-request
-		       (let* ((*api-function* api-function)
-			      (result 
-			       (api-execute-function-implementation
-				api
-				(find-api-function-implementation (name api-function))
-				resource
-				request)))
-			 (if (stringp result) result (prin1-to-string result))))))))))
+    (flet ((api-function-dispatch ()
+	     (let ((*development-mode* (development-mode hunchentoot:*acceptor*)))
+	       (loop for resource in (list-api-resources api)
+		  when (resource-matches-request-p resource request)
+		  do
+		    (loop for api-function in (list-api-resource-functions resource)
+		       when (api-function-matches-request-p api-function request)
+		       do (return-from api-dispatch-request
+			    (if (equalp (hunchentoot:request-method request) :options)
+				(progn
+				  (api-function-http-options api api-function)
+				  "")
+					; else
+				(let* ((*api-function* api-function)
+				       (api-function-implementation
+					(find-api-function-implementation (name api-function)))
+				       (result 
+					(api-execute-function-implementation
+					 api
+					 api-function-implementation
+					 resource
+					 request)))
+				  (if (stringp result) result (prin1-to-string result))))))))))
+      (if (equalp (hunchentoot:request-method request)
+		  :options)
+	  (if (equalp (hunchentoot:request-uri request) "*")
+	      ;; http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+	      ;; If the Request-URI is an asterisk ("*"), the OPTIONS request is intended
+	      ;; to apply to the server in general rather than to a specific resource.
+	      (progn
+		(api-http-options api)
+		"")
+	      ;; If the Request-URI is not an asterisk, the OPTIONS request applies only to
+	      ;; the options that are available when communicating with that resource.
+	      (progn
+		(loop
+		   for resource in (list-api-resources api)
+		   when (equalp (hunchentoot:request-uri request)
+				(resource-path resource))
+		   do (return-from api-dispatch-request
+			(progn
+			  (resource-http-options resource api)
+			  "")))
+		;; else, try to dispatch an api function
+		(api-function-dispatch)))
+	  ;; else, dispatch to an api function
+	  (api-function-dispatch)))))
 
 (defmacro implement-api (api-name options &body resource-implementations)
   "Implement an api"
@@ -184,9 +199,9 @@
 (defun process-api-options (api options)
   (loop for option in (reverse options)
      do (destructuring-bind (option-name &rest args) option
-	  (process-api-option option-name
-			      api
-			      args))))
+	  (apply #'process-api-option option-name
+		 api
+		 args))))
 
 (defgeneric process-api-option
     (option-name api &rest args)
