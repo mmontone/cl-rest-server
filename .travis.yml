@@ -7,6 +7,7 @@ branches:
 env:
   matrix:
     - LISP=sbcl
+    - LISP=abcl
 
 install:
   - curl https://gist.githubusercontent.com/mmontone/87a4a3d361fa4ebfba72/raw/b9293af001776ca16f28d2f4b59526dd909b5d38/install.sh | bash
