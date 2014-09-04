@@ -102,7 +102,9 @@
 	api-or-name)))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
-  (api-dispatch-request (api acceptor) request))
+  (or
+   (api-dispatch-request (api acceptor) request)
+   (call-next-method)))
 
 ;; The api class
 (defclass api-definition ()
@@ -155,7 +157,9 @@
 					 api-function-implementation
 					 resource
 					 request)))
-				  (if (stringp result) result (prin1-to-string result))))))))))
+				  (if (stringp result) result (prin1-to-string result)))))))
+	       ;; Return nil as the request could not be handled
+	       nil)))
       (if (equalp (hunchentoot:request-method request)
 		  :options)
 	  (if (equalp (hunchentoot:request-uri request) "*")

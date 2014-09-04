@@ -636,3 +636,11 @@
        :additional-headers `(("Accept" . "application/xml")))
     (is (equalp status 200))
     (is (ppcre:scan "application/xml" (cdr (assoc :content-type headers))))))
+
+(test not-found-test
+  "Test that http-not-found is obtained on non existant resources"
+  (multiple-value-bind (result status)
+      (drakma:http-request
+       (format nil "http://localhost:8181/foo")
+       :method :get)
+    (is (equalp status hunchentoot:+http-not-found+))))
