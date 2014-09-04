@@ -8,7 +8,8 @@
 	"Content-Type"
 	"X-Requested-With"))
 
-(defparameter +cors-default-allow-methods+ (list :get :put :post))
+(defparameter +cors-default-allow-methods+
+  (list :get :put :post :delete))
 
 (defclass cors-mixin ()
   ((cors-enabled :initarg :cors-enabled
