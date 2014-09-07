@@ -164,7 +164,8 @@
 (defmethod process-api-function-implementation-option
     ((option (eql :error-handling))
      api-function-implementation
-     &key (enabled t))
+     &key (enabled t)
+       #+abcl &allow-other-keys)
   (if enabled
       (make-instance 'error-handling-api-function-implementation-decoration
 		     :decorates api-function-implementation)

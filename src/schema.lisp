@@ -514,7 +514,8 @@ See: parse-api-input (function)"
      api-function-implementation
      &key (enabled t)
        (schema (error "Provide the validation schema"))
-       (format :json))
+       (format :json)
+       #+abcl &allow-other-keys)
   (if enabled
       (make-instance 'validation-api-function-implementation-decoration
 		     :schema schema
@@ -555,7 +556,8 @@ See: parse-api-input (function)"
      api-function-implementation
      &key (enabled t)
        (schema (error "Provide the unserialization schema"))
-       (format :json))
+       (format :json)
+       #+abcl &allow-other-keys)
   (if enabled
       (make-instance 'unserialization-api-function-implementation-decoration
 		     :schema schema

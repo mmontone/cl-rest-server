@@ -292,8 +292,8 @@
     processed-api-function))
 
 (defgeneric process-api-function-implementation-option
-    (option-name api-function-implementation &rest args)
-  (:method (option-name api-function-implementation &rest args)
+    (option-name api-function-implementation &key)
+  (:method (option-name api-function-implementation &key)
     (error "Option ~A is not valid" option-name))
   (:documentation "Overwrite this in decorations"))
 

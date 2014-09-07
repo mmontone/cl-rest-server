@@ -454,7 +454,7 @@
 (defmethod process-api-function-implementation-option
     ((option (eql :fetch-content))
      api-function-implementation
-     &rest args &key enabled)
+     &rest args &key enabled #+abcl &allow-other-keys)
   (if enabled
       (apply #'make-instance 'content-fetching-api-function-implementation-decoration
 		     `(:decorates ,api-function-implementation ,@args :allow-other-keys t))
@@ -496,7 +496,7 @@
 (defmethod process-api-function-implementation-option
     ((option (eql :permission-checking))
      api-function-implementation
-     &rest args &key enabled)
+     &rest args &key enabled #+abcl &allow-other-keys)
   (if enabled
       (apply #'make-instance 'permission-checking-api-function-implementation-decoration
 		     `(:decorates ,api-function-implementation ,@args :allow-other-keys t))
