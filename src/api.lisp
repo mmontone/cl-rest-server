@@ -105,9 +105,11 @@
 	api-or-name)))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
-  (or
+  (or 
    (api-dispatch-request (api acceptor) request)
-   (call-next-method)))
+   (with-condition-handling
+     (error 'http-not-found-error
+	    :format-control "No resource found"))))
 
 ;; The api class
 (defclass api-definition ()

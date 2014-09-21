@@ -102,10 +102,16 @@
 
 (defmethod setup-reply-from-error ((error error))
   (setf (hunchentoot:return-code*)
-	hunchentoot:+http-internal-server-error+))
+	hunchentoot:+http-internal-server-error+)
+  "Error")
 
 (defmethod setup-reply-from-error ((condition http-error))
-  (setf (hunchentoot:return-code*) (http-return-code condition)))
+  (setf (hunchentoot:return-code*) (http-return-code condition))
+  (when (simple-condition-format-control condition)
+    (apply #'format
+	   nil
+	   (simple-condition-format-control condition)
+	   (simple-condition-format-arguments condition))))	  
 
 (defvar *retry-after-seconds* 5)
 
