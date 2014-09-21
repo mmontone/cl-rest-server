@@ -50,6 +50,9 @@
 	   #:stop-api
 	   #:start-api-documentation
 	   #:start-api-logging
+	   #:stop-api-logging
+	   #:enable-api-logging
+	   #:disable-api-logging
 	   #:*development-mode*
 	   #:*server-development-mode*
 	   #:http-error

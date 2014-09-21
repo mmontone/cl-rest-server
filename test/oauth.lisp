@@ -39,6 +39,6 @@
 
 (drakma:http-request "http://localhost:8187/oauth/register")
 
-(drakma:http-request "http://localhost:8187/oauth/token")
+(drakma:http-request "http://localhost:8187/oauth/token?scope=lala")
 
 (drakma:http-request "http://localhost:8187/resource")
