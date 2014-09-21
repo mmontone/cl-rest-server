@@ -191,15 +191,16 @@
 	   :optional-arguments optional-arguments
 	   attributes)))
 
-(defmethod find-api-function ((api symbol) function-name)
-  (find-api-function (find-api api) function-name))
+(defmethod find-api-function ((api symbol) function-name &optional (error-p t))
+  (find-api-function (find-api api) function-name error-p))
 
-(defmethod find-api-function ((api api-definition) function-name)
+(defmethod find-api-function ((api api-definition) function-name &optional (error-p t))
   (loop for resource being the hash-values of (resources api)
        when (gethash function-name (api-functions resource))
        do (return-from find-api-function
 	    (gethash function-name (api-functions resource))))
-  (error "api function not found ~A" function-name))
+  (when error-p
+    (error "api function not found ~A" function-name)))
 
 (defmethod format-api-url ((api-name symbol) function-name &rest args)
   (let ((api (find-api api-name)))
@@ -250,19 +251,67 @@
 	  (values (first name-and-options)
 		  (rest name-and-options))
 	  (values name-and-options nil))
-      `(let* ((api (find-api ',api-name))
-	      (api-function (find-api-function api ',name))
-	      (api-function-implementation
-	       (make-instance 'api-function-implementation
-			      :api-function api-function
-			      :primary (lambda ,args
-					 ,@body)
-			      :options ',options)))
-	 (let ((decorated-function
-		(process-api-function-implementation-options
-		 api-function-implementation)))
-	   (setf (get ',name :api-function-implementation)
-		 decorated-function)))))
+    (let* ((api (find-api api-name))
+	   (api-function (find-api-function api name nil)))
+      (when api-function
+	(validate-api-function-implementation-arguments args api-function)))
+    `(let* ((api (find-api ',api-name))
+	    (api-function (find-api-function api ',name))
+	    (api-function-implementation
+	     (make-instance 'api-function-implementation
+			    :api-function api-function
+			    :primary (lambda ,args
+				       ,@body)
+			    :options ',options)))
+       (let ((decorated-function
+	      (process-api-function-implementation-options
+	       api-function-implementation)))
+	 (setf (get ',name :api-function-implementation)
+	       decorated-function)))))
+
+(defun validate-api-function-implementation-arguments (args api-function)
+  (flet ((ensure (thing message &rest args)
+	   (when (not thing)
+	     (apply #'error message args))))
+    (multiple-value-bind (required optional rest keyword)
+	(alexandria:parse-ordinary-lambda-list args)
+      (declare (ignore optional rest))
+      (if (member (request-method api-function) (list :put :post))
+	  (progn
+	    (ensure (equalp (symbol-name (first args)) "POSTED-CONTENT")
+		    "POSTED-CONTENT argument was not provided as first parameter of the api function implementation")
+	    (loop for arg0 in (cdr (required-arguments api-function))
+	       for arg1 in required
+	       do
+		 (let ((arg0-name (first arg0))
+		       (arg1-name arg1))
+		   (ensure (equalp (symbol-name arg0-name)
+				   (symbol-name arg1-name))
+			   "Invalid api function implementation args list: ~A <> ~A"
+			   arg0-name arg1-name))))
+	  ;; else
+	  (loop for arg0 in (required-arguments api-function)
+	     for arg1 in required
+	     do
+	       (let ((arg0-name (first arg0))
+		     (arg1-name arg1))
+		 (ensure (equalp (symbol-name arg0-name)
+				 (symbol-name arg1-name))
+			 "Invalid api function implementation args list: ~A <> ~A"
+			 arg0-name arg1-name))))
+      (let ((optional-args-names
+	     (mapcar (alexandria:compose #'symbol-name #'cadar)
+		     keyword))
+	    (api-function-optional-args
+	     (mapcar (alexandria:compose #'symbol-name #'car)
+				     (optional-arguments api-function))))
+	(loop for optional-arg in optional-args-names
+	   do
+	     (ensure (member optional-arg
+			     api-function-optional-args
+			     :test #'equalp)
+		     "Optional argument ~A not found in api function implementation args"
+		     optional-arg))))))		   
 
 (defun configure-api-function-implementation
     (name &rest options)

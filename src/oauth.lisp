@@ -16,26 +16,26 @@
 	   (:documentation "OAuth authentication resource"
 			   :path "/oauth")
 	 (register-oauth-consumer
-	  (:request-method :get
+	  (:request-method :post
 			   :path "/oauth/register"
 			   :produces (:json)
 			   :documentation "Register a new OAuth consumer")
 	  ())
 	 (get-oauth-request-token
-	  (:request-method :get
+	  (:request-method :post
 			   :path "/oauth/token"
 			   :produces (:json)
 			   :documentation "Hand out OAuth request tokens")
 	  (&optional
 	   (scope :list "OAuth scope list")))
 	 (get-oauth-user-authorization
-	  (:request-method :get
+	  (:request-method :post
 			   :path "/oauth/authorize"
 			   :produces (:json)
 			   :documentation "Let the user authorize the access token. [6.2.1].")
 	  ())
 	 (get-oauth-access-token
-	  (:request-method :get
+	  (:request-method :post
 			   :path "/oauth/access"
 			   :produces (:json)
 			   :documentation "Get an access token from a previously issued and authorized request token.")
