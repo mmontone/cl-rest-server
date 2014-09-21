@@ -53,7 +53,7 @@
 	   (json:encode-object-member :user-data (oauth:token-user-data token))
 	   (json:encode-object-member :last-timestamp (oauth::consumer-token-last-timestamp token))))))
 
-     (implement-api-function ,api-name get-oauth-request-token ()
+     (implement-api-function ,api-name get-oauth-request-token (&key scope)
        (let ((request-token (oauth:validate-request-token-request)))
 	 (oauth:request-token-response request-token)))
 
