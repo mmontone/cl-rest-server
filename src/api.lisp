@@ -425,7 +425,9 @@
 			    (lambda (ct)
 			      (cl-ppcre:scan ct content-type)))
 		 :sexp)
-		(t (error 'http-unsupported-media-type-error "Content type not supported ~A" content-type)))))
+		(t (error 'http-unsupported-media-type-error
+			  :format-control "Content type not supported ~A"
+			  :format-arguments (list content-type))))))
 	 (parse-api-input format posted-content))))
     (:infer
      (error "Not implemented"))
