@@ -46,6 +46,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "schema")
 	     (:file "error-handling")
 	     (:file "authentication")
+	     (:file "oauth")
 	     (:file "oauth2")
 	     (:file "api")
 	     (:file "resource")
@@ -76,4 +77,5 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :net-telent-date
 	       :md5
 	       :cl-annot
-	       :dynamic-mixins))
+	       :dynamic-mixins
+	       :cl-oauth))
