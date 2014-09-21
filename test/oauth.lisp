@@ -33,9 +33,10 @@
 (in-package :rest-server-tests)
 
 (defparameter *acceptor*
-  (start-api 'oauth-test::oauth-api "localhost" 8187 :development))
+  (start-api 'oauth-test::oauth-api "localhost" 8187 :development
+	     '(:logging :enabled nil)))
 
-;(stop-api *acceptor*)
+(stop-api *acceptor*)
 
 (drakma:http-request "http://localhost:8187/oauth/register")
 

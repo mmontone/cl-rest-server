@@ -62,10 +62,13 @@
       ,@(loop for x in resources
 	     collect `(define-api-resource ,@x)))))
 
-(defun start-api (api address port &optional (development-mode *development-mode*))
+(defun start-api (api address port &optional (development-mode *development-mode*)
+				     configuration-args)
   "Start an api at address and port.
 
    In production mode, we bind the api directly. In development mode, we only bind the API name in order to be able to make modifications to the api"
+  (when configuration-args
+    (configure-api api configuration-args)) 
   (let ((api (if (equalp development-mode :development)
 		 (if (symbolp api)
 		     api
@@ -74,13 +77,13 @@
 		 (if (symbolp api)
 		     (find-api api)
 		     api))))
-  (let ((api-acceptor (make-instance 'api-acceptor
-				     :address address
-				     :port port
-				     :api api
-				     :development-mode development-mode)))
-    (hunchentoot:start api-acceptor)
-    api-acceptor)))
+    (let ((api-acceptor (make-instance 'api-acceptor
+				       :address address
+				       :port port
+				       :api api
+				       :development-mode development-mode)))
+      (hunchentoot:start api-acceptor)
+      api-acceptor)))
 
 (defun stop-api (api-acceptor)
   (hunchentoot:stop api-acceptor))
@@ -195,9 +198,11 @@
 	  collect `(implement-api-resource ,api-name ,@resource-implementation))))
 
 (defun configure-api
-    (api-name &rest options)
+    (api-or-name &rest options)
   "Configure or reconfigure an already existent api"
-  (let ((api (find-api api-name)))
+  (let ((api (if (symbolp api-or-name)
+		 (find-api api-or-name)
+		 api-or-name)))
     (process-api-options api options)))
 
 (defun process-api-options (api options)
