@@ -302,6 +302,11 @@
 
 ;; Streaming api implementation
 
+(defgeneric call-with-element (serializer name body stream)
+  (:method (serializer name body stream)
+    (error "Unknown serializer: ~A. If NIL, remember to wrap with with-serializer."
+	   serializer)))
+
 (defmethod call-with-element ((serializer (eql :json)) name body stream)
   (declare (ignore name))
   (json:with-object (stream)
