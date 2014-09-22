@@ -40,6 +40,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	    :components
 	    ((:file "package")
 	     (:file "rest-server")
+	     (:file "mimeparse")
 	     (:file "serialization")
 	     (:file "mop")
 	     (:file "xml")
@@ -65,7 +66,9 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :cl-json 
 	       :cxml 
 	       :local-time 
-	       :split-sequence 
+	       :split-sequence
+	       :parse-number
+	       :string-case
 	       :drakma
 	       :cl-who
 	       :ironclad

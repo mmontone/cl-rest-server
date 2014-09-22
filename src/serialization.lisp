@@ -402,21 +402,19 @@
 
 (defun accept-serializer ()
   (or (and (hunchentoot:header-in* "accept")
-	   (let ((accepts (split-sequence:split-sequence #\, (hunchentoot:header-in* "accept"))))
-	     (cond
-	       ((intersection (list "application/json")
-			      accepts :test #'equalp)
-		:json)
-	       ((intersection (list "text/xml" "application/xml")
-			      accepts :test #'equalp)
-			    :xml)
-	       ((intersection (list "text/html")
-			      accepts :test #'equalp)
-		:html)
-	       ((intersection (list "text/lisp")
-			      accepts :test #'equalp)
-		:sexp)
-	       )))
+	   (let ((accepts (mimeparse:best-match
+			   (list "text/lisp"
+				 "text/xml"
+				 "application/xml"
+				 "text/html"
+				 "application/json")
+			   (hunchentoot:header-in* "accept"))))
+	     (string-case:string-case (accepts :default *default-serializer*)
+	       ("text/xml" :xml)
+	       ("application/xml" :xml)
+	       ("text/html" :html)
+	       ("application/json" :json)
+	       ("text/lisp" :lisp))))
       *default-serializer*))
 
 ;; Plugging
