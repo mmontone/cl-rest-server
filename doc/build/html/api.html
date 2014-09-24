@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API definition and implementation &mdash; Common Lisp REST Server 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootswatch-3.1.0/cosmo/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="Common Lisp REST Server 0.2 documentation" href="index.html" />
+    <link rel="prev" title="Install" href="install.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          Common Lisp REST Server</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">API definition and implementation</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">API definition and implementation</a><ul>
+<li><a class="reference internal" href="#api-options">API options</a></li>
+<li><a class="reference internal" href="#resources">Resources</a><ul>
+<li><a class="reference internal" href="#resource-options">Resource options</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api-functions">API functions</a><ul>
+<li><a class="reference internal" href="#api-function-options">API function options</a></li>
+<li><a class="reference internal" href="#api-function-arguments">API function arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api-example">API example</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="install.html" title="Previous Chapter: Install"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm">&laquo; Install</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/api.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <div class="section" id="api-definition-and-implementation">
+<h1>API definition and implementation<a class="headerlink" href="#api-definition-and-implementation" title="Permalink to this headline">¶</a></h1>
+<p>APIs are defined using the define-api macro. APIs contain resources and resources contain api-functions.</p>
+<p>This is the syntax:</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">define-api</span> <span class="nv">&lt;api-name&gt;</span> <span class="nv">&lt;options-plist&gt;</span>
+   <span class="k">&amp;rest</span>
+   <span class="nv">&lt;resources&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="api-options">
+<h2>API options<a class="headerlink" href="#api-options" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">:title</span></tt>: The API title. This appears in the generated API documentation</li>
+<li><tt class="docutils literal"><span class="pre">:documentation</span></tt>: A string with the API description. This appears in the generated API documentation.</li>
+</ul>
+</div>
+<div class="section" id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
+<p>Resources have the following syntax:</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;resource-name&gt;</span> <span class="nv">&lt;resource-options&gt;</span> <span class="nv">&lt;api-functions&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="resource-options">
+<h3>Resource options<a class="headerlink" href="#resource-options" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">:produces</span></tt>: A list of content types produced by this resource. The content types can be <tt class="docutils literal"><span class="pre">:json</span></tt>, <tt class="docutils literal"><span class="pre">:html</span></tt>, <tt class="docutils literal"><span class="pre">:xml</span></tt>, <tt class="docutils literal"><span class="pre">:lisp</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">:consumes</span></tt>: A list of content types consumed by this resource.</li>
+<li><tt class="docutils literal"><span class="pre">:documentation</span></tt>: A string describing the resource. This appears in the generated API documentation.</li>
+<li><tt class="docutils literal"><span class="pre">:path</span></tt>: The resource path. Should start with the <cite>/</cite> character. Ex: <cite>&#8220;/users&#8221;</cite></li>
+<li><tt class="docutils literal"><span class="pre">:models</span></tt>: A list of <cite>models</cite> used by the resource</li>
+</ul>
+</div>
+</div>
+<div class="section" id="api-functions">
+<h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this headline">¶</a></h2>
+<p>API functions belong to resources. They are the operations to be executed on the resource.</p>
+<p>They have the following syntax:</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;api-function-name&gt;</span> <span class="nv">&lt;api-function-options&gt;</span> <span class="nv">&lt;api-function-arguments&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="api-function-options">
+<h3>API function options<a class="headerlink" href="#api-function-options" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">:request-method</span></tt>: The HTTP request method</li>
+<li><tt class="docutils literal"><span class="pre">:path</span></tt>: The operation path. Arguments in the operation are enclosed between <tt class="docutils literal"><span class="pre">{}</span></tt>. For example: <tt class="docutils literal"><span class="pre">&quot;/users/{id}&quot;</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">:produces</span></tt>: A list of content types produced by the operation. The content types can be <tt class="docutils literal"><span class="pre">:json</span></tt>, <tt class="docutils literal"><span class="pre">:html</span></tt>, <tt class="docutils literal"><span class="pre">:xml</span></tt>, <tt class="docutils literal"><span class="pre">:lisp</span></tt>. This is matched with the HTTP &#8220;Accept&#8221; header.</li>
+<li><tt class="docutils literal"><span class="pre">:consumes</span></tt>: A list of content types that the operation can consume.</li>
+<li><tt class="docutils literal"><span class="pre">:authorizations</span></tt>: A list with the authorizations required for the operation. Can be one of <tt class="docutils literal"><span class="pre">:token</span></tt>, <tt class="docutils literal"><span class="pre">:oauth</span></tt>, <tt class="docutils literal"><span class="pre">:oauth</span></tt>, or a custom authorization type.</li>
+<li><tt class="docutils literal"><span class="pre">:documentation</span></tt>: A string describing the operation. This appears in the generated API documentation.</li>
+</ul>
+</div>
+<div class="section" id="api-function-arguments">
+<h3>API function arguments<a class="headerlink" href="#api-function-arguments" title="Permalink to this headline">¶</a></h3>
+<p>Arguments lists have the following syntax:</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">*&lt;required-arguments&gt;</span> <span class="k">&amp;optional</span> <span class="nv">&lt;optional-arguments&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Required arguments are those appearing in the api function path between <tt class="docutils literal"><span class="pre">{}</span></tt>.
+They are specified like this:</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;argument-name&gt;</span> <span class="nv">&lt;argument-type&gt;</span> <span class="nv">&lt;documentation-string&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Argument type can be one of: <tt class="docutils literal"><span class="pre">string</span></tt>, <tt class="docutils literal"><span class="pre">integer</span></tt>, <tt class="docutils literal"><span class="pre">boolean</span></tt>, <tt class="docutils literal"><span class="pre">list</span></tt>.</p>
+<p>Optional arguments are those that can be passed after the <tt class="docutils literal"><span class="pre">?</span></tt> in the url. For instance, the <tt class="docutils literal"><span class="pre">page</span></tt> parameter in this url: <tt class="docutils literal"><span class="pre">/users?page=1</span></tt>. They are listed after the <tt class="docutils literal"><span class="pre">&amp;optional</span></tt> symbol, and have the following syntax:</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;argument-name&gt;</span> <span class="nv">&lt;argument-type&gt;</span> <span class="nv">&lt;default-value&gt;</span> <span class="nv">&lt;documentation-string&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here is an example of an api function arguments list:</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">((</span><span class="nv">id</span> <span class="ss">:integer</span> <span class="s">&quot;The user id&quot;</span><span class="p">)</span>
+  <span class="k">&amp;optional</span> <span class="p">(</span><span class="kt">boolean</span> <span class="ss">:boolean</span> <span class="no">nil</span> <span class="s">&quot;A boolean parameter&quot;</span><span class="p">)</span>
+            <span class="p">(</span><span class="nc">integer</span> <span class="ss">:integer</span> <span class="no">nil</span> <span class="s">&quot;An integer parameter&quot;</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">string</span> <span class="ss">:string</span> <span class="no">nil</span> <span class="s">&quot;A string parameter&quot;</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">list</span> <span class="ss">:list</span> <span class="no">nil</span> <span class="s">&quot;A list parameter&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="api-example">
+<h2>API example<a class="headerlink" href="#api-example" title="Permalink to this headline">¶</a></h2>
+<p>Here is a complete example of an API interface:</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">define-api</span> <span class="nv">api-test</span>
+    <span class="p">(</span><span class="ss">:title</span> <span class="s">&quot;Api test&quot;</span>
+            <span class="ss">:documentation</span> <span class="s">&quot;This is an api test&quot;</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">parameters</span> <span class="p">(</span><span class="ss">:produces</span> <span class="p">(</span><span class="ss">:json</span><span class="p">)</span>
+                         <span class="ss">:consumes</span> <span class="p">(</span><span class="ss">:json</span><span class="p">)</span>
+                         <span class="ss">:documentation</span> <span class="s">&quot;Parameters test&quot;</span>
+                         <span class="ss">:path</span> <span class="s">&quot;/parameters&quot;</span><span class="p">)</span>
+              <span class="p">(</span><span class="nv">parameters</span> <span class="p">(</span><span class="ss">:produces</span> <span class="p">(</span><span class="ss">:json</span><span class="p">)</span>
+                                     <span class="ss">:consumes</span> <span class="p">(</span><span class="ss">:json</span><span class="p">)</span>
+                                     <span class="ss">:documentation</span> <span class="s">&quot;Parameters test&quot;</span>
+                                     <span class="ss">:path</span> <span class="s">&quot;/parameters&quot;</span><span class="p">)</span>
+                          <span class="p">(</span><span class="k">&amp;optional</span> <span class="p">(</span><span class="kt">boolean</span> <span class="ss">:boolean</span> <span class="no">nil</span> <span class="s">&quot;A boolean parameter&quot;</span><span class="p">)</span>
+                                     <span class="p">(</span><span class="nc">integer</span> <span class="ss">:integer</span> <span class="no">nil</span> <span class="s">&quot;An integer parameter&quot;</span><span class="p">)</span>
+                                     <span class="p">(</span><span class="nb">string</span> <span class="ss">:string</span> <span class="no">nil</span> <span class="s">&quot;A string parameter&quot;</span><span class="p">)</span>
+                                     <span class="p">(</span><span class="nb">list</span> <span class="ss">:list</span> <span class="no">nil</span> <span class="s">&quot;A list parameter&quot;</span><span class="p">))))</span>
+  <span class="p">(</span><span class="nv">users</span> <span class="p">(</span><span class="ss">:produces</span> <span class="p">(</span><span class="ss">:json</span> <span class="ss">:xml</span><span class="p">)</span>
+                    <span class="ss">:consumes</span> <span class="p">(</span><span class="ss">:json</span><span class="p">)</span>
+                    <span class="ss">:documentation</span> <span class="s">&quot;Users operations&quot;</span>
+                    <span class="ss">:models</span> <span class="p">(</span><span class="nv">user</span><span class="p">)</span>
+                    <span class="ss">:path</span> <span class="s">&quot;/users&quot;</span><span class="p">)</span>
+         <span class="p">(</span><span class="nv">get-users</span> <span class="p">(</span><span class="ss">:request-method</span> <span class="ss">:get</span>
+                                     <span class="ss">:produces</span> <span class="p">(</span><span class="ss">:json</span><span class="p">)</span>
+                                     <span class="ss">:path</span> <span class="s">&quot;/users&quot;</span>
+                                     <span class="ss">:documentation</span> <span class="s">&quot;Retrive the users list&quot;</span><span class="p">)</span>
+                    <span class="p">(</span><span class="k">&amp;optional</span> <span class="p">(</span><span class="nv">page</span> <span class="ss">:integer</span> <span class="mi">1</span> <span class="s">&quot;The page&quot;</span><span class="p">)</span>
+                               <span class="p">(</span><span class="nv">expand</span> <span class="ss">:list</span> <span class="no">nil</span> <span class="s">&quot;Attributes to expand&quot;</span><span class="p">)))</span>
+         <span class="p">(</span><span class="nv">get-user</span> <span class="p">(</span><span class="ss">:request-method</span> <span class="ss">:get</span>
+                                    <span class="ss">:produces</span> <span class="p">(</span><span class="ss">:json</span><span class="p">)</span>
+                                    <span class="ss">:path</span> <span class="s">&quot;/users/{id}&quot;</span>
+                                    <span class="ss">:documentation</span> <span class="s">&quot;Retrive an user&quot;</span><span class="p">)</span>
+                   <span class="p">((</span><span class="nv">id</span> <span class="ss">:integer</span> <span class="s">&quot;The user id&quot;</span><span class="p">)</span>
+                    <span class="k">&amp;optional</span>
+                    <span class="p">(</span><span class="nv">expand</span> <span class="ss">:list</span> <span class="no">nil</span> <span class="s">&quot;Attributes to expand&quot;</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Mariano Montone.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
