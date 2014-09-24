@@ -1,5 +1,0 @@
-@anchor{Macro rest-server:define-api-function}
-@deffn {Macro} rest-server:define-api-function name method options args
-@findex rest-server:define-api-function
-Helper macro to define an api function
-@end deffn

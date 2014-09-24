@@ -1,5 +1,0 @@
-@anchor{Variable rest-server:*development-mode*}
-@defvr {Variable} rest-server:*development-mode*
-@vindex rest-server:*development-mode*
-Api development mode. One of :development, :testing, :production. Influences how errors are handled from the api
-@end defvr

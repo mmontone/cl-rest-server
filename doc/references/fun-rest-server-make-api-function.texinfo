@@ -1,5 +1,0 @@
-@anchor{Function rest-server:make-api-function}
-@deffn {Function} rest-server:make-api-function name method options args
-@findex rest-server:make-api-function
-Make an api function.
-@end deffn
