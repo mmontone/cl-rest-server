@@ -1,5 +1,5 @@
-API definition and implementation
----------------------------------
+API definition
+--------------
 
 APIs are defined using the define-api macro. APIs contain resources and resources contain api-functions.
 
