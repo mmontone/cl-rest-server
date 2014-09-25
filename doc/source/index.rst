@@ -16,6 +16,7 @@ Contents:
    introduction
    install
    api
+   error-handling
 
 Indices and tables
 ==================
