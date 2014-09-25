@@ -186,6 +186,35 @@ The ``posted-content`` argument should be included::
      (with-posted-content (name age) posted-content
          (serialize (model:create-user :name name :age age))))
 
+Conditional dispatch
+====================
+
+It is possible to dispatch to a particular resource operation implementation depending on the content type requested by the client in the HTTP Accept header via the :cl:function:`implement-resource-operation-case` macro.
+
+.. cl:function:: implement-resource-operation-case
+
+Example::
+
+  (implement-resource-operation api-test::api-test
+    api-test::conditional-dispatch ()
+  (error 'http-not-acceptable-error))
+
+  (implement-resource-operation-case
+    api-test::conditional-dispatch "text/html"
+    ()
+  "<p>Hello</p>")
+
+  (implement-resource-operation-case
+    api-test::conditional-dispatch "application/json"
+    ()
+  "\"hello\"")
+
+  (implement-resource-operation-case
+    api-test::conditional-dispatch "application/xml"
+    ()
+  "<p>Hello</p>")
+
+
 Starting the API
 ----------------
 
