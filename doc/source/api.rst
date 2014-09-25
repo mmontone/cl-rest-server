@@ -31,6 +31,11 @@ Resources have the following syntax:
 
    (<resource-name> <resource-options> <api-functions>)
 
+Resources can be added to an already defined API via the :cl:function::`with-api` and :cl:function:`define-api-resource` macros
+
+.. cl:macro:: with-api
+.. cl:macro:: define-api-resource	      
+
 Resource options
 ^^^^^^^^^^^^^^^^
 
@@ -50,6 +55,10 @@ They have the following syntax:
 .. code-block:: common-lisp
 
    (<resource-operation-name> <resource-operation-options> <resource-operation-arguments>)
+
+New operations can be added to an already defined resource via the :cl:function:`with-api-resource`
+
+.. cl:macro:: with-api-resource
 
 Resource operation options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
