@@ -1,7 +1,12 @@
+.. highlightlang:: common-lisp
+.. cl:package:: rest-server
+		   
 API definition
 --------------
 
-APIs are defined using the define-api macro. APIs contain resources and resources contain api-functions.
+APIs are defined using the :cl:function:`DEFINE-API` macro. APIs contain resources and resources contain api-functions.
+
+.. cl:macro:: define-api
 
 This is the syntax:
 
@@ -130,4 +135,13 @@ Here is a complete example of an API interface:
 		      ((id :integer "The user id")
 		       &optional
 		       (expand :list nil "Attributes to expand")))
+
+Accessing the API
+-----------------
+
+
+API implementation
+------------------
+
+APIs need to implement its resources operations.
 
