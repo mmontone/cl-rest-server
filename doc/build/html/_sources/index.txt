@@ -3,6 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. highlightlang:: common-lisp   
+
 Welcome to Common Lisp REST Server's documentation!
 ===================================================
 
@@ -14,6 +16,7 @@ Contents:
    introduction
    install
    api
+   error-handling
 
 Indices and tables
 ==================
