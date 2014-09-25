@@ -37,7 +37,7 @@
                                     '((:id :integer))))"
   `(call-with-api ',api (lambda () ,@body)))
 
-(defun call-with-api (resource operation)
+(defun call-with-api (api function)
   (let ((*api* (if (symbolp api) (find-api api)  api)))
     (funcall function)))
 
