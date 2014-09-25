@@ -20,7 +20,7 @@
 			     ()))))
 
 	 ;; Swagger docs API  implementation
-	 (implement-api-function ,api-name api-docs-index ()
+	 (implement-resource-operation ,api-name api-docs-index ()
 	   (swagger-api-spec (find-api ',api-name)))
 
 	 ;; Configure the API to work with Swagger
@@ -29,7 +29,7 @@
 	 ,@(loop for resource in (list-api-resources api)
 	      collect
 		(let ((fname (intern (format nil "API-DOCS-~A" (string-upcase (resource-name resource))))))
-		  `(implement-api-function ,api-name ,fname ()
+		  `(implement-resource-operation ,api-name ,fname ()
 		     (let ((api (find-api ',api-name)))
 		       (swagger-resource-spec api
 					      (find-api-resource ',(resource-name resource) :api api)
@@ -91,7 +91,7 @@
       (json:encode-object-member :summary (api-summary operation))
       (json:encode-object-member :notes (api-documentation operation))
       (json:encode-object-member :nickname (symbol-name (name operation)))
-      #+nil(json:encode-object-member :type (api-function-type operation))
+      #+nil(json:encode-object-member :type (resource-operation-type operation))
       (when (produces operation)
 	(json:encode-object-member :produces (mapcar #'mime-to-string (produces operation))))
       (when (consumes operation)
@@ -238,7 +238,7 @@
 (defmethod resource-execute-function-implementation
     :after
     ((resource swagger-resource)
-     api-function-implementation
+     resource-operation-implementation
      request)
   (setf (hunchentoot:header-out "Access-Control-Allow-Origin") "*"))
 
@@ -249,7 +249,7 @@
   ())
 
 (defmethod api-execute-function-implementation :after
-    ((api swagger-api) api-function-implementation
+    ((api swagger-api) resource-operation-implementation
      resource request)
   (setf (hunchentoot:header-out "Access-Control-Allow-Origin") "*"))
 

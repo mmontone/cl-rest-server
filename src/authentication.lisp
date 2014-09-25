@@ -155,10 +155,10 @@
 	(if (not (authenticate-token authentication token))
 	    "Invalid token"))))
 
-(defun api-function-authorizations (api-function)
-  "Authorizations that apply to an api-function. Merges resources authorizations and
-   api-function authorizations, giving priority to api-function authorizations (overwrites)"
-  (let ((authorizations (copy-list (authorizations api-function))))
+(defun resource-operation-authorizations (resource-operation)
+  "Authorizations that apply to an resource-operation. Merges resources authorizations and
+   resource-operation authorizations, giving priority to resource-operation authorizations (overwrites)"
+  (let ((authorizations (copy-list (authorizations resource-operation))))
     (flet ((authorization-exists-p (auth)
 	     (cond
 	       ((symbolp auth)
@@ -168,13 +168,13 @@
 			:key #'first
 			:test #'equalp))
 	       (t (error "Invalid authorization ~A" auth)))))
-      (loop for resource-authorization in (resource-authorizations (resource api-function))
+      (loop for resource-authorization in (resource-authorizations (resource resource-operation))
 	 do (when (not (authorization-exists-p resource-authorization))
 	      (push resource-authorization authorizations))))
     (parse-authentications authorizations)))
 
-(defun verify-authentication (api-function)
-  (let ((authentications (api-function-authorizations api-function)))
+(defun verify-authentication (resource-operation)
+  (let ((authentications (resource-operation-authorizations resource-operation)))
     (when (and (plusp (length authentications))
 	       (every #'authenticate authentications))
       (signal 'http-authorization-required-error)))

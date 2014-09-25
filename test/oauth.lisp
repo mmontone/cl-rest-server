@@ -25,7 +25,7 @@
 					  :authorizations (:oauth))
 			 ()))))
 
-(implement-api-function oauth-api get-resource ()
+(implement-resource-operation oauth-api get-resource ()
   "You have accessed the resource!!")
 
 (rs::define-oauth-resource oauth-api)

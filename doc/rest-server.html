@@ -318,7 +318,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#API-definition-and-implementation">API
 
 <pre class="example">     (define-api &lt;api-name&gt; &lt;options-plist&gt;
          &amp;rest
-         &lt;api-function-definition&gt;)
+         &lt;resource-operation-definition&gt;)
 </pre>
    <p>where some common options are:
 
@@ -329,9 +329,9 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#API-definition-and-implementation">API
 
    <p>and
 
-<pre class="example">     &lt;api-function-definition&gt; := (&lt;api-function-name&gt; &lt;api-function-options&gt; &lt;api-function-arguments&gt;)
+<pre class="example">     &lt;resource-operation-definition&gt; := (&lt;resource-operation-name&gt; &lt;resource-operation-options&gt; &lt;resource-operation-arguments&gt;)
 </pre>
-   <p>with required api-function options:
+   <p>with required resource-operation options:
 
      <ul>
 <li><code>:method</code>. The HTTP method. One of :get, :post, :put, :delete
@@ -339,7 +339,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#API-definition-and-implementation">API
 <li><code>:documentation</code>. The api function documentation string. 
 </ul>
 
-   <p>and <code>&lt;api-function-arguments&gt;</code> being a lambda-list like list with support for <code>&amp;optional</code> arguments, but no keyword arguments. Besides, each argument declaration has the form <code>(&lt;argument-name&gt; &lt;argument-type&gt; &lt;argument-docstring&gt;)</code> for required arguments and <code>(&lt;argument-name&gt; &lt;argument-type&gt; &lt;default-value&gt; &lt;argument-docstring&gt;)</code> for optional values.
+   <p>and <code>&lt;resource-operation-arguments&gt;</code> being a lambda-list like list with support for <code>&amp;optional</code> arguments, but no keyword arguments. Besides, each argument declaration has the form <code>(&lt;argument-name&gt; &lt;argument-type&gt; &lt;argument-docstring&gt;)</code> for required arguments and <code>(&lt;argument-name&gt; &lt;argument-type&gt; &lt;default-value&gt; &lt;argument-docstring&gt;)</code> for optional values.
 
    <p>Example:
 
@@ -362,7 +362,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#API-definition-and-implementation">API
 <h3 class="section">3.2 API implementation</h3>
 
 <p><a name="index-API-8"></a>
-The API is supposed to be implemented in a separate package, using the <code>implement-api-function</code> macro. Arguments are injected with parsed values (using the argument type in the declaration). Besides, optional arguments in the declaration are assumed to be keyword arguments in the implementation. When the HTTP method is POST, or PUT, the variable name posted-content is filled with the HTTP request posted content.
+The API is supposed to be implemented in a separate package, using the <code>implement-resource-operation</code> macro. Arguments are injected with parsed values (using the argument type in the declaration). Besides, optional arguments in the declaration are assumed to be keyword arguments in the implementation. When the HTTP method is POST, or PUT, the variable name posted-content is filled with the HTTP request posted content.
 
    <p>For instance, when updating a user, we had the following api function declaration:
 
@@ -374,7 +374,7 @@ The API is supposed to be implemented in a separate package, using the <code>imp
 </pre>
    <p>To implement that api function, we do:
 
-<pre class="example">     (implement-api-function update-user (posted-content id)
+<pre class="example">     (implement-resource-operation update-user (posted-content id)
        (format nil "Update user: ~A ~A" id posted-content))
 </pre>
    <div class="node">
@@ -394,11 +394,11 @@ It is possible to look at what is happening behind the scenes enabling API loggi
 
    <p>The api logging output is sent to <code>*api-logging-output*</code>.
 
-   <p>Only api-function-implementations with :logging option enabled are logged.
+   <p>Only resource-operation-implementations with :logging option enabled are logged.
 
    <p>Example:
 
-<pre class="example">     (implement-api-function (get-users :logging t)
+<pre class="example">     (implement-resource-operation (get-users :logging t)
          (&amp;key (expand-groups nil))
        (declare (ignore expand-groups))
        (with-output-to-string (s)
@@ -692,7 +692,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
      
      (in-package :api-test-implementation)
      
-     (implement-api-function get-users (&amp;key (expand-groups nil))
+     (implement-resource-operation get-users (&amp;key (expand-groups nil))
        (declare (ignore expand-groups))
        (with-output-to-string (s)
          (with-serializer-output s
@@ -704,7 +704,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
      		 (set-attribute "id" (cdr (assoc :id user)))
      		 (set-attribute "realname" (cdr (assoc :realname user))))))))))
      
-     (implement-api-function (get-user :serialization t)
+     (implement-resource-operation (get-user :serialization t)
          (id &amp;key (expand-groups nil))
        (declare (ignore expand-groups))
        (let ((user (model-test:get-user id)))
@@ -808,7 +808,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
    <p><a name="Function-rest_002dserver_003amake_002dapi_002dfunction"></a>
 
 <div class="defun">
-&mdash; Function: <b>rest-server:make-api-function</b><var> name method options args<a name="index-rest_002dserver_003amake_002dapi_002dfunction-32"></a></var><br>
+&mdash; Function: <b>rest-server:make-resource-operation</b><var> name method options args<a name="index-rest_002dserver_003amake_002dapi_002dfunction-32"></a></var><br>
 <blockquote><p><a name="index-rest_002dserver_003amake_002dapi_002dfunction-33"></a>Make an api function. 
 </p></blockquote></div>
 
@@ -852,13 +852,13 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <div class="defun">
 &mdash; Function: <b>rest-server:start-api</b><var> api address port &amp;optional api-implementation-package<a name="index-rest_002dserver_003astart_002dapi-44"></a></var><br>
 <blockquote><p><a name="index-rest_002dserver_003astart_002dapi-45"></a>Start an api at address and port. 
-   api-implementation-package: is the package where the api-functions are implemented. 
+   api-implementation-package: is the package where the resource-operations are implemented. 
 </p></blockquote></div>
 
    <p><a name="Macro-rest_002dserver_003adefine_002dapi_002dfunction"></a>
 
 <div class="defun">
-&mdash; Macro: <b>rest-server:define-api-function</b><var> name method options args<a name="index-rest_002dserver_003adefine_002dapi_002dfunction-46"></a></var><br>
+&mdash; Macro: <b>rest-server:define-resource-operation</b><var> name method options args<a name="index-rest_002dserver_003adefine_002dapi_002dfunction-46"></a></var><br>
 <blockquote><p><a name="index-rest_002dserver_003adefine_002dapi_002dfunction-47"></a>Helper macro to define an api function
 </p></blockquote></div>
 
@@ -886,7 +886,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
    <p><a name="Macro-rest_002dserver_003aimplement_002dapi_002dfunction"></a>
 
 <div class="defun">
-&mdash; Macro: <b>rest-server:implement-api-function</b><var> name-and-options args &amp;body body<a name="index-rest_002dserver_003aimplement_002dapi_002dfunction-54"></a></var><br>
+&mdash; Macro: <b>rest-server:implement-resource-operation</b><var> name-and-options args &amp;body body<a name="index-rest_002dserver_003aimplement_002dapi_002dfunction-54"></a></var><br>
 <blockquote><p><a name="index-rest_002dserver_003aimplement_002dapi_002dfunction-55"></a>Define an api function implementation
 </p></blockquote></div>
 
@@ -904,7 +904,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 <blockquote><p><a name="index-rest_002dserver_003awith_002dapi-59"></a>Execute body under api scope. 
    Example:
    (with-api test-api
-      (define-api-function get-user :get (:url-prefix "users/{id}")
+      (define-resource-operation get-user :get (:url-prefix "users/{id}")
                                     '((:id :integer))))
 </p></blockquote></div>
 
@@ -1063,15 +1063,15 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Index">Index</a>
 <li><a href="#index-rest_002dserver_003aadd_002dlist_002dmember-20"><code>rest-server:add-list-member</code></a>: <a href="#System-reference">System reference</a></li>
 <li><a href="#index-rest_002dserver_003aattribute-22"><code>rest-server:attribute</code></a>: <a href="#System-reference">System reference</a></li>
 <li><a href="#index-rest_002dserver_003adefine_002dapi-48"><code>rest-server:define-api</code></a>: <a href="#System-reference">System reference</a></li>
-<li><a href="#index-rest_002dserver_003adefine_002dapi_002dfunction-46"><code>rest-server:define-api-function</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003adefine_002dapi_002dfunction-46"><code>rest-server:define-resource-operation</code></a>: <a href="#System-reference">System reference</a></li>
 <li><a href="#index-rest_002dserver_003adefine_002dschema-50"><code>rest-server:define-schema</code></a>: <a href="#System-reference">System reference</a></li>
 <li><a href="#index-rest_002dserver_003adefine_002dserializable_002dclass-52"><code>rest-server:define-serializable-class</code></a>: <a href="#System-reference">System reference</a></li>
 <li><a href="#index-rest_002dserver_003aelement-24"><code>rest-server:element</code></a>: <a href="#System-reference">System reference</a></li>
 <li><a href="#index-rest_002dserver_003aelements-26"><code>rest-server:elements</code></a>: <a href="#System-reference">System reference</a></li>
 <li><a href="#index-rest_002dserver_003afind_002dapi-28"><code>rest-server:find-api</code></a>: <a href="#System-reference">System reference</a></li>
 <li><a href="#index-rest_002dserver_003afind_002dschema-30"><code>rest-server:find-schema</code></a>: <a href="#System-reference">System reference</a></li>
-<li><a href="#index-rest_002dserver_003aimplement_002dapi_002dfunction-54"><code>rest-server:implement-api-function</code></a>: <a href="#System-reference">System reference</a></li>
-<li><a href="#index-rest_002dserver_003amake_002dapi_002dfunction-32"><code>rest-server:make-api-function</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003aimplement_002dapi_002dfunction-54"><code>rest-server:implement-resource-operation</code></a>: <a href="#System-reference">System reference</a></li>
+<li><a href="#index-rest_002dserver_003amake_002dapi_002dfunction-32"><code>rest-server:make-resource-operation</code></a>: <a href="#System-reference">System reference</a></li>
 <li><a href="#index-rest_002dserver_003aserializable_002dclass_002dschema-34"><code>rest-server:serializable-class-schema</code></a>: <a href="#System-reference">System reference</a></li>
 <li><a href="#index-rest_002dserver_003aserialize-38"><code>rest-server:serialize</code></a>: <a href="#System-reference">System reference</a></li>
 <li><a href="#index-rest_002dserver_003aserialize_002dwith_002dschema-36"><code>rest-server:serialize-with-schema</code></a>: <a href="#System-reference">System reference</a></li>

@@ -62,7 +62,7 @@
   (let ((decoded-token (rest-server::decode-token token)))
     (equalp decoded-token *username*)))
 
-(implement-api-function auth-api-test
+(implement-resource-operation auth-api-test
     (login
      (:error-handling :enabled t))
     (posted-content)
@@ -76,7 +76,7 @@
 	(error 'rest-server::http-authorization-required-error
 	       :format-control "Authentication error")))
   
-(implement-api-function auth-api-test
+(implement-resource-operation auth-api-test
     (get-users
      (:logging :enabled t)
      (:error-handling :enabled t))
@@ -93,7 +93,7 @@
 		    (set-attribute "id" (cdr (assoc :id user)))
 		    (set-attribute "realname" (cdr (assoc :realname user)))))))))))
 
-(implement-api-function auth-api-test
+(implement-resource-operation auth-api-test
     (get-user
      (:serialization :enabled t)
      (:logging :enabled nil))
@@ -107,14 +107,14 @@
 		 (attribute "id" (cdr (assoc :id user)))
 		 (attribute "realname" (cdr (assoc :realname user)))))))
 
-(implement-api-function auth-api-test
+(implement-resource-operation auth-api-test
     create-user
     (posted-content)
   (let ((user
 	 (model-test:add-user (cdr (assoc :realname posted-content)))))
     (json:encode-json-alist-to-string user)))
 
-(implement-api-function auth-api-test
+(implement-resource-operation auth-api-test
     update-user
     (posted-content id)
     (let ((user (model-test::get-user id)))
@@ -125,7 +125,7 @@
 	  (model-test::set-user-realname user (cdr (assoc :realname posted-content)))
 	  (model-test::update-user user)))))
 
-(implement-api-function auth-api-test
+(implement-resource-operation auth-api-test
     delete-user (id)
   (model-test::delete-user id))
 

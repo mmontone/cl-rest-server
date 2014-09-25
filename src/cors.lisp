@@ -45,7 +45,7 @@
 (defmethod resource-execute-function-implementation
     :after
     ((resource cors-mixin)
-     api-function-implementation
+     resource-operation-implementation
      request)
   (send-cors-headers resource))
 
@@ -64,12 +64,12 @@
   ())
 
 (defmethod api-execute-function-implementation :after
-    ((api cors-api) api-function-implementation
+    ((api cors-api) resource-operation-implementation
      resource request)
   (send-cors-headers api))
 
-(defmethod api-function-http-options :after
-  ((api cors-api) api-function)
+(defmethod resource-operation-http-options :after
+  ((api cors-api) resource-operation)
   (send-cors-headers api))
 
 (defmethod resource-http-options :after

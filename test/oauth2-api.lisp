@@ -57,7 +57,7 @@
 					 :authorizations (:token (:oauth2 :scope (:profile :admin))))
 			((id :integer "The user id"))))))
 
-(implement-api-function oauth2-api-test
+(implement-resource-operation oauth2-api-test
     (get-users
      (:logging :enabled t)
      (:error-handling :enabled t))
@@ -74,7 +74,7 @@
 		    (set-attribute "id" (cdr (assoc :id user)))
 		    (set-attribute "realname" (cdr (assoc :realname user)))))))))))
 
-(implement-api-function oauth2-api-test
+(implement-resource-operation oauth2-api-test
     (get-user
      (:serialization :enabled t)
      (:logging :enabled nil))
@@ -88,12 +88,12 @@
 		 (attribute "id" (cdr (assoc :id user)))
 		 (attribute "realname" (cdr (assoc :realname user)))))))
 
-(implement-api-function oauth2-api-test create-user (posted-content)
+(implement-resource-operation oauth2-api-test create-user (posted-content)
   (let ((user
 	 (model-test:add-user (cdr (assoc :realname posted-content)))))
     (json:encode-json-alist-to-string user)))
 
-(implement-api-function
+(implement-resource-operation
     oauth2-api-test
     update-user (posted-content id)
     (let ((user (model-test::get-user id)))
@@ -104,7 +104,7 @@
 	  (model-test::set-user-realname user (cdr (assoc :realname posted-content)))
 	  (model-test::update-user user)))))
 
-(implement-api-function oauth2-api-test
+(implement-resource-operation oauth2-api-test
     delete-user (id)
   (model-test::delete-user id))
 

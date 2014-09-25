@@ -2,11 +2,11 @@
   (:nicknames :rs)
   (:use :cl)
   (:export #:define-api
-	   #:implement-api-function
-	   #:configure-api-function-implementation
+	   #:implement-resource-operation
+	   #:configure-resource-operation-implementation
 	   #:configure-api
 	   #:configure-api-resource
-	   #:implement-api-function-case
+	   #:implement-resource-operation-case
 	   #:set-reply-content-type
 	   #:with-reply-content-type
 	   #:with-json-reply
@@ -31,7 +31,7 @@
 	   #:boolean-value
 	   #:list-value
 	   #:find-api
-	   #:find-api-function
+	   #:find-resource-operation
 	   #:with-api
 	   #:list-api-resources
 	   #:resource
@@ -41,10 +41,10 @@
 	   #:define-api-resource
 	   #:list-api-resource-functions
 	   #:define-swagger-resource
-	   #:define-api-function
-	   #:make-api-function
-	   #:format-api-function-url
-	   #:format-absolute-api-function-url
+	   #:define-resource-operation
+	   #:make-resource-operation
+	   #:format-resource-operation-url
+	   #:format-absolute-resource-operation-url
 	   #:with-api-backend
 	   #:start-api
 	   #:stop-api

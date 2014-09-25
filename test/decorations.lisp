@@ -13,7 +13,7 @@
 					     :path "/decorations/simple-decoration")
 				  ())))
 
-(implement-api-function decorated-api simple-decoration ()
+(implement-resource-operation decorated-api simple-decoration ()
   "hello")
 
 (defclass simple-api-decoration (rs::api-definition)
@@ -21,7 +21,7 @@
 
 (defmethod rs::api-execute-function-implementation :around
     ((api-definition simple-api-decoration)
-     api-function-implementation
+     resource-operation-implementation
      resource
      request)
   (let ((reply (call-next-method)))
@@ -52,7 +52,7 @@
 
 (defmethod rs::resource-execute-function-implementation :around
     ((resource simple-resource-decoration)
-     api-function-implementation
+     resource-operation-implementation
      request)
   (let ((reply (call-next-method)))
     (format nil "<RESOURCE DECORATION>~A</RESOURCE DECORATION>" reply)))

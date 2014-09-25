@@ -159,7 +159,7 @@
 
 (in-package :api-test-implementation)
 
-(implement-api-function api-test::api-test
+(implement-resource-operation api-test::api-test
     api-test::parameters (&key boolean integer string list)
   (json:encode-json-plist-to-string
      (list :boolean boolean
@@ -167,7 +167,7 @@
 	   :string string
 	   :list list)))
 
-(implement-api-function api-test::api-test
+(implement-resource-operation api-test::api-test
     (api-test::get-users
      (:logging :enabled t)
      (:error-handling :enabled t))
@@ -186,7 +186,7 @@
 		       (set-attribute "id" (cdr (assoc :id user)))
 		       (set-attribute "realname" (cdr (assoc :realname user)))))))))))))
 
-(implement-api-function api-test::api-test
+(implement-resource-operation api-test::api-test
     (api-test::get-user
      (:logging :enabled nil)
      (:serialization :enabled t))
@@ -198,11 +198,11 @@
 	; else
 	(element "user"
 		 (attribute "href"
-			    (format-absolute-api-function-url rest-server::*api-function* :id id))
+			    (format-absolute-resource-operation-url rest-server::*resource-operation* :id id))
 		 (attribute "id" id)
 		 (attribute "realname" (cdr (assoc :realname user)))))))
 
-(implement-api-function api-test::api-test
+(implement-resource-operation api-test::api-test
     (api-test::cached-get-user
      (:logging :enabled nil)
      (:caching :type :etag
@@ -216,17 +216,17 @@
 	; else
 	(element "user"
 		 (attribute "href"
-			    (format-absolute-api-function-url rest-server::*api-function* :id id))
+			    (format-absolute-resource-operation-url rest-server::*resource-operation* :id id))
 		 (attribute "id" id)
 		 (attribute "realname" (cdr (assoc :realname user)))))))
 
-(implement-api-function api-test::api-test api-test::create-user (posted-content)
+(implement-resource-operation api-test::api-test api-test::create-user (posted-content)
   (let ((user
 	 (model-test:add-user (cdr (assoc :realname posted-content)))))
     (with-json-reply
       (json:encode-json-alist-to-string user))))
 
-(implement-api-function
+(implement-resource-operation
     api-test::api-test
     api-test::update-user (posted-content id)
     (let ((user (model-test::get-user id)))
@@ -238,26 +238,26 @@
 	  (model-test::set-user-realname user (cdr (assoc :realname posted-content)))
 	  (model-test::update-user user)))))
 
-(implement-api-function api-test::api-test
+(implement-resource-operation api-test::api-test
     api-test::delete-user (id)
   (model-test::delete-user id))
 
 ;; Conditional dispatch
-(implement-api-function api-test::api-test
+(implement-resource-operation api-test::api-test
     api-test::conditional-dispatch ()
   (error 'http-not-acceptable-error))
 
-(implement-api-function-case
+(implement-resource-operation-case
     api-test::conditional-dispatch "text/html"
     ()
   "<p>Hello</p>")
 
-(implement-api-function-case
+(implement-resource-operation-case
     api-test::conditional-dispatch "application/json"
     ()
   "\"hello\"")
 
-(implement-api-function-case
+(implement-resource-operation-case
     api-test::conditional-dispatch "application/xml"
     ()
   "<p>Hello</p>")
@@ -267,18 +267,18 @@
 (cl-annot:enable-annot-syntax)
 
 @logging ()
-(implement-api-function api-test::api-test
+(implement-resource-operation api-test::api-test
     api-test::logging-decoration ()
   "Hello")
 
 @error-handling ()
-(implement-api-function api-test::api-test
+(implement-resource-operation api-test::api-test
     api-test::error-handling-decoration ()
   (error 'http-not-found-error))
 
 @logging ()
 @error-handling ()
-(implement-api-function api-test::api-test
+(implement-resource-operation api-test::api-test
     api-test::multiple-decorations ()
   (error 'http-not-found-error))
 
@@ -436,7 +436,7 @@
     (is (equalp status-code 200))
     (is (equalp (read-from-string result) (list "user1" "user2" "user3" t)))))
 
-(test api-functions-parameters-test
+(test resource-operations-parameters-test
   (macrolet ((check (key value)
 	       `(progn
 		  (is (equalp status 200))

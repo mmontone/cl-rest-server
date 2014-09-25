@@ -28,10 +28,10 @@
                            api))))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-documentation-acceptor) request)
-  (loop for api-function being the hash-value of (functions (api acceptor))
-     when (equalp (format nil "/~A" (name api-function)) (hunchentoot:request-uri*))
+  (loop for resource-operation being the hash-value of (functions (api acceptor))
+     when (equalp (format nil "/~A" (name resource-operation)) (hunchentoot:request-uri*))
      return (with-documentation-toplevel (api acceptor)
-              (document-api-function acceptor api-function))
+              (document-resource-operation acceptor resource-operation))
      finally (return (api-toplevel-documentation acceptor))))
 
 (defun api-toplevel-documentation (acceptor)
@@ -40,34 +40,34 @@
       (:h1 :class "api-name" (cl-who:str (name api)))
       (:div :class "api-documentation"
             (cl-who:str (api-documentation api)))
-      (:div :class "api-functions"
-            (loop for api-function being the hash-value of (functions api)
+      (:div :class "resource-operations"
+            (loop for resource-operation being the hash-value of (functions api)
                  do
-                 (document-api-function acceptor api-function))))))
+                 (document-resource-operation acceptor resource-operation))))))
       
-(defun document-api-function (acceptor api-function)
+(defun document-resource-operation (acceptor resource-operation)
   (cl-who:with-html-output (*standard-output*)
     (cl-who:htm
-   (:div :class "api-function"
+   (:div :class "resource-operation"
          (:div :class "name"
                (:a :href (format nil "http://~A:~A/~A"
                                  (hunchentoot:acceptor-address acceptor)
                                  (hunchentoot:acceptor-port acceptor)
-                                 (name api-function))
-                   (cl-who:str (name api-function))))
+                                 (name resource-operation))
+                   (cl-who:str (name resource-operation))))
          (:div :class "method"
-               (cl-who:str (request-method api-function)))
+               (cl-who:str (request-method resource-operation)))
          (:div :class "documentation"
-               (cl-who:str (api-documentation api-function)))
+               (cl-who:str (api-documentation resource-operation)))
          (:div :class "signature"
-               (cl-who:str (path api-function)))
+               (cl-who:str (path resource-operation)))
          (:div :class "arguments"
                (:ul
-                (loop for arg in (required-arguments api-function)
+                (loop for arg in (required-arguments resource-operation)
                    do
                    (cl-who:htm
                     (:li (cl-who:fmt "~a : ~a. ~a." (first arg) (second arg) (third arg)))))
-                (loop for arg in (optional-arguments api-function)
+                (loop for arg in (optional-arguments resource-operation)
                    do
                    (cl-who:htm
                     (:li (cl-who:fmt "~a : ~a. ~A. Default: ~a"

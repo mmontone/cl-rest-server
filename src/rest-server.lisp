@@ -1,6 +1,6 @@
 (in-package :rest-server)
 
-(defparameter *api-function* nil "The current api function")
+(defparameter *resource-operation* nil "The current api function")
 
 (log5:defcategory rest-server)
 

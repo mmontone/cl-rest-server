@@ -51,7 +51,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "oauth2")
 	     (:file "api")
 	     (:file "resource")
-	     (:file "api-function")
+	     (:file "resource-operation")
 	     (:file "logging")
 	     (:file "caching")
 	     (:file "pagination")
