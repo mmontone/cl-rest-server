@@ -162,28 +162,28 @@
 
 ;; Plugging
 
-(defclass error-handling-api-function-implementation-decoration
-    (api-function-implementation-decoration)
+(defclass error-handling-resource-operation-implementation-decoration
+    (resource-operation-implementation-decoration)
   ()
   (:metaclass closer-mop:funcallable-standard-class))
   
-(defmethod process-api-function-implementation-option
+(defmethod process-resource-operation-implementation-option
     ((option (eql :error-handling))
-     api-function-implementation
+     resource-operation-implementation
      &key (enabled t)
        #+abcl &allow-other-keys)
   (if enabled
-      (make-instance 'error-handling-api-function-implementation-decoration
-		     :decorates api-function-implementation)
-      api-function-implementation))
+      (make-instance 'error-handling-resource-operation-implementation-decoration
+		     :decorates resource-operation-implementation)
+      resource-operation-implementation))
   
-(defmethod execute :around ((decoration error-handling-api-function-implementation-decoration)
+(defmethod execute :around ((decoration error-handling-resource-operation-implementation-decoration)
 			    &rest args)
   (with-condition-handling
     (call-next-method)))
 
-(cl-annot:defannotation error-handling (args api-function-implementation)
+(cl-annot:defannotation error-handling (args resource-operation-implementation)
     (:arity 2)
-  `(configure-api-function-implementation
-    (name (api-function ,api-function-implementation))
+  `(configure-resource-operation-implementation
+    (name (resource-operation ,resource-operation-implementation))
     (list :error-handling ,@args)))

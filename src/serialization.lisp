@@ -302,6 +302,11 @@
 
 ;; Streaming api implementation
 
+(defgeneric call-with-element (serializer name body stream)
+  (:method (serializer name body stream)
+    (error "Unknown serializer: ~A. If NIL, remember to wrap with with-serializer."
+	   serializer)))
+
 (defmethod call-with-element ((serializer (eql :json)) name body stream)
   (declare (ignore name))
   (json:with-object (stream)
@@ -419,25 +424,25 @@
 
 ;; Plugging
 
-(defclass serialization-api-function-implementation-decoration
-    (api-function-implementation-decoration)
+(defclass serialization-resource-operation-implementation-decoration
+    (resource-operation-implementation-decoration)
   ((streamed :initarg :streamed
 	     :accessor streamed-p
 	     :initform nil
 	     :documentation "If the content is serialized with the streaming api"))
   (:metaclass closer-mop:funcallable-standard-class))
 
-(defmethod process-api-function-implementation-option
+(defmethod process-resource-operation-implementation-option
     ((option (eql :serialization))
-     api-function-implementation
+     resource-operation-implementation
      &key enabled streamed)
   (if enabled
-      (make-instance 'serialization-api-function-implementation-decoration
-		     :decorates api-function-implementation
+      (make-instance 'serialization-resource-operation-implementation-decoration
+		     :decorates resource-operation-implementation
 		     :streamed streamed)
-      api-function-implementation))
+      resource-operation-implementation))
 
-(defmethod execute :around ((decoration serialization-api-function-implementation-decoration)
+(defmethod execute :around ((decoration serialization-resource-operation-implementation-decoration)
 			    &rest args)
   (let ((serializer (accept-serializer)))
     (set-reply-content-type (serializer-content-type serializer))
@@ -451,10 +456,10 @@
 	       *serializer*
 	       s)))))))
 
-(cl-annot:defannotation serialization (args api-function-implementation)
+(cl-annot:defannotation serialization (args resource-operation-implementation)
     (:arity 2)
-  `(configure-api-function-implementation
-    (name (api-function ,api-function-implementation))
+  `(configure-resource-operation-implementation
+    (name (resource-operation ,resource-operation-implementation))
     (list :serialization ,@args)))
 
 ;; Utilities
@@ -462,4 +467,4 @@
 (defun self-reference (&rest args)
   (set-attribute
    :href
-   (apply #'format-absolute-api-function-url *api-function* args)))
+   (apply #'format-absolute-resource-operation-url *resource-operation* args)))

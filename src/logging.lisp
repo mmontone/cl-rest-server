@@ -17,26 +17,26 @@
 
 ;; Api function logging
 
-(defclass logging-api-function-implementation-decoration
-    (api-function-implementation-decoration)
+(defclass logging-resource-operation-implementation-decoration
+    (resource-operation-implementation-decoration)
   ()
   (:metaclass closer-mop:funcallable-standard-class))
   
-(defmethod process-api-function-implementation-option
+(defmethod process-resource-operation-implementation-option
     ((option (eql :logging))
-     api-function-implementation
+     resource-operation-implementation
      &key (enabled t))
   (if enabled
-      (make-instance 'logging-api-function-implementation-decoration
-		     :decorates api-function-implementation)
-      api-function-implementation))
+      (make-instance 'logging-resource-operation-implementation-decoration
+		     :decorates resource-operation-implementation)
+      resource-operation-implementation))
   
-(defmethod execute :around ((decoration logging-api-function-implementation-decoration)
+(defmethod execute :around ((decoration logging-resource-operation-implementation-decoration)
 			    &rest args)
   (log5:log-for (rest-server) "API: Handling ~A ~A by ~A"
 		(hunchentoot:request-method*)
 		(hunchentoot:request-uri*)
-		(name (api-function decoration)))
+		(name (resource-operation decoration)))
   (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
 			  (hunchentoot:raw-post-data :external-format :utf8))))
     (when posted-content (log5:log-for (rest-server) "Posted content: ~A" posted-content)))
@@ -44,10 +44,10 @@
     (log5:log-for (rest-server) "Response: ~A" result)
     result))
 
-(cl-annot:defannotation logging (args api-function-implementation)
+(cl-annot:defannotation logging (args resource-operation-implementation)
     (:arity 2)
-  `(configure-api-function-implementation
-    (name (api-function ,api-function-implementation))
+  `(configure-resource-operation-implementation
+    (name (resource-operation ,resource-operation-implementation))
     (list :logging ,@args)))
 
 ;; Api logging
@@ -62,11 +62,11 @@
   (dynamic-mixins:ensure-mix api 'logging-api)
   (setf (logging-enabled api) enabled))
 
-(defmethod api-execute-function-implementation :around ((api logging-api) api-function-implementation resource request)
+(defmethod api-execute-function-implementation :around ((api logging-api) resource-operation-implementation resource request)
   (log5:log-for (rest-server) "API: Handling ~A ~A by ~A"
 		(hunchentoot:request-method*)
 		(hunchentoot:request-uri*)
-		(name (api-function api-function-implementation)))
+		(name (resource-operation resource-operation-implementation)))
   (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
 			  (hunchentoot:raw-post-data :external-format :utf8))))
     (when posted-content (log5:log-for (rest-server) "Posted content: ~A" posted-content)))

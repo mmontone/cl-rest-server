@@ -15,10 +15,10 @@
     :initform nil
     :accessor resource-documentation
     :documentation "The resource documentation")
-   (api-functions :initarg :api-functions
+   (resource-operations :initarg :resource-operations
 		  :initform (make-hash-table :test #'equalp)
-		  :accessor api-functions
-		  :documentation "The api functions of the resource")
+		  :accessor resource-operations
+		  :documentation "The resource operations of the resource")
    (models :initarg :models
 	   :initform nil
 	   :accessor resource-models
@@ -38,8 +38,8 @@
    (options :initarg :options
 	    :initform nil
 	    :accessor resource-options
-	    :documentation "Options applied to resource api functions. Can be overwritten in api function options"))
-  (:documentation "An api resource. Contains api functions"))
+	    :documentation "Options applied to resource resource operations. Can be overwritten in resource operation options"))
+  (:documentation "An api resource. Contains resource operations"))
 
 (defmethod print-object ((api-resource api-resource) stream)
   (print-unreadable-object (api-resource stream :type t :identity t)
@@ -51,7 +51,7 @@
   (declare (ignore initargs))
 
   ;; Validate the resource
-  ;(validate api-function)
+  ;(validate resource-operation)
 
   ;; Configure the resource
   ;(configure-api-resource api-resource)
@@ -63,13 +63,13 @@
             api-resource))))
 
 (defmethod list-api-resource-functions ((api-resource api-resource))
-  (loop for api-function being the hash-values of (api-functions api-resource)
-       collect api-function))
+  (loop for resource-operation being the hash-values of (resource-operations api-resource)
+       collect resource-operation))
 
 (defmethod allowed-methods ((api-resource api-resource))
   (let ((methods nil))
-    (loop for api-function in (list-api-resource-functions api-resource)
-	 do (pushnew (request-method api-function) methods))
+    (loop for resource-operation in (list-api-resource-functions api-resource)
+	 do (pushnew (request-method resource-operation) methods))
     methods))
 
 (defgeneric resource-http-options (resource api)
@@ -84,7 +84,7 @@
   "Execute body under resource scope.
    Example:
    (with-api-resource users
-      (define-api-function get-user :get (:url-prefix \"users/{id}\")
+      (define-resource-operation get-user :get (:url-prefix \"users/{id}\")
                                     '((:id :integer))))"
   `(call-with-api-resource ',resource (lambda () ,@body)))
 
@@ -115,14 +115,14 @@
 	    ',options)
      (with-api-resource ,name
       ,@(loop for x in functions
-         collect `(define-api-function ,@x)))
+         collect `(define-resource-operation ,@x)))
      ;; Generate client API access function
-     ,@(let ((*register-api-function* nil))
+     ,@(let ((*register-resource-operation* nil))
             (loop for x in functions
                collect (client-stub
                         name
                         (destructuring-bind (name attributes args &rest options) x
-                          (make-api-function
+                          (make-resource-operation
                            name
                            attributes
                            args
@@ -131,7 +131,7 @@
 				 (find-package (getf options :package)))
 			    *package*))))))
 
-(defmacro implement-api-resource (api-name name-and-options &body api-functions-implementations)
+(defmacro implement-api-resource (api-name name-and-options &body resource-operations-implementations)
   "Define an api resource implementation"
   (multiple-value-bind (name options)
       (if (listp name-and-options)
@@ -142,14 +142,14 @@
 	    (resource (find-api-resource ',name :api api)))
        (process-api-resource-options resource ',options)
 
-       ;; Define api function implementations
-       ,@(loop for api-function-implementation in api-functions-implementations
-	    collect `(implement-api-function ,api-name ,@api-function-implementation)))))
+       ;; Define resource operation implementations
+       ,@(loop for resource-operation-implementation in resource-operations-implementations
+	    collect `(implement-resource-operation ,api-name ,@resource-operation-implementation)))))
 
 (defmethod resource-execute-function-implementation ((resource api-resource)
-						     api-function-implementation
+						     resource-operation-implementation
 						     request)
-  (execute-api-function-implementation api-function-implementation request))
+  (execute-resource-operation-implementation resource-operation-implementation request))
 
 (defmethod resource-matches-request-p ((resource api-resource) request)
   (cl-ppcre:scan (format nil "^~A" (resource-path resource))

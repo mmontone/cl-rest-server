@@ -10,8 +10,8 @@
     (remf fargs :element-name)
     `(with-element (,element-name)
        (set-attribute :page ,page)
-       (set-attribute :next (format-absolute-api-function-url *api-function* :page (1+ ,page) ,@fargs))
-       (set-attribute :previous (format-absolute-api-function-url *api-function* :page (1- ,page),@fargs))
+       (set-attribute :next (format-absolute-resource-operation-url *resource-operation* :page (1+ ,page) ,@fargs))
+       (set-attribute :previous (format-absolute-resource-operation-url *resource-operation* :page (1- ,page),@fargs))
        (with-attribute (:results)
 	 ,@body))))
 
@@ -27,11 +27,11 @@
     (element element-name
 	     (attribute :page page)
 	     (attribute :next
-			(format-absolute-api-function-url *api-function*
+			(format-absolute-resource-operation-url *resource-operation*
 							  `(:page (1+ ,page)
 								  ,@fargs)))
 	     (attribute :previous
-			(format-absolute-api-function-url *api-function*
+			(format-absolute-resource-operation-url *resource-operation*
 							  `(:page (1- ,page)
 								  ,@fargs)))
 	     (attribute :results results))))	     
@@ -52,7 +52,7 @@
 ;; 	 (pagination-offset pagination)
 ;; 	 (pagination-segment pagination)))	     
 
-;; (defmethod encode-pagination (pagination api-function (serializer (eql :json)) stream &rest args)
+;; (defmethod encode-pagination (pagination resource-operation (serializer (eql :json)) stream &rest args)
 ;;   (let ((objects (apply-pagination pagination)))
 ;;     (json:with-object (stream)
 ;;       (json:as-object-member (:objects stream)
@@ -61,12 +61,12 @@
 ;; 	     (apply #'serialize object serializer stream args)))
 ;;       (json:encode-object-member :page (pagination-page pagination) stream)
 ;;       (json:encode-object-member :next
-;; 				 (rest-server::format-api-function-url
-;; 				  api-function
+;; 				 (rest-server::format-resource-operation-url
+;; 				  resource-operation
 ;; 				  :page (1+ (pagination-page pagination))
 ;; 				  args))
 ;;       (json:encode-object-member :previous
-;; 				 (rest-server::format-api-function-url
-;; 				  api-function
+;; 				 (rest-server::format-resource-operation-url
+;; 				  resource-operation
 ;; 				  :page (1- (pagination-page pagination))
 ;; 				  args)))))

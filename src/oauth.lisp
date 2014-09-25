@@ -42,7 +42,7 @@
 	  ())))
 
      ;; Api functions implementation
-     (implement-api-function ,api-name register-oauth-consumer (posted-content)
+     (implement-resource-operation ,api-name register-oauth-consumer (posted-content)
        (let ((token
 	      (oauth:register-token
 	       (oauth:make-consumer-token))))
@@ -53,11 +53,11 @@
 	   (json:encode-object-member :user-data (oauth:token-user-data token))
 	   (json:encode-object-member :last-timestamp (oauth::consumer-token-last-timestamp token))))))
 
-     (implement-api-function ,api-name get-oauth-request-token (posted-content &key scope)
+     (implement-resource-operation ,api-name get-oauth-request-token (posted-content &key scope)
        (let ((request-token (oauth:validate-request-token-request)))
 	 (oauth:request-token-response request-token)))
 
-     (implement-api-function ,api-name get-oauth-user-authorization (posted-content)
+     (implement-resource-operation ,api-name get-oauth-user-authorization (posted-content)
        (oauth:protocol-assert (eq (oauth:request-method) :get)) ; [6.2.1]
        (let ((request-token (oauth:get-supplied-request-token)))
 	 (when t		     ; XXX obtain user permission here
@@ -76,6 +76,6 @@
 	 ;; NOTE: optionally notify the Consumer if the user refused authorization.
 	 ))
 
-     (implement-api-function ,api-name get-oauth-access-token (posted-content)
+     (implement-resource-operation ,api-name get-oauth-access-token (posted-content)
        (let ((access-token (oauth:validate-access-token-request)))
 	 (princ-to-string access-token)))))

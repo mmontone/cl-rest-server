@@ -9,8 +9,8 @@
 (defparameter *register-api-resource* t "Wether to register the created resource in the current API")
 (defparameter *api-resource* nil "The current api resource")
 
-(defvar *register-api-function* t
-  "Whether to try to register the api function on creation. Bind to nil to prevent that")
+(defvar *register-resource-operation* t
+  "Whether to try to register the resource operation on creation. Bind to nil to prevent that")
 
 ;; Util
 
@@ -33,7 +33,7 @@
   "Execute body under api scope.
    Example:
    (with-api test-api
-      (define-api-function get-user :get (:url-prefix \"users/{id}\")
+      (define-resource-operation get-user :get (:url-prefix \"users/{id}\")
                                     '((:id :integer))))"
   `(call-with-api ',api (lambda () ,@body)))
 
@@ -44,7 +44,7 @@
 (defvar *api-backend* nil "API backend address") 
 
 (defmacro with-api-backend (backend &body body)
-  "Execute the client api function calling backend"
+  "Execute the client resource operation calling backend"
   `(call-with-api-backend ,backend (lambda () ,@body)))
 
 (defun call-with-api-backend (backend function)
@@ -140,26 +140,26 @@
 
 (defgeneric api-dispatch-request (api request)
   (:method ((api api-definition) request)
-    (flet ((api-function-dispatch ()
+    (flet ((resource-operation-dispatch ()
 	     (let ((*development-mode* (development-mode hunchentoot:*acceptor*)))
 	       (loop for resource in (list-api-resources api)
 		  when (resource-matches-request-p resource request)
 		  do
-		    (loop for api-function in (list-api-resource-functions resource)
-		       when (api-function-matches-request-p api-function request)
+		    (loop for resource-operation in (list-api-resource-functions resource)
+		       when (resource-operation-matches-request-p resource-operation request)
 		       do (return-from api-dispatch-request
 			    (if (equalp (hunchentoot:request-method request) :options)
 				(progn
-				  (api-function-http-options api api-function)
+				  (resource-operation-http-options api resource-operation)
 				  "")
 					; else
-				(let* ((*api-function* api-function)
-				       (api-function-implementation
-					(find-api-function-implementation (name api-function)))
+				(let* ((*resource-operation* resource-operation)
+				       (resource-operation-implementation
+					(find-resource-operation-implementation (name resource-operation)))
 				       (result 
 					(api-execute-function-implementation
 					 api
-					 api-function-implementation
+					 resource-operation-implementation
 					 resource
 					 request)))
 				  (if (stringp result) result (prin1-to-string result)))))))
@@ -185,10 +185,10 @@
 			(progn
 			  (resource-http-options resource api)
 			  "")))
-		;; else, try to dispatch an api function
-		(api-function-dispatch)))
-	  ;; else, dispatch to an api function
-	  (api-function-dispatch)))))
+		;; else, try to dispatch an resource operation
+		(resource-operation-dispatch)))
+	  ;; else, dispatch to an resource operation
+	  (resource-operation-dispatch)))))
 
 (defmacro implement-api (api-name options &body resource-implementations)
   "Implement an api"
@@ -222,21 +222,21 @@
   (:documentation "Overwrite this in decorations"))
 
 (defmethod api-execute-function-implementation ((api-definition api-definition)
-						api-function-implementation
+						resource-operation-implementation
 						resource
 						request)
   (resource-execute-function-implementation
    resource
-   api-function-implementation
+   resource-operation-implementation
    request))
 
 (defmethod list-api-resources ((api-definition api-definition))
   (loop for resource being the hash-values of (resources api-definition)
        collect resource))
 
-(defmethod api-functions ((api-definition api-definition))
+(defmethod resource-operations ((api-definition api-definition))
   (loop for resource in (list-api-resources api-definition)
-     appending (alexandria:hash-table-values (api-functions resource))))
+     appending (alexandria:hash-table-values (resource-operations resource))))
 
 ;; Parsing
 
@@ -259,11 +259,11 @@
 
 (defun uri-match-p (uri-prefix request-uri)
   (cl-ppcre:scan 
-   (parse-api-function-path uri-prefix)
+   (parse-resource-operation-path uri-prefix)
    request-uri))
 
-(defun url-pattern (api-function)
-  (parse-api-function-path (path api-function)))
+(defun url-pattern (resource-operation)
+  (parse-resource-operation-path (path resource-operation)))
 
 (defun replace-vars-in-url (url plist)
   (labels ((do-replace (url plist)
@@ -287,7 +287,7 @@
 
 (defun parse-api-url (request-string)
   (multiple-value-bind (scanner vars)
-	(parse-api-function-path (request-uri-prefix request-string))
+	(parse-resource-operation-path (request-uri-prefix request-string))
     (let ((parameters 
 	   (when (find #\? request-string)
 	     (parse-parameters 
@@ -295,7 +295,7 @@
 	      ))))
       (values scanner vars parameters))))
 
-(defun parse-api-function-path (string)
+(defun parse-resource-operation-path (string)
   (let* ((vars nil)
 	 (path-regex (remove 
 			    nil
@@ -349,8 +349,8 @@
     (:list (split-sequence:split-sequence #\, string))
     (t string)))
 
-(defun extract-function-arguments (api-function request)
-  (let ((scanner (parse-api-function-path (path api-function))))
+(defun extract-function-arguments (resource-operation request)
+  (let ((scanner (parse-resource-operation-path (path resource-operation))))
     (multiple-value-bind (replaced-uri args) 
 	(ppcre:scan-to-strings scanner (hunchentoot:request-uri request))
       (declare (ignore replaced-uri))
@@ -359,13 +359,13 @@
 		     collect arg)))
 	(let ((required-args
 	       (loop
-		  for reqarg in (required-arguments api-function)
+		  for reqarg in (required-arguments resource-operation)
 		  for arg in args
 		  collect (parse-var-value arg (second reqarg))))
 	      (optional-args
 	       (loop 
 		  for (var . string) in (request-uri-parameters (hunchentoot:request-uri request))
-		  for optarg = (find-optional-argument (make-keyword var) api-function)
+		  for optarg = (find-optional-argument (make-keyword var) resource-operation)
 		  appending 
 		  (list (make-keyword (symbol-name (first optarg)))
                         (parse-var-value string (second optarg))))))
@@ -444,8 +444,8 @@
 	   (error 'http-not-found-error)
 	   (progn ,@body)))))
 
-(defclass content-fetching-api-function-implementation-decoration
-    (api-function-implementation-decoration)
+(defclass content-fetching-resource-operation-implementation-decoration
+    (resource-operation-implementation-decoration)
   ((function :initarg :function
 	     :accessor content-fetching-function
 	     :initform (error "Provide the content fetching function")
@@ -460,27 +460,27 @@
 	 :documentation "Content binding spec"))
   (:metaclass closer-mop:funcallable-standard-class))
   
-(defmethod process-api-function-implementation-option
+(defmethod process-resource-operation-implementation-option
     ((option (eql :fetch-content))
-     api-function-implementation
+     resource-operation-implementation
      &rest args &key enabled #+abcl &allow-other-keys)
   (if enabled
-      (apply #'make-instance 'content-fetching-api-function-implementation-decoration
-		     `(:decorates ,api-function-implementation ,@args :allow-other-keys t))
-      api-function-implementation))
+      (apply #'make-instance 'content-fetching-resource-operation-implementation-decoration
+		     `(:decorates ,resource-operation-implementation ,@args :allow-other-keys t))
+      resource-operation-implementation))
   
-(defmethod execute :around ((decoration content-fetching-api-function-implementation-decoration)
+(defmethod execute :around ((decoration content-fetching-resource-operation-implementation-decoration)
 			    &rest args)
   (let ((fargs 
-	 (extract-function-arguments-to-plist *api-function* hunchentoot:*request*)))
+	 (extract-function-arguments-to-plist *resource-operation* hunchentoot:*request*)))
     (with-content (content (funcall (content-fetching-function decoration)
 				    (getf (content-fetching-argument decoration) fargs)))
       (apply #'call-next-method (cons content args)))))
 
-(cl-annot:defannotation fetch-content (args api-function-implementation)
+(cl-annot:defannotation fetch-content (args resource-operation-implementation)
     (:arity 2)
-  `(configure-api-function-implementation
-    (name (api-function ,api-function-implementation))
+  `(configure-resource-operation-implementation
+    (name (resource-operation ,resource-operation-implementation))
     (list :fetch-content ,@args)))
 
 ;; Generic permission checking
@@ -494,30 +494,30 @@
       (error 'http-forbidden-error)
       (funcall function)))
 
-(defclass permission-checking-api-function-implementation-decoration
-    (api-function-implementation-decoration)
+(defclass permission-checking-resource-operation-implementation-decoration
+    (resource-operation-implementation-decoration)
   ((check :initarg :check
 	  :accessor permission-check
 	  :initform (error "Provide the permission checking function")
 	  :documentation "Function for permission checking"))
   (:metaclass closer-mop:funcallable-standard-class))
   
-(defmethod process-api-function-implementation-option
+(defmethod process-resource-operation-implementation-option
     ((option (eql :permission-checking))
-     api-function-implementation
+     resource-operation-implementation
      &rest args &key enabled #+abcl &allow-other-keys)
   (if enabled
-      (apply #'make-instance 'permission-checking-api-function-implementation-decoration
-		     `(:decorates ,api-function-implementation ,@args :allow-other-keys t))
-      api-function-implementation))
+      (apply #'make-instance 'permission-checking-resource-operation-implementation-decoration
+		     `(:decorates ,resource-operation-implementation ,@args :allow-other-keys t))
+      resource-operation-implementation))
   
-(defmethod execute :around ((decoration permission-checking-api-function-implementation-decoration)
+(defmethod execute :around ((decoration permission-checking-resource-operation-implementation-decoration)
 			    &rest args)
     (with-permission-checking (apply (permission-check decoration) args)
       (call-next-method)))
 
-(cl-annot:defannotation permission-checking (args api-function-implementation)
+(cl-annot:defannotation permission-checking (args resource-operation-implementation)
     (:arity 2)
-  `(configure-api-function-implementation
-    (name (api-function ,api-function-implementation))
+  `(configure-resource-operation-implementation
+    (name (resource-operation ,resource-operation-implementation))
     (list :permission-checking ,@args)))

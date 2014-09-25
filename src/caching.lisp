@@ -1,7 +1,7 @@
 (in-package :rest-server)
 
-(defun extract-function-arguments-to-plist (api-function request)
-  (let ((scanner (parse-api-function-path (path api-function))))
+(defun extract-function-arguments-to-plist (resource-operation request)
+  (let ((scanner (parse-resource-operation-path (path resource-operation))))
     (multiple-value-bind (replaced-uri args) 
 	(ppcre:scan-to-strings scanner (hunchentoot:request-uri request))
       (declare (ignore replaced-uri))
@@ -10,7 +10,7 @@
 		     collect arg)))
 	(let ((required-args
 	       (loop
-		  for reqarg in (required-arguments api-function)
+		  for reqarg in (required-arguments resource-operation)
 		  for arg in args
 		  appending
 		    (list (make-keyword (symbol-name (first reqarg)))
@@ -18,27 +18,27 @@
 	      (optional-args
 	       (loop 
 		  for (var . string) in (request-uri-parameters (hunchentoot:request-uri request))
-		  for optarg = (find-optional-argument (make-keyword var) api-function)
+		  for optarg = (find-optional-argument (make-keyword var) resource-operation)
 		  appending 
 		  (list (make-keyword (symbol-name (first optarg)))
                         (parse-var-value string (second optarg))))))
 	  (append required-args optional-args))))))
 
-(defgeneric clear-cache (api-function-implementation &optional id)
-  (:method ((api-function-name symbol) &optional id)
-    (clear-cache (find-api-function-implementation api-function-name) id))
-  (:method ((decoration api-function-implementation-decoration) &optional id)
+(defgeneric clear-cache (resource-operation-implementation &optional id)
+  (:method ((resource-operation-name symbol) &optional id)
+    (clear-cache (find-resource-operation-implementation resource-operation-name) id))
+  (:method ((decoration resource-operation-implementation-decoration) &optional id)
     (clear-cache (decorates decoration) id))
-  (:method ((api-function-implementation t) &optional id)
+  (:method ((resource-operation-implementation t) &optional id)
     ;; Do nothing
     ))
 
-(defclass caching-api-function-implementation-decoration
-    (api-function-implementation-decoration)
+(defclass caching-resource-operation-implementation-decoration
+    (resource-operation-implementation-decoration)
   ()
   (:metaclass closer-mop:funcallable-standard-class))
 
-(defclass etag-validation-decoration (caching-api-function-implementation-decoration)
+(defclass etag-validation-decoration (caching-resource-operation-implementation-decoration)
   ((etags :initarg :etags
 	  :initform (make-hash-table :test #'equalp)
 	  :accessor etags
@@ -51,7 +51,7 @@
 	       :initform nil
 	       :accessor content-id
 	       :documentation "The id that identifies the content.
-For instance, if the api-function fetches users, then it's the api function {id} parameter"))
+For instance, if the resource-operation fetches users, then it's the resource operation {id} parameter"))
   (:metaclass closer-mop:funcallable-standard-class))
 
 (defmethod clear-cache ((etag-validation etag-validation-decoration) &optional id)
@@ -60,13 +60,13 @@ For instance, if the api-function fetches users, then it's the api function {id}
       ; else
       (setf (etag etag-validation) nil)))
 
-(defclass last-modified-validation-decoration (caching-api-function-implementation-decoration)
+(defclass last-modified-validation-decoration (caching-resource-operation-implementation-decoration)
   ()
   (:metaclass closer-mop:funcallable-standard-class))
 
-(defmethod process-api-function-implementation-option
+(defmethod process-resource-operation-implementation-option
     ((option (eql :caching))
-     api-function-implementation
+     resource-operation-implementation
      &rest args
      &key
        (type :etag)
@@ -79,10 +79,10 @@ For instance, if the api-function fetches users, then it's the api function {id}
 	(ecase type
 	  (:etag (apply #'make-instance
 			'etag-validation-decoration
-			`(:decorates ,api-function-implementation
+			`(:decorates ,resource-operation-implementation
 				     ,@args)))
 	  (:last-modified (error "Not implemented")))
-	api-function-implementation)))
+	resource-operation-implementation)))
 
 (defmethod generate-etag ((decoration etag-validation-decoration)
 			  thing)
@@ -94,7 +94,7 @@ For instance, if the api-function fetches users, then it's the api function {id}
 (defmethod execute :around ((decoration etag-validation-decoration)
 			    &rest args)
   (let ((args 
-	 (extract-function-arguments-to-plist *api-function* hunchentoot:*request*)))
+	 (extract-function-arguments-to-plist *resource-operation* hunchentoot:*request*)))
     (flet ((get-etag ()
 	     (if (content-id decoration)
 		 (let ((id (getf args (content-id decoration))))
@@ -128,9 +128,9 @@ For instance, if the api-function fetches users, then it's the api function {id}
 		;; Output response
 		content)))))))
 
-(cl-annot:defannotation caching (args api-function-implementation)
+(cl-annot:defannotation caching (args resource-operation-implementation)
     (:arity 2)
-  `(configure-api-function-implementation
-    (name (api-function ,api-function-implementation))
+  `(configure-resource-operation-implementation
+    (name (resource-operation ,resource-operation-implementation))
     (list :caching ,@args)))
 
