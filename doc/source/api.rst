@@ -40,19 +40,19 @@ Resource options
 - ``:path``: The resource path. Should start with the `/` character. Ex: `"/users"`
 - ``:models``: A list of `models` used by the resource
 
-API functions
-=============
+Resource operations
+===================
 
-API functions belong to resources. They are the operations to be executed on the resource.
+Resources provide a set of operations to access them.
 
 They have the following syntax:
 
 .. code-block:: common-lisp
 
-   (<api-function-name> <api-function-options> <api-function-arguments>)
+   (<resource-operation-name> <resource-operation-options> <resource-operation-arguments>)
 
-API function options
-^^^^^^^^^^^^^^^^^^^^
+Resource operation options
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - ``:request-method``: The HTTP request method
 - ``:path``: The operation path. Arguments in the operation are enclosed between ``{}``. For example: ``"/users/{id}"``.  
@@ -61,8 +61,8 @@ API function options
 - ``:authorizations``: A list with the authorizations required for the operation. Can be one of ``:token``, ``:oauth``, ``:oauth``, or a custom authorization type.  
 - ``:documentation``: A string describing the operation. This appears in the generated API documentation.
 
-API function arguments
-^^^^^^^^^^^^^^^^^^^^^^
+Resource operation arguments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Arguments lists have the following syntax:
 
@@ -134,14 +134,75 @@ Here is a complete example of an API interface:
 				       :documentation "Retrive an user")
 		      ((id :integer "The user id")
 		       &optional
-		       (expand :list nil "Attributes to expand")))
-
-Accessing the API
------------------
-
+		       (expand :list nil "Attributes to expand")))))
 
 API implementation
 ------------------
 
-APIs need to implement its resources operations.
+APIs need to implement its resources operations. This is done via the :cl:function:`implement-resource-operation` macro.
+
+.. cl:macro:: implement-resource-operation
+
+The required arguments of the resource operation appear as normal arguments in the function, in the order in which they were declared. The optional arguments of a resource operation appear as `&key` arguments of the function. In case the resource operation request method is either **PUT** or **POST**, then a ``posted-content` argument should be added to the implementation function as the first argument.
+
+Some examples:
+
+For this operation::
+
+  (get-user (:request-method :get
+   		       :produces (:json)
+		       :path "/users/{id}"
+		       :documentation "Retrive an user")
+		      ((id :integer "The user id")
+		       &optional
+		       (expand :list nil "Attributes to expand")))
+  
+The following resource implementation should be defined::
+
+  (implement-resource-operation get-user (id &key expand)
+     (serialize (find-user id) :expand expand))
+
+And for this POST operation::
+
+  (create-user (:request-method :post
+			       :consumes (:json)
+			       :path "/users"
+			       :documentation "Create a user"
+			       :body-type user)
+		      ())
+
+The ``posted-content`` argument should be included::
+
+  (implement-resource-operation create-user (posted-content)
+     (with-posted-content (name age) posted-content
+         (serialize (model:create-user :name name :age age))))
+
+Starting the API
+----------------
+
+APIs are started calling the function :cl:function:`start-api`
+
+.. cl:function:: start-api
+		       
+
+Accessing the API
+-----------------
+
+The :cl:function:`define-api` macro creates a function for accessing the api for each resource operation.
+
+Before using the generated functions, the api backend needs to be selected via the :cl:function:`with-api-backend`.
+
+.. cl:macro:: with-api-backend
+
+For instance, for the api defined above, an ``get-user`` and a ``get-users`` functions are created, which can be used like this::
+
+  (with-api-backend "http://localhost/api"
+     (get-user 22))
+
+Assuming the api is running on http://localhost/api     
+
+
+
+
+
 
