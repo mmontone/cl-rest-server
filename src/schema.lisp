@@ -131,7 +131,7 @@
 	schema)))
 
 (defun validate-with-schema (schema string-or-data &optional (format :json))
-  "Validate input using schema. Useful for validate api function posted content (for :post and :put methods). Input can be a string or an association list."
+  "Validate input using schema. Useful for validate resource operation posted content (for :post and :put methods). Input can be a string or an association list."
   (let ((data (if (stringp string-or-data)
 		  (parse-api-input format string-or-data)
 		  string-or-data)))

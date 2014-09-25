@@ -18,7 +18,7 @@
    (resource-operations :initarg :resource-operations
 		  :initform (make-hash-table :test #'equalp)
 		  :accessor resource-operations
-		  :documentation "The api functions of the resource")
+		  :documentation "The resource operations of the resource")
    (models :initarg :models
 	   :initform nil
 	   :accessor resource-models
@@ -38,8 +38,8 @@
    (options :initarg :options
 	    :initform nil
 	    :accessor resource-options
-	    :documentation "Options applied to resource api functions. Can be overwritten in api function options"))
-  (:documentation "An api resource. Contains api functions"))
+	    :documentation "Options applied to resource resource operations. Can be overwritten in resource operation options"))
+  (:documentation "An api resource. Contains resource operations"))
 
 (defmethod print-object ((api-resource api-resource) stream)
   (print-unreadable-object (api-resource stream :type t :identity t)
@@ -142,7 +142,7 @@
 	    (resource (find-api-resource ',name :api api)))
        (process-api-resource-options resource ',options)
 
-       ;; Define api function implementations
+       ;; Define resource operation implementations
        ,@(loop for resource-operation-implementation in resource-operations-implementations
 	    collect `(implement-resource-operation ,api-name ,@resource-operation-implementation)))))
 

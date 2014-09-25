@@ -51,7 +51,7 @@
 	       :initform nil
 	       :accessor content-id
 	       :documentation "The id that identifies the content.
-For instance, if the resource-operation fetches users, then it's the api function {id} parameter"))
+For instance, if the resource-operation fetches users, then it's the resource operation {id} parameter"))
   (:metaclass closer-mop:funcallable-standard-class))
 
 (defmethod clear-cache ((etag-validation etag-validation-decoration) &optional id)

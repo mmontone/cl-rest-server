@@ -32,7 +32,7 @@
      ,@body))
 
 (defmacro define-resource-operation (name attributes args &rest options)
-  "Helper macro to define an api function"
+  "Helper macro to define an resource operation"
   `(make-resource-operation ',name ',attributes ',args ',options))
 
 (defclass resource-operation ()
@@ -41,8 +41,8 @@
 	 :initform (error "Provide the name"))
    (path :initarg :path
 	 :accessor path
-	 :initform (error "Provide the api function path")
-	 :documentation "The api function path")
+	 :initform (error "Provide the resource operation path")
+	 :documentation "The resource operation path")
    (request-method :initarg :request-method
 		   :accessor request-method
 		   :initform :get)
@@ -72,21 +72,21 @@
    (authorizations :initarg :authorizations
 		   :accessor authorizations
 		   :initform nil
-		   :documentation "Api function authorizations spec")
+		   :documentation "resource operation authorizations spec")
    (options :initarg :options
             :accessor options
             :initform nil
-	    :documentation "API function options. Extensible. Pluggins data goes here.")
+	    :documentation "resource operation options. Extensible. Pluggins data goes here.")
    (summary :initarg :summary
 	    :accessor api-summary
 	    :initform nil
-	    :documentation "API function short description")
+	    :documentation "resource operation short description")
    (documentation :accessor api-documentation
 		  :initarg :documentation
 		  :initform nil
-		  :documentation "API function description"))
+		  :documentation "resource operation description"))
   (:metaclass closer-mop:funcallable-standard-class)
-  (:documentation "The api function description"))
+  (:documentation "The resource operation description"))
 
 ;; resource-operation
 
@@ -113,13 +113,13 @@
   ;; Validate the function
   (validate resource-operation)
 
-  ;; Install the api function
+  ;; Install the resource operation
   (when *register-resource-operation*
     (let ((resource (or *api-resource* (error "Specify the api resource"))))
-      ;; Validate the resource path and the api function path
+      ;; Validate the resource path and the resource operation path
       (when (not (cl-ppcre:scan (format nil "^~A" (resource-path resource))
 				(path resource-operation)))
-	(error "The resource path ~A and the api function path ~A don't match"
+	(error "The resource path ~A and the resource operation path ~A don't match"
 	       (resource-path resource)
 	       (path resource-operation)))
       (setf (gethash (name resource-operation) (resource-operations resource))
@@ -181,7 +181,7 @@
 		 "Argument ~a not declared in ~a" arg resource-operation))))
 
 (defun make-resource-operation (name attributes args options)
-  "Make an api function."
+  "Make an resource operation."
   (multiple-value-bind (required-arguments optional-arguments)
       (parse-resource-operation-arguments args)
     (apply #'make-instance 'resource-operation
@@ -200,14 +200,14 @@
        do (return-from find-resource-operation
 	    (gethash function-name (resource-operations resource))))
   (when error-p
-    (error "api function not found ~A" function-name)))
+    (error "resource operation not found ~A" function-name)))
 
 (defmethod format-api-url ((api-name symbol) function-name &rest args)
   (let ((api (find-api api-name)))
-    (apply #'format-api-url api function-name args)))
+    (apply #'format-api-url resource operation-name args)))
 
 (defmethod format-api-url ((api api-definition) function-name &rest args)
-  (let ((resource-operation (find-resource-operation api function-name)))
+  (let ((resource-operation (find-resource-operation resource operation-name)))
     (replace-vars-in-url (url-pattern resource-operation) args)))
 
 (defmethod resource-operation-http-options ((api api-definition)
@@ -217,9 +217,9 @@
 
 (defclass resource-operation-implementation ()
   ((resource-operation :initarg :resource-operation
-		 :initform (error "Provide the api function")
+		 :initform (error "Provide the resource operation")
 		 :accessor resource-operation
-		 :documentation "The api function that is implemented")
+		 :documentation "The resource operation that is implemented")
    (primary :initarg :primary
 	    :initform (error "Provide the primary function")
 	    :accessor primary
@@ -245,7 +245,7 @@
     (apply (primary resource-operation-implementation) args)))
 
 (defmacro implement-resource-operation (api-name name-and-options args &body body)
-  "Define an api function implementation"
+  "Define an resource operation implementation"
   (multiple-value-bind (name options)
       (if (listp name-and-options)
 	  (values (first name-and-options)
@@ -279,7 +279,7 @@
       (if (member (request-method resource-operation) (list :put :post))
 	  (progn
 	    (ensure (equalp (symbol-name (first args)) "POSTED-CONTENT")
-		    "POSTED-CONTENT argument was not provided as first parameter of the api function implementation")
+		    "POSTED-CONTENT argument was not provided as first parameter of the resource operation implementation")
 	    (loop for arg0 in (cdr (required-arguments resource-operation))
 	       for arg1 in required
 	       do
@@ -287,7 +287,7 @@
 		       (arg1-name arg1))
 		   (ensure (equalp (symbol-name arg0-name)
 				   (symbol-name arg1-name))
-			   "Invalid api function implementation args list: ~A <> ~A"
+			   "Invalid resource operation implementation args list: ~A <> ~A"
 			   arg0-name arg1-name))))
 	  ;; else
 	  (loop for arg0 in (required-arguments resource-operation)
@@ -297,7 +297,7 @@
 		     (arg1-name arg1))
 		 (ensure (equalp (symbol-name arg0-name)
 				 (symbol-name arg1-name))
-			 "Invalid api function implementation args list: ~A <> ~A"
+			 "Invalid resource operation implementation args list: ~A <> ~A"
 			 arg0-name arg1-name))))
       (let ((optional-args-names
 	     (mapcar (alexandria:compose #'symbol-name #'cadar)
@@ -310,12 +310,12 @@
 	     (ensure (member optional-arg
 			     resource-operation-optional-args
 			     :test #'equalp)
-		     "Optional argument ~A not found in api function implementation args"
+		     "Optional argument ~A not found in resource operation implementation args"
 		     optional-arg))))))		   
 
 (defun configure-resource-operation-implementation
     (name &rest options)
-  "Configure or reconfigure an already existent api function implementation"
+  "Configure or reconfigure an already existent resource operation implementation"
   (let* ((resource-operation-implementation
 	  (find-resource-operation-implementation name)))
     (let ((processed-resource-operation resource-operation-implementation))
@@ -369,7 +369,7 @@
 
 (defun find-resource-operation-implementation (name)
   (or (get name :resource-operation-implementation)
-      (error "Api function ~A not implemented" name)))
+      (error "resource operation ~A not implemented" name)))
 
 (defun execute-resource-operation-implementation (function-implementation request)
   (let ((resource-operation (resource-operation function-implementation)))
@@ -404,7 +404,7 @@
 ;; url formatting
 
 (defgeneric format-resource-operation-url (resource-operation &rest args)
-  (:documentation "Print the api function url")
+  (:documentation "Print the resource operation url")
   (:method ((resource-operation resource-operation) &rest args)
     (let ((url-noparams
 	   (replace-vars-in-url (url-pattern-noparams resource-operation) args))
@@ -503,7 +503,7 @@
 			(list '(content-type "application/json"))))))
 	   ,(api-documentation resource-operation)
            (log5:log-for (rest-server) "Client stub: ~A" ',(name resource-operation))
-           (assert *api-backend* nil "Error: this is an API function. No api backend selected. Wrap this function call with with-api-backend")
+           (assert *api-backend* nil "Error: this is an resource operation. No api backend selected. Wrap this function call with with-api-backend")
            (let ((,request-url (format nil "~A~A" 
                                        *api-backend* 
                                        (replace-vars-in-url 
@@ -582,7 +582,7 @@
       (call-next-method)))
     
 (defmacro implement-resource-operation-case (name accept-content-type args &body body)
-  "Implement an api function case"
+  "Implement an resource operation case"
   `(configure-resource-operation-implementation
     ',name
     (list

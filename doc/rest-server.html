@@ -335,8 +335,8 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#API-definition-and-implementation">API
 
      <ul>
 <li><code>:method</code>. The HTTP method. One of :get, :post, :put, :delete
-<li><code>:uri-prefix</code>. The api function uri prefix. Should start with &ldquo;/&rdquo;, and encloses required arguments between { and }. Example: &ldquo;/users/{id}&rdquo;
-<li><code>:documentation</code>. The api function documentation string. 
+<li><code>:uri-prefix</code>. The resource operation uri prefix. Should start with &ldquo;/&rdquo;, and encloses required arguments between { and }. Example: &ldquo;/users/{id}&rdquo;
+<li><code>:documentation</code>. The resource operation documentation string. 
 </ul>
 
    <p>and <code>&lt;resource-operation-arguments&gt;</code> being a lambda-list like list with support for <code>&amp;optional</code> arguments, but no keyword arguments. Besides, each argument declaration has the form <code>(&lt;argument-name&gt; &lt;argument-type&gt; &lt;argument-docstring&gt;)</code> for required arguments and <code>(&lt;argument-name&gt; &lt;argument-type&gt; &lt;default-value&gt; &lt;argument-docstring&gt;)</code> for optional values.
@@ -364,7 +364,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#API-definition-and-implementation">API
 <p><a name="index-API-8"></a>
 The API is supposed to be implemented in a separate package, using the <code>implement-resource-operation</code> macro. Arguments are injected with parsed values (using the argument type in the declaration). Besides, optional arguments in the declaration are assumed to be keyword arguments in the implementation. When the HTTP method is POST, or PUT, the variable name posted-content is filled with the HTTP request posted content.
 
-   <p>For instance, when updating a user, we had the following api function declaration:
+   <p>For instance, when updating a user, we had the following resource operation declaration:
 
 <pre class="example">     (update-user (:method :put
                    :content-types (list :json)
@@ -372,7 +372,7 @@ The API is supposed to be implemented in a separate package, using the <code>imp
                    :documentation "Update a user")
                ((id :string "The user id")))
 </pre>
-   <p>To implement that api function, we do:
+   <p>To implement that resource operation, we do:
 
 <pre class="example">     (implement-resource-operation update-user (posted-content id)
        (format nil "Update user: ~A ~A" id posted-content))
@@ -809,7 +809,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 <div class="defun">
 &mdash; Function: <b>rest-server:make-resource-operation</b><var> name method options args<a name="index-rest_002dserver_003amake_002dapi_002dfunction-32"></a></var><br>
-<blockquote><p><a name="index-rest_002dserver_003amake_002dapi_002dfunction-33"></a>Make an api function. 
+<blockquote><p><a name="index-rest_002dserver_003amake_002dapi_002dfunction-33"></a>Make an resource operation. 
 </p></blockquote></div>
 
    <p><a name="Function-rest_002dserver_003aserializable_002dclass_002dschema"></a>
@@ -859,7 +859,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 <div class="defun">
 &mdash; Macro: <b>rest-server:define-resource-operation</b><var> name method options args<a name="index-rest_002dserver_003adefine_002dapi_002dfunction-46"></a></var><br>
-<blockquote><p><a name="index-rest_002dserver_003adefine_002dapi_002dfunction-47"></a>Helper macro to define an api function
+<blockquote><p><a name="index-rest_002dserver_003adefine_002dapi_002dfunction-47"></a>Helper macro to define an resource operation
 </p></blockquote></div>
 
    <p><a name="Macro-rest_002dserver_003adefine_002dapi"></a>
@@ -887,14 +887,14 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
 
 <div class="defun">
 &mdash; Macro: <b>rest-server:implement-resource-operation</b><var> name-and-options args &amp;body body<a name="index-rest_002dserver_003aimplement_002dapi_002dfunction-54"></a></var><br>
-<blockquote><p><a name="index-rest_002dserver_003aimplement_002dapi_002dfunction-55"></a>Define an api function implementation
+<blockquote><p><a name="index-rest_002dserver_003aimplement_002dapi_002dfunction-55"></a>Define an resource operation implementation
 </p></blockquote></div>
 
    <p><a name="Macro-rest_002dserver_003awith_002dapi_002dbackend"></a>
 
 <div class="defun">
 &mdash; Macro: <b>rest-server:with-api-backend</b><var> backend &amp;body body<a name="index-rest_002dserver_003awith_002dapi_002dbackend-56"></a></var><br>
-<blockquote><p><a name="index-rest_002dserver_003awith_002dapi_002dbackend-57"></a>Execute the client api function calling backend
+<blockquote><p><a name="index-rest_002dserver_003awith_002dapi_002dbackend-57"></a>Execute the client resource operation calling backend
 </p></blockquote></div>
 
    <p><a name="Macro-rest_002dserver_003awith_002dapi"></a>

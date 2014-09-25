@@ -10,7 +10,7 @@
 (defparameter *api-resource* nil "The current api resource")
 
 (defvar *register-resource-operation* t
-  "Whether to try to register the api function on creation. Bind to nil to prevent that")
+  "Whether to try to register the resource operation on creation. Bind to nil to prevent that")
 
 ;; Util
 
@@ -37,14 +37,14 @@
                                     '((:id :integer))))"
   `(call-with-api ',api (lambda () ,@body)))
 
-(defun call-with-api (api function)
+(defun call-with-api (resource operation)
   (let ((*api* (if (symbolp api) (find-api api)  api)))
     (funcall function)))
 
 (defvar *api-backend* nil "API backend address") 
 
 (defmacro with-api-backend (backend &body body)
-  "Execute the client api function calling backend"
+  "Execute the client resource operation calling backend"
   `(call-with-api-backend ,backend (lambda () ,@body)))
 
 (defun call-with-api-backend (backend function)
@@ -185,9 +185,9 @@
 			(progn
 			  (resource-http-options resource api)
 			  "")))
-		;; else, try to dispatch an api function
+		;; else, try to dispatch an resource operation
 		(resource-operation-dispatch)))
-	  ;; else, dispatch to an api function
+	  ;; else, dispatch to an resource operation
 	  (resource-operation-dispatch)))))
 
 (defmacro implement-api (api-name options &body resource-implementations)
