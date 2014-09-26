@@ -24,7 +24,9 @@
 	   (swagger-api-spec (find-api ',api-name)))
 
 	 ;; Configure the API to work with Swagger
-	 (configure-api ',api-name '(:swagger))
+	 (configure-api ',api-name
+			'(:swagger)
+			'(:cors :enabled t))
      
 	 ,@(loop for resource in (list-api-resources api)
 	      collect
