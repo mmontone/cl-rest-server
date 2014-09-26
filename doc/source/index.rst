@@ -17,6 +17,8 @@ Contents:
    install
    api
    error-handling
+   api-configuration
+   documentation
    symbols
 
 Indices and tables
