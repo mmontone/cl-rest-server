@@ -1,5 +1,0 @@
-@anchor{Function rest-server:serializable-class-schema}
-@deffn {Function} rest-server:serializable-class-schema serializable-class
-@findex rest-server:serializable-class-schema
-Generate a schema using the serializable class meta info
-@end deffn

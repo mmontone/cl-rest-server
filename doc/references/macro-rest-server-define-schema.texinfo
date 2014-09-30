@@ -1,5 +1,0 @@
-@anchor{Macro rest-server:define-schema}
-@deffn {Macro} rest-server:define-schema name schema
-@findex rest-server:define-schema
-Define a schema
-@end deffn

@@ -39,6 +39,7 @@
 	   #:resource-documentation
 	   #:resource-path
 	   #:define-api-resource
+	   #:with-api-resource
 	   #:list-api-resource-functions
 	   #:define-swagger-resource
 	   #:define-resource-operation

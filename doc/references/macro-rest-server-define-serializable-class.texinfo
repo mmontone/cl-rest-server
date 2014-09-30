@@ -1,5 +1,0 @@
-@anchor{Macro rest-server:define-serializable-class}
-@deffn {Macro} rest-server:define-serializable-class name direct-superclasses direct-slots &rest options
-@findex rest-server:define-serializable-class
-Helper macro to define serializable classes
-@end deffn

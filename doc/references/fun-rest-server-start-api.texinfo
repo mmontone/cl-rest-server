@@ -1,6 +1,0 @@
-@anchor{Function rest-server:start-api}
-@deffn {Function} rest-server:start-api api address port &optional api-implementation-package
-@findex rest-server:start-api
-Start an api at address and port.
-   api-implementation-package: is the package where the api-functions are implemented.
-@end deffn

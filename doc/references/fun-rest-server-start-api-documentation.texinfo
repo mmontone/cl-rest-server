@@ -1,5 +1,0 @@
-@anchor{Function rest-server:start-api-documentation}
-@deffn {Function} rest-server:start-api-documentation api address port
-@findex rest-server:start-api-documentation
-Start a web documentation application on the given api.
-@end deffn

@@ -1,5 +1,0 @@
-@anchor{Macro rest-server:with-list-member}
-@deffn {Macro} rest-server:with-list-member name &body body
-@findex rest-server:with-list-member
-Serializes a list member
-@end deffn

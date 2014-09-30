@@ -1,7 +1,0 @@
-@anchor{Class rest-server:serializable-class}
-@deftp {Class} rest-server:serializable-class
-@tindex rest-server:serializable-class
-Class precedence list: @code{@w{serializable-class}, @w{standard-class}, @w{class}, @w{specializer}, @w{metaobject}, @w{standard-object}, @w{t}}
-
-Metaclass for serializable objects
-@end deftp
