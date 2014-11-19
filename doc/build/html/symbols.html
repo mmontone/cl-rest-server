@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API &mdash; Common Lisp REST Server 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootswatch-3.1.0/cosmo/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="Common Lisp REST Server 0.2 documentation" href="index.html" />
+    <link rel="prev" title="Error handling" href="error-handling.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          Common Lisp REST Server</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.2</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            <li class="divider-vertical"></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API definition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#api-implementation">API implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#starting-the-api">Starting the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#accessing-the-api">Accessing the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">API</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">API</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="error-handling.html" title="Previous Chapter: Error handling"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm">&laquo; Error handling</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/symbols.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <div class="section" id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<p>Rest Server external symbols documentation</p>
+<dl class="function">
+<dt id="function:rest-server:configure-api-resource">
+<em class="property">function </em> (<tt class="descname">configure-api-resource</tt> <em>api-or-name</em> <em>resource-name</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>options</em>)<a class="headerlink" href="#function:rest-server:configure-api-resource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:permission-checking">
+<em class="property">macro </em> (<tt class="descname">permission-checking</tt> <em>args</em> <em>resource-operation-implementation</em>)<a class="headerlink" href="#macro:rest-server:permission-checking" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:accept-serializer">
+<em class="property">function </em> (<tt class="descname">accept-serializer</tt>)<a class="headerlink" href="#function:rest-server:accept-serializer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:serialization">
+<em class="property">macro </em> (<tt class="descname">serialization</tt> <em>args</em> <em>resource-operation-implementation</em>)<a class="headerlink" href="#macro:rest-server:serialization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-list-member">
+<em class="property">macro </em> (<tt class="descname">with-list-member</tt> (<em>name</em> <em class="lambda_keyword text-muted">&amp;key</em> (<em>serializer</em> <em>'rest-server::*serializer*</em>) (<em>stream</em> <em>'rest-server::*serializer-output*</em>)) <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-list-member" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serializes a list member</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:implement-resource-operation-case">
+<em class="property">macro </em> (<tt class="descname">implement-resource-operation-case</tt> <em>name</em> <em>accept-content-type</em> <em>args</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:implement-resource-operation-case" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement an resource operation case</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-api">
+<em class="property">macro </em> (<tt class="descname">with-api</tt> <em>api</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute body under api scope.</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="nv">Example:</span>
+<span class="p">(</span><span class="nv">with-api</span> <span class="nv">test-api</span>
+   <span class="p">(</span><span class="nv">define-resource-operation</span> <span class="nv">get-user</span> <span class="ss">:get</span> <span class="p">(</span><span class="ss">:url-prefix</span> <span class="s">&quot;users/{id}&quot;</span><span class="p">)</span>
+                                 <span class="o">&#39;</span><span class="p">((</span><span class="ss">:id</span> <span class="ss">:integer</span><span class="p">))))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-api-backend">
+<em class="property">macro </em> (<tt class="descname">with-api-backend</tt> <em>backend</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-api-backend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the client resource operation calling backend</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:implement-resource-operation">
+<em class="property">macro </em> (<tt class="descname">implement-resource-operation</tt> <em>api-name</em> <em>name-and-options</em> <em>args</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:implement-resource-operation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define an resource operation implementation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:set-reply-content-type">
+<em class="property">function </em> (<tt class="descname">set-reply-content-type</tt> <em>content-type</em>)<a class="headerlink" href="#function:rest-server:set-reply-content-type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-serializer-output">
+<em class="property">macro </em> (<tt class="descname">with-serializer-output</tt> <em>serializer-output</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-serializer-output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the serializer output when executing body.</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="nv">Example:</span>
+<span class="p">(</span><span class="nv">with-serializer-output</span> <span class="nv">s</span>
+   <span class="p">(</span><span class="nv">with-serializer</span> <span class="ss">:json</span>
+      <span class="p">(</span><span class="nv">serialize</span> <span class="nv">user</span><span class="p">)))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:http-error">
+<em class="property">function </em> (<tt class="descname">http-error</tt> <em>status-code</em>)<a class="headerlink" href="#function:rest-server:http-error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:define-schema">
+<em class="property">macro </em> (<tt class="descname">define-schema</tt> <em>name</em> <em>schema</em>)<a class="headerlink" href="#macro:rest-server:define-schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define a schema</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:disable-api-logging">
+<em class="property">function </em> (<tt class="descname">disable-api-logging</tt> <em>api-name</em> <em class="lambda_keyword text-muted">&amp;optional</em> (<em>stop</em> <em>t</em>))<a class="headerlink" href="#function:rest-server:disable-api-logging" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:format-absolute-resource-operation-url">
+<em class="property">function </em> (<tt class="descname">format-absolute-resource-operation-url</tt> <em>resource-operation</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>args</em>)<a class="headerlink" href="#function:rest-server:format-absolute-resource-operation-url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:boolean-value">
+<em class="property">function </em> (<tt class="descname">boolean-value</tt> <em>boolean</em> <em class="lambda_keyword text-muted">&amp;optional</em> (<em>serializer</em> <em>*serializer*</em>) (<em>stream</em> <em>*serializer-output*</em>))<a class="headerlink" href="#function:rest-server:boolean-value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:start-api-documentation">
+<em class="property">function </em> (<tt class="descname">start-api-documentation</tt> <em>api</em> <em>address</em> <em>port</em>)<a class="headerlink" href="#function:rest-server:start-api-documentation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start a web documentation application on the given api.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:list-value">
+<em class="property">function </em> (<tt class="descname">list-value</tt> <em>list</em> <em class="lambda_keyword text-muted">&amp;optional</em> (<em>serializer</em> <em>*serializer*</em>) (<em>stream</em> <em>*serializer-output*</em>))<a class="headerlink" href="#function:rest-server:list-value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:find-schema">
+<em class="property">function </em> (<tt class="descname">find-schema</tt> <em>name</em> <em class="lambda_keyword text-muted">&amp;optional</em> (<em>errorp</em> <em>t</em>))<a class="headerlink" href="#function:rest-server:find-schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find a schema definition by name</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-xml-reply">
+<em class="property">macro </em> (<tt class="descname">with-xml-reply</tt> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-xml-reply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:self-reference">
+<em class="property">function </em> (<tt class="descname">self-reference</tt> <em class="lambda_keyword text-muted">&amp;rest</em> <em>args</em>)<a class="headerlink" href="#function:rest-server:self-reference" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:unserialization">
+<em class="property">macro </em> (<tt class="descname">unserialization</tt> <em>args</em> <em>resource-operation-implementation</em>)<a class="headerlink" href="#macro:rest-server:unserialization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:find-api">
+<em class="property">function </em> (<tt class="descname">find-api</tt> <em>name</em> <em class="lambda_keyword text-muted">&amp;key</em> (<em>error-p</em> <em>t</em>))<a class="headerlink" href="#function:rest-server:find-api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find api by name</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:fetch-content">
+<em class="property">macro </em> (<tt class="descname">fetch-content</tt> <em>args</em> <em>resource-operation-implementation</em>)<a class="headerlink" href="#macro:rest-server:fetch-content" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:serializable-class-schema">
+<em class="property">function </em> (<tt class="descname">serializable-class-schema</tt> <em>serializable-class</em>)<a class="headerlink" href="#function:rest-server:serializable-class-schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a schema using the serializable class meta info</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:stop-api">
+<em class="property">function </em> (<tt class="descname">stop-api</tt> <em>api-acceptor</em>)<a class="headerlink" href="#function:rest-server:stop-api" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:make-resource-operation">
+<em class="property">function </em> (<tt class="descname">make-resource-operation</tt> <em>name</em> <em>attributes</em> <em>args</em> <em>options</em>)<a class="headerlink" href="#function:rest-server:make-resource-operation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make an resource operation.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:configure-resource-operation-implementation">
+<em class="property">function </em> (<tt class="descname">configure-resource-operation-implementation</tt> <em>name</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>options</em>)<a class="headerlink" href="#function:rest-server:configure-resource-operation-implementation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure or reconfigure an already existent resource operation implementation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:configure-api">
+<em class="property">function </em> (<tt class="descname">configure-api</tt> <em>api-or-name</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>options</em>)<a class="headerlink" href="#function:rest-server:configure-api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure or reconfigure an already existent api</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:validation-error">
+<em class="property">function </em> (<tt class="descname">validation-error</tt> <em>message</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>args</em>)<a class="headerlink" href="#function:rest-server:validation-error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:stop-api-logging">
+<em class="property">function </em> (<tt class="descname">stop-api-logging</tt>)<a class="headerlink" href="#function:rest-server:stop-api-logging" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:elements">
+<em class="property">function </em> (<tt class="descname">elements</tt> <em>name</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>elements</em>)<a class="headerlink" href="#function:rest-server:elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a list of elements to be serialized</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:logging">
+<em class="property">macro </em> (<tt class="descname">logging</tt> <em>args</em> <em>resource-operation-implementation</em>)<a class="headerlink" href="#macro:rest-server:logging" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:start-api">
+<em class="property">function </em> (<tt class="descname">start-api</tt> <em>api</em> <em>address</em> <em>port</em> <em class="lambda_keyword text-muted">&amp;optional</em> (<em>development-mode</em> <em>*development-mode*</em>) <em>configuration-args</em>)<a class="headerlink" href="#function:rest-server:start-api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start an api at address and port.</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="nv">In</span> <span class="nv">production</span> <span class="nv">mode,</span> <span class="nv">we</span> <span class="nv">bind</span> <span class="k">the</span> <span class="nv">api</span> <span class="nv">directly.</span> <span class="nv">In</span> <span class="nv">development</span> <span class="nv">mode,</span> <span class="nv">we</span> <span class="nv">only</span> <span class="nv">bind</span> <span class="k">the</span> <span class="o">``</span><span class="nv">API</span><span class="o">``</span> <span class="nv">name</span> <span class="nv">in</span> <span class="nv">order</span> <span class="nv">to</span> <span class="nv">be</span> <span class="nv">able</span> <span class="nv">to</span> <span class="nv">make</span> <span class="nv">modifications</span> <span class="nv">to</span> <span class="k">the</span> <span class="nv">api</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:set-attribute">
+<em class="property">function </em> (<tt class="descname">set-attribute</tt> <em>name</em> <em>value</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>args</em> <em class="lambda_keyword text-muted">&amp;key</em> (<em>serializer</em> <em>*serializer*</em>) (<em>stream</em> <em>*serializer-output*</em>) <em class="lambda_keyword text-muted">&amp;allow-other-keys</em>)<a class="headerlink" href="#function:rest-server:set-attribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serializes an element attribute and value</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:add-list-member">
+<em class="property">function </em> (<tt class="descname">add-list-member</tt> <em>name</em> <em>value</em> <em class="lambda_keyword text-muted">&amp;key</em> (<em>serializer</em> <em>*serializer*</em>) (<em>stream</em> <em>*serializer-output*</em>))<a class="headerlink" href="#function:rest-server:add-list-member" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serializes a list member</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-attribute">
+<em class="property">macro </em> (<tt class="descname">with-attribute</tt> (<em>name</em> <em class="lambda_keyword text-muted">&amp;key</em> (<em>serializer</em> <em>'rest-server::*serializer*</em>) (<em>stream</em> <em>'rest-server::*serializer-output*</em>)) <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-attribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serializes an element attribute</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-json-reply">
+<em class="property">macro </em> (<tt class="descname">with-json-reply</tt> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-json-reply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-list">
+<em class="property">macro </em> (<tt class="descname">with-list</tt> (<em>name</em> <em class="lambda_keyword text-muted">&amp;key</em> (<em>serializer</em> <em>'rest-server::*serializer*</em>) (<em>stream</em> <em>'rest-server::*serializer-output*</em>)) <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serializes an list of elements</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:define-resource-operation">
+<em class="property">macro </em> (<tt class="descname">define-resource-operation</tt> <em>name</em> <em>attributes</em> <em>args</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>options</em>)<a class="headerlink" href="#macro:rest-server:define-resource-operation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper macro to define an resource operation</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:schema">
+<em class="property">macro </em> (<tt class="descname">schema</tt> <em>schema-def</em>)<a class="headerlink" href="#macro:rest-server:schema" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:enable-api-logging">
+<em class="property">function </em> (<tt class="descname">enable-api-logging</tt> <em>api-name</em> <em class="lambda_keyword text-muted">&amp;optional</em> (<em>start</em> <em>t</em>))<a class="headerlink" href="#function:rest-server:enable-api-logging" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:define-serializable-class">
+<em class="property">macro </em> (<tt class="descname">define-serializable-class</tt> <em>name</em> <em>direct-superclasses</em> <em>direct-slots</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>options</em>)<a class="headerlink" href="#macro:rest-server:define-serializable-class" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper macro to define serializable classes</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:validation">
+<em class="property">macro </em> (<tt class="descname">validation</tt> <em>args</em> <em>resource-operation-implementation</em>)<a class="headerlink" href="#macro:rest-server:validation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:error-handling">
+<em class="property">macro </em> (<tt class="descname">error-handling</tt> <em>args</em> <em>resource-operation-implementation</em>)<a class="headerlink" href="#macro:rest-server:error-handling" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-permission-checking">
+<em class="property">macro </em> (<tt class="descname">with-permission-checking</tt> <em>check</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-permission-checking" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-serializer">
+<em class="property">macro </em> (<tt class="descname">with-serializer</tt> <em>serializer</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-serializer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute body in serializer scope. Binds <em>serializer</em> to serializer.</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="nv">Example:</span>
+<span class="p">(</span><span class="nv">with-serializer</span> <span class="ss">:json</span>
+ <span class="p">(</span><span class="nv">serialize</span> <span class="nv">user</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:define-api-resource">
+<em class="property">macro </em> (<tt class="descname">define-api-resource</tt> <em>name</em> <em>options</em> <em>&amp;body</em> <em>functions</em>)<a class="headerlink" href="#macro:rest-server:define-api-resource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define an api resource.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:start-api-logging">
+<em class="property">function </em> (<tt class="descname">start-api-logging</tt>)<a class="headerlink" href="#function:rest-server:start-api-logging" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:define-swagger-resource">
+<em class="property">macro </em> (<tt class="descname">define-swagger-resource</tt> <em>api-name</em>)<a class="headerlink" href="#macro:rest-server:define-swagger-resource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-element">
+<em class="property">macro </em> (<tt class="descname">with-element</tt> (<em>name</em> <em class="lambda_keyword text-muted">&amp;key</em> (<em>serializer</em> <em>'rest-server::*serializer*</em>) (<em>stream</em> <em>'rest-server::*serializer-output*</em>)) <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serializes a serializing element.</p>
+</dd></dl>
+
+<dl class="variable">
+<dt id="variable:rest-server:*development-mode*">
+<em class="property">variable </em><tt class="descname">*development-mode*</tt><a class="headerlink" href="#variable:rest-server:*development-mode*" title="Permalink to this definition">¶</a></dt>
+<dd><p>Api development mode. One of :development, :testing, :production. Influences how errors are handled from the api</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:caching">
+<em class="property">macro </em> (<tt class="descname">caching</tt> <em>args</em> <em>resource-operation-implementation</em>)<a class="headerlink" href="#macro:rest-server:caching" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-api-resource">
+<em class="property">macro </em> (<tt class="descname">with-api-resource</tt> <em>resource</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-api-resource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute body under resource scope.</p>
+<div class="highlight-common-lisp"><div class="highlight"><pre><span class="nv">Example:</span>
+<span class="p">(</span><span class="nv">with-api-resource</span> <span class="nv">users</span>
+   <span class="p">(</span><span class="nv">define-resource-operation</span> <span class="nv">get-user</span> <span class="ss">:get</span> <span class="p">(</span><span class="ss">:url-prefix</span> <span class="s">&quot;users/{id}&quot;</span><span class="p">)</span>
+                                 <span class="o">&#39;</span><span class="p">((</span><span class="ss">:id</span> <span class="ss">:integer</span><span class="p">))))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-content">
+<em class="property">macro </em> (<tt class="descname">with-content</tt> (<em>var</em> <em>content</em>) <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-content" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-pagination">
+<em class="property">macro </em> (<tt class="descname">with-pagination</tt> (<em class="lambda_keyword text-muted">&amp;rest</em> <em>args</em> <em class="lambda_keyword text-muted">&amp;key</em> (<em>page</em> (<em>error</em> <em>&quot;Provide</em> <em>the</em> <em>page&quot;</em>)) (<em>element-name</em> <em>&quot;pagination&quot;</em>) <em class="lambda_keyword text-muted">&amp;allow-other-keys</em>) <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-pagination" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:define-api">
+<em class="property">macro </em> (<tt class="descname">define-api</tt> <em>name</em> <em>options</em> <em>&amp;body</em> <em>resources</em>)<a class="headerlink" href="#macro:rest-server:define-api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define an api.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:element">
+<em class="property">function </em> (<tt class="descname">element</tt> <em>name</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>attributes</em>)<a class="headerlink" href="#function:rest-server:element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build an element to be serialized</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="function:rest-server:attribute">
+<em class="property">function </em> (<tt class="descname">attribute</tt> <em>name</em> <em>value</em> <em class="lambda_keyword text-muted">&amp;optional</em> <em>type</em> <em>formatter</em>)<a class="headerlink" href="#function:rest-server:attribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build an element attribute to be serialized</p>
+</dd></dl>
+
+<dl class="variable">
+<dt id="variable:rest-server:*server-development-mode*">
+<em class="property">variable </em><tt class="descname">*server-development-mode*</tt><a class="headerlink" href="#variable:rest-server:*server-development-mode*" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global server development mode. Takes precedence over <em>development-mode</em> when handling errors</p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-reply-content-type">
+<em class="property">macro </em> (<tt class="descname">with-reply-content-type</tt> (<em>content-type</em>) <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-reply-content-type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="macro">
+<dt id="macro:rest-server:with-posted-content">
+<em class="property">macro </em> (<tt class="descname">with-posted-content</tt> <em>args</em> <em>posted-content</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-posted-content" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2014, Mariano Montone.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
