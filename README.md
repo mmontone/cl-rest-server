@@ -5,6 +5,10 @@ Common Lisp REST Server
 
 [![Build Status](https://travis-ci.org/mmontone/cl-rest-server.svg?branch=master)](https://travis-ci.org/mmontone/cl-rest-server)
 
+Documentation:
+
+[HTML](http://mmontone.github.io/cl-rest-server/doc/build/html)
+
 Features:
 
 * Method matching
@@ -25,5 +29,5 @@ Features:
 * Authentication
   - Different methods (token based, oauth)
 
-* Documentation
+* APIs documentation
   - Via Swagger: http://swagger.wordnik.com
