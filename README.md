@@ -9,6 +9,8 @@ Documentation:
 
 [HTML](http://mmontone.github.io/cl-rest-server/doc/build/html)
 
+[PDF](http://mmontone.github.io/cl-rest-server/doc/build/latex/CommonLispRESTServer.pdf)
+
 Features:
 
 * Method matching
