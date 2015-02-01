@@ -40,4 +40,6 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     )
 	    :serial t))
   :serial t
-  :depends-on (:rest-server :fiveam :cl-html5-parser))
+  :depends-on (:rest-server :fiveam :cl-html5-parser)
+  :perform (asdf:test-op (o c)
+			 (uiop:symbol-call :rest-server-tests :run-tests)))

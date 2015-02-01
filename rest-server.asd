@@ -81,4 +81,5 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :md5
 	       :cl-annot
 	       :dynamic-mixins
-	       :cl-oauth))
+	       :cl-oauth)
+  :in-order-to ((asdf:test-op (asdf:test-op :rest-server-tests))))
