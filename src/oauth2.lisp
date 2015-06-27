@@ -37,7 +37,8 @@
 	  (slot-value authentication 'scopes)))
 
 (defmethod authenticate ((authentication oauth2-authentication))
-  (let ((access-token (hunchentoot:header-in* "Authentication")))
+  (let* ((access-token (hunchentoot:header-in* "Authentication"))
+	(result
     ;; if there's no access token, error
     (if (not access-token)
 	"Provide the token"
@@ -53,12 +54,12 @@
 		(if (not (equalp status 200))
 		    "Invalid token"
 		    ;; else, check that the scopes are ok
-		    (let ((token-scopes (split-sequence:split-sequence #\ 
-								       (getf result :scopes))))
+		    (let ((token-scopes (getf result :scopes)))
 		      (if (not (every (lambda (scope)
 					(member scope token-scopes :test #'equalp))
 				      (scopes authentication)))
-			  "Scope not sufficient")))))))))
+			  "Scope not sufficient")))))))))    
+    result))
 
 
 (defun verify-access-token (access-token)
@@ -82,10 +83,8 @@ Accept: application/json"
 	   :accept "application/json"
 	   :additional-headers `(("Authorization" . ,(format nil "Basic ~A" authorization)))
 	   :parameters nil)
-	(values (if (stringp result) result
-		    (alexandria:alist-plist
-		     (json:decode-json-from-string
-		      (babel:octets-to-string result))))
+	(values (alexandria:alist-plist
+		 (json:decode-json-from-string result))
 		status)))))
 
 (defun exchange-authorization-code (code redirect-uri client-id client-secret &optional (grant-type "authorization_code"))
