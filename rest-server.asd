@@ -48,7 +48,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "error-handling")
 	     (:file "authentication")
 	     (:file "oauth")
-	     #+oauth2(:file "oauth2")
+	     (:file "oauth2")
 	     (:file "api")
 	     (:file "resource")
 	     (:file "resource-operation")
@@ -75,7 +75,6 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :babel
 	       :closer-mop
 	       :group-by
-	       #+oauth2 :anvil-connect
 	       :chronicity
 	       :net-telent-date
 	       :md5

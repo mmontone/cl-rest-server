@@ -7,11 +7,11 @@
 (defpackage :oauth2-test
   (:use :rest-server :cl))
 
-;;(anvil-connect::register-client (list "http://localhost:8183"))
-
-(defparameter *client-id* "2026b7c0-374d-4ba6-b841-0d1b1fcdf02d")
-(defparameter *client-secret* "234eb2440ab2b6d9f03a")
-(defparameter *client-access-token* "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJzdWIiOiIyMDI2YjdjMC0zNzRkLTRiYTYtYjg0MS0wZDFiMWZjZGYwMmQiLCJhdWQiOiIyMDI2YjdjMC0zNzRkLTRiYTYtYjg0MS0wZDFiMWZjZGYwMmQiLCJpYXQiOjE0MDU1NDk3MDU4NzUsInNjb3BlIjoiY2xpZW50In0.RGE2a1pOTTJ6N0JROVBlbG1MTWJmYXBQekZsYjFhZXgzZE41d1NTbkZUQWhhcnd4ZmxjaURwRi1GcXJDRWh3V0Z1VVJlVmp6SmVDU25NZ3BmRWdlY2lNdnhUcUxXbjA2dFZyOTNEdGYtSHU2WEpwZlVudzVDMjlVQVRqZ0xycVh4YVVVall1U0t5cFVEYjM1U1hOSVNmdDkzRHdBc3ZUZDlPU2RIcVNwRlJfbEQzV1RuRHhIXzRrT3BkeU9sd0JkRzd5RWlfbjREbENpOHpnY0RjbTRwS2lkMVBwTnFjUjNRaHduNU5aUVFnc21RVlo0UGtRUHNYM2EtOHFlMmFkY1d3SENnemR2b1lGUG0zQ015bjhmTWU2bkVVa0g5aDc3cjNjMG1iREdkRWE4a0hlcWRHY1dXRVY4N3RfNHdjdldMVE1uSzVhNk5NQ1JpZFlXTDhlLXln")
+(defparameter *resource-server-id* "a7c87ae0-dabe-4b8a-8a45-ee9708696794")
+(defparameter *resource-server-secret* "443c188d-60ce-40e2-b268-69c0c78ad055")
+(defparameter *oauth2-server-url* "http://localhost:8080")
+(defparameter *client-id* "rest-sever-user-client")
+(defparameter *client-secret* "d869c320-e8a0-4bc2-aebb-5feb0035be08")
 
 (in-package :oauth2-test)
 
@@ -24,37 +24,37 @@
 		      :consumes (:json)
 		      :documentation "Users operations"
 		      :path "/users"
-		      :authorizations (:token (:oauth2 :scope (:profile :openid))))
+		      :authorizations (:token (:oauth2 :scopes (:user))))
 	   (get-users (:request-method :get
 				       :produces (:json)
 				       :path "/users"
 				       :documentation "Retrive the users list"
-				       :authorizations (:token (:oauth2 :scope (:profile))))       
+				       :authorizations (:token (:oauth2 :scopes (:user))))
 		      (&optional (expand-groups :boolean nil "Expand groups if true")))
 	   (get-user (:request-method :get
 				      :produces (:json)
 				      :path "/users/{id}"
 				      :documentation "Retrive an user"
-				      :authorizations (:token (:oauth2 :scope (:profile))))
+				      :authorizations (:token (:oauth2 :scopes (:user))))
 		     ((id :integer "The user id")
 		      &optional (expand-groups :boolean nil "Expand groups if true")))
 	   (create-user (:request-method :post
 					 :consumes (:json)
 					 :path "/users"
 					 :documentation "Create a user"
-					 :authorizations (:token (:oauth2 :scope (:profile :admin))))
+					 :authorizations (:token (:oauth2 :scopes (:user :admin))))
 			())
 	   (update-user (:request-method :put
 					 :consumes (:json)
 					 :path "/users/{id}"
 					 :documentation "Update a user"
-					 :authorizations (:token (:oauth2 :scope (:profile :admin))))
+					 :authorizations (:token (:oauth2 :scope (:user :admin))))
 			((id :integer "The user id")))
 	   (delete-user (:request-method :delete
 					 :consumes (:json)
 					 :path "/users/{id}"
 					 :documentation "Delete a user"
-					 :authorizations (:token (:oauth2 :scope (:profile :admin))))
+					 :authorizations (:token (:oauth2 :scopes (:profile :admin))))
 			((id :integer "The user id"))))))
 
 (implement-resource-operation oauth2-api-test
@@ -118,32 +118,39 @@
 (hunchentoot:define-easy-handler (login :uri "/login")
     ()
   (hunchentoot:redirect
-   (format nil "http://localhost:3000/authorize?client_id=~A&redirect_uri=~A&response_type=code&scope=openid+profile"
+   (format nil 
+	   "~A/oauth2/authorize?response_type=code&client_id=~A&redirect_uri=~A&scope=user&state=test"
+	   *oauth2-server-url*
 	   *client-id*
 	   (drakma:url-encode "http://localhost:8184/callback" :utf-8))))
 
 (hunchentoot:define-easy-handler (callback :uri "/callback")
-    (code)
-  (let ((tokens
-	 (anvil-connect::exchange-authorization-code
-	  code
-	  "http://localhost:8184/callback"
-	  *client-id*
-	  *client-secret*)))
-    (setf (hunchentoot:session-value 'tokens) tokens)
-    (hunchentoot:redirect "http://localhost:8184")))
+    (code error (error-description :real-name "error_description"))
+  (if error
+      (format nil"<h1>~A</h1>" error-description)
+      (let ((tokens
+	     (rest-server::exchange-authorization-code
+	      code
+	      "http://localhost:8184/callback"
+	      *client-id*
+	      *client-secret*)))
+	(setf (hunchentoot:session-value 'tokens) tokens)
+	(hunchentoot:redirect "http://localhost:8184"))))
 
 (hunchentoot:define-easy-handler (root :uri "/")
     ()
   (when (not (hunchentoot:session-value 'tokens))
     (hunchentoot:redirect "http://localhost:8184/login"))
-  (let ((tokens (hunchentoot:session-value 'tokens)))
+  (let* ((tokens (hunchentoot:session-value 'tokens))
+	 (token
+	  (format nil "~A ~A" 
+		  (getf tokens :token-type)
+		  (getf tokens :access-token))))
     (multiple-value-bind (result status-code)
 	(drakma:http-request "http://localhost:8183/users"
 			     :method :get
 			     :additional-headers `(("Accept" .  "application/json")
-						   ("Authentication" . ,(format nil "~A ~A" (getf tokens :token-type)
-										(getf tokens :access-token)))))
+						   ("Authentication" . ,token)))
       (with-output-to-string (s)
 	(format s "Status: ~A" status-code)
 	(format s "Result: ~A" result)))))

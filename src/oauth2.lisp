@@ -1,20 +1,40 @@
 (in-package :rest-server)
 
-(defparameter *client-id* "2026b7c0-374d-4ba6-b841-0d1b1fcdf02d")
-(defparameter *client-secret* "234eb2440ab2b6d9f03a")
-(defparameter *client-access-token* "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjMwMDAiLCJzdWIiOiIyNzVhOTE0ZC0zODEyLTQ5MGMtODkzYy01YjBkZTgyZGI0YjQiLCJhdWQiOiIyNzVhOTE0ZC0zODEyLTQ5MGMtODkzYy01YjBkZTgyZGI0YjQiLCJpYXQiOjE0MDQ2MDk5ODgxOTcsInNjb3BlIjoiY2xpZW50In0.aE9Pd21yZmk0eWlucmlTLVdPR2MyWmk2UzUtbU5GMkNVMDFLWFBObVhJUjJvdHd1NXhJcFBXVkQ5WVpJU2R1Q2J6ZWNuTzdpQW9xb0pxYmxRSUhaeWdTa1ZGUGU1dlJLZXF0VzRqN1h3WGFKUmtITHpPay1Jb054aVhoRjlvOEJGblkySDJCZ1F6bWROb25IeWxWSE5qTWZFZnNWNENOd3NhQ1ZLRXY2bDJReEF2U0N5eW9PRXNRRll5QkJmVGRfMm9mcG1KZ1psR0dDLVBldHVLS1k4dUVEMDNLZjF5cnl5bnZRNm1RZEJLcThpeVBTTkR5MnZ0LWlOa3RhU2tqWlpnd3U3alJQVlRKMlExbEZORWFyenhaN2dJZUh3OXVITF9GZXlHd0labHM5SHRMWTNyNjExNEwzdUdTQ2t6QmxPVWZNQkxvLUtBTDczdU94RkU4WktR")
+(defun lisp-to-underscores (string)
+  (format nil "~{~A~^_~}"
+	  (mapcar #'string-downcase
+		  (split-sequence:split-sequence #\- string))))
+
+(defun underscores-to-lisp (string)
+  (format nil "~{~A~^-~}"
+	  (mapcar #'string-upcase
+		  (split-sequence:split-sequence #\_ string))))
+
+(defun call-with-lisp-json (function)
+  (let ((cl-json:*lisp-identifier-name-to-json*
+	 #'lisp-to-underscores)
+	(cl-json:*json-identifier-name-to-lisp*
+	 #'underscores-to-lisp))
+    (funcall function)))
+
+(defmacro with-lisp-json (&body body)
+  `(call-with-lisp-json (lambda () ,@body))) 
+
+(defparameter *resource-server-id* "a7c87ae0-dabe-4b8a-8a45-ee9708696794")
+(defparameter *resource-server-secret* "443c188d-60ce-40e2-b268-69c0c78ad055")
+(defparameter *oauth2-server-url* "http://localhost:8080")
 
 (defclass oauth2-authentication ()
-  ((scope :initarg :scope
-	  :initform nil
-	  :documentation "Auth scopes")))
+  ((scopes :initarg :scopes
+	   :initform nil
+	   :documentation "Auth scopes")))
 
-(defmethod scope ((authentication oauth2-authentication))
+(defmethod scopes ((authentication oauth2-authentication))
   (mapcar (lambda (symbol-or-string)
 	    (if (stringp symbol-or-string)
 		symbol-or-string
 		(string-downcase (symbol-name symbol-or-string))))
-	  (slot-value authentication 'scope)))
+	  (slot-value authentication 'scopes)))
 
 (defmethod authenticate ((authentication oauth2-authentication))
   (let ((access-token (hunchentoot:header-in* "Authentication")))
@@ -28,14 +48,65 @@
 	  (if (not (equalp token-type "Bearer"))
 	      "Not a Bearer token"
 	      (multiple-value-bind (result status)
-		  (anvil-connect::verify-access-token token-string *client-access-token*)
+		  (verify-access-token token-string)
 		;; if not valid, error
 		(if (not (equalp status 200))
 		    "Invalid token"
 		    ;; else, check that the scopes are ok
 		    (let ((token-scopes (split-sequence:split-sequence #\ 
-								       (getf result :scope))))
+								       (getf result :scopes))))
 		      (if (not (every (lambda (scope)
 					(member scope token-scopes :test #'equalp))
-				      (scope authentication)))
+				      (scopes authentication)))
 			  "Scope not sufficient")))))))))
+
+
+(defun verify-access-token (access-token)
+  
+  "GET https://<domain-name-authorization-server>/v1/tokeninfo?access_token=<access_token>
+Authorization: Basic <Base64 encoded key:secret >
+Accept: application/json"
+
+					;(break "verify access token: ~A" access-token)
+  (with-lisp-json
+
+    (let ((uri (puri:merge-uris (format nil "/v1/tokeninfo?access_token=~A" access-token) *oauth2-server-url*))
+	  (authorization (base64:string-to-base64-string 
+			  (format nil "~A:~A"
+				  *resource-server-id*
+				  *resource-server-secret*))))
+      (multiple-value-bind (result status)
+	  (drakma:http-request
+	   uri
+	   :method :get
+	   :accept "application/json"
+	   :additional-headers `(("Authorization" . ,(format nil "Basic ~A" authorization)))
+	   :parameters nil)
+	(values (if (stringp result) result
+		    (alexandria:alist-plist
+		     (json:decode-json-from-string
+		      (babel:octets-to-string result))))
+		status)))))
+
+(defun exchange-authorization-code (code redirect-uri client-id client-secret &optional (grant-type "authorization_code"))
+  (with-lisp-json
+    (let ((uri (puri:merge-uris "/oauth2/token" *oauth2-server-url*))
+	  (content (json:encode-json-plist-to-string (list :code code
+							   :grant-type grant-type
+							   :redirect-uri redirect-uri)))
+	  (authorization
+	   (cl-base64:string-to-base64-string 
+	    (format nil "~A:~A" client-id client-secret))))
+      (multiple-value-bind (result status)
+	  (drakma:http-request
+	   (puri:render-uri uri nil)
+	   :method :post
+	   :accept "application/json"
+	   :additional-headers `(("Authorization" . ,(format nil "Basic ~A" authorization)))
+	 
+	   :parameters `(("code" . ,code)
+			 ("grant_type" . ,grant-type)
+			 ("redirect_uri" . ,redirect-uri)))
+	(values (alexandria:alist-plist
+		 (json:decode-json-from-string result))
+		status)))))
