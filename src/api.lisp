@@ -95,7 +95,7 @@
 	:initform (error "Provide the api"))
    (development-mode :initarg :development-mode
 		     :accessor development-mode
-		     :initform (error "Provide the development mode")))
+		     :initform *development-mode*))
   (:documentation "Hunchentoot api acceptor"))
 
 (defmethod api ((acceptor api-acceptor))
@@ -131,7 +131,11 @@
             :accessor version)
    (documentation :accessor api-documentation
 		  :initarg :documentation
-		  :initform nil))
+		  :initform nil)
+   (authorization-enabled 
+    :initarg :authorization-enabled
+    :accessor authorization-enabled
+    :initform t))
   (:documentation "The api class"))
 
 (defgeneric api-http-options (api)
@@ -139,6 +143,9 @@
 	   (setf (hunchentoot:header-out "Server") "Hunchentoot")))
 
 (defgeneric api-dispatch-request (api request)
+  (:method :around ((api api-definition) request)
+	   (let ((*api* api))
+	     (call-next-method)))
   (:method ((api api-definition) request)
     (flet ((resource-operation-dispatch ()
 	     (let ((*development-mode* (development-mode hunchentoot:*acceptor*)))

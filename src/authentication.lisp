@@ -176,9 +176,15 @@
     (parse-authentications authorizations)))
 
 (defun verify-authentication (resource-operation)
-  (when *authorization-enabled-p*
+  (when (and *authorization-enabled-p*
+	     (authorization-enabled *api*))
     (let ((authentications (resource-operation-authorizations resource-operation)))
       (when (and (plusp (length authentications))
 		 (every #'authenticate authentications))
 	(signal 'http-authorization-required-error))))
   t)
+
+(defmethod process-api-option ((option (eql :authorization)) api
+			       &key (enabled t))			 
+  (setf (authorization-enabled api) enabled))
+
