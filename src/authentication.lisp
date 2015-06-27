@@ -1,5 +1,7 @@
 (in-package :rest-server)
 
+(defvar *authorization-enabled-p* t "Globally enable/disable API authorization")
+
 (defvar *key* nil)
 
 (defun register-key (key)
@@ -174,8 +176,9 @@
     (parse-authentications authorizations)))
 
 (defun verify-authentication (resource-operation)
-  (let ((authentications (resource-operation-authorizations resource-operation)))
-    (when (and (plusp (length authentications))
-	       (every #'authenticate authentications))
-      (signal 'http-authorization-required-error)))
+  (when *authorization-enabled-p*
+    (let ((authentications (resource-operation-authorizations resource-operation)))
+      (when (and (plusp (length authentications))
+		 (every #'authenticate authentications))
+	(signal 'http-authorization-required-error))))
   t)
