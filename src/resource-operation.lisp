@@ -494,6 +494,7 @@
 	       (cons '&key
 		     (append
 		      (list '(accept "application/json"))
+		      (list '(parse-response t))
 		      (when optional-args
 			(loop for x in optional-args collect 
 			     (list (intern (symbol-name (first x)) package) 
@@ -538,7 +539,33 @@
 									   (car x)) package)))))))
 		  :additional-headers (list (cons "Accept" accept))) 
 	       (log5:log-for (rest-server) "Response: ~A" ,response)
-	       (values ,response ,status-code))))))))
+	       (values (if (not parse-response)
+			   ,response
+			   (parse-api-response ,response accept parse-response))
+		       ,status-code))))))))
+
+(defun parse-api-response (response accept format)
+  (if (functionp format)
+      (funcall format response)
+      (let ((parsed-accept 
+	     (string-case:string-case (accept)
+	       ("text/xml" :xml)
+	       ("application/xml" :xml)
+	       ("text/html" :html)
+	       ("application/json" :json)
+	       ("text/lisp" :lisp)
+	       (t (error "Could not parse accept: ~A" accept)))))
+	(%parse-api-response response parsed-accept format))))
+
+(defgeneric %parse-api-response (response accept format)
+  (:method (response (accept (eql :json)) format)
+    (let ((parsed (json:decode-json-from-string response)))
+      (case format
+	(:plist (alexandria:alist-plist parsed))
+	(:alist parsed)
+	(t parsed))))
+  (:method (response (accept (eql :lisp)) format)
+    (read-from-string response)))
 
 (defgeneric url-pattern-noparams (resource-operation))
 (defmethod url-pattern-noparams ((resource-operation resource-operation))
