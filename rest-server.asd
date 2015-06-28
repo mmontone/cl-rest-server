@@ -55,6 +55,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	     (:file "logging")
 	     (:file "caching")
 	     (:file "pagination")
+	     (:file "jwt")
 	     (:file "cors")
 	     (:file "swagger")
 	     (:file "api-documentation"))
