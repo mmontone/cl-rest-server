@@ -10,8 +10,12 @@
 						    +python-script+
 						    json))))
 
-(defun jwt-decode (json)
-  (json:decode-json-from-string
-   (trivial-shell:shell-command (format nil "python ~A decode '~A'"
-					+python-script+
-					json))))
+(defun jwt-decode (json &optional (format :alist))
+  (let ((decoded-list
+	 (json:decode-json-from-string
+	  (trivial-shell:shell-command (format nil "python ~A decode '~A'"
+					       +python-script+
+					       json)))))
+    (ecase format
+      (:plist (alexandria:alist-plist decoded-list))
+      (:alist decoded-list))))
