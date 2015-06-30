@@ -41,6 +41,7 @@ OTHER DEALINGS IN THE SOFTWARE."
 	    ((:file "package")
 	     (:file "rest-server")
 	     (:file "mimeparse")
+	     (:file "argument-type")
 	     (:file "serialization")
 	     (:file "mop")
 	     (:file "xml")

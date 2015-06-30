@@ -340,22 +340,6 @@
 	    :end-anchor)))
     (values scanner vars)))
 
-(defun parse-var-value (string type)
-  (case type
-    (:boolean (cond
-                ((equalp string "nil") nil)
-                ((equalp string "false") nil)
-                ((equalp string "true") t)
-		((equalp string "yes") t)
-		((equalp string "no") nil)
-                ((equalp string "t") t)
-		(t (error "Cannot parse ~s as boolean" string))))
-    (:integer (or (parse-integer string :junk-allowed t)
-		  (error "Cannot parse ~s as integer" string))) 
-    (:string (string-trim (list #\") string))
-    (:list (split-sequence:split-sequence #\, string))
-    (t string)))
-
 (defun extract-function-arguments (resource-operation request)
   (let ((scanner (parse-resource-operation-path (path resource-operation))))
     (multiple-value-bind (replaced-uri args) 
@@ -368,14 +352,14 @@
 	       (loop
 		  for reqarg in (required-arguments resource-operation)
 		  for arg in args
-		  collect (parse-var-value arg (second reqarg))))
+		  collect (parse-argument-value arg (second reqarg))))
 	      (optional-args
 	       (loop 
 		  for (var . string) in (request-uri-parameters (hunchentoot:request-uri request))
 		  for optarg = (find-optional-argument (make-keyword var) resource-operation)
 		  appending 
 		  (list (make-keyword (symbol-name (first optarg)))
-                        (parse-var-value string (second optarg))))))
+                        (parse-argument-value string (second optarg))))))
 	  (append required-args optional-args))))))
 
 ;; Implementation

@@ -1,11 +1,5 @@
 (in-package :rest-server)
 
-(defparameter *resource-operation-arguments-types*
-  (list :boolean
-	:integer
-	:string
-	:list))
-
 (defparameter *default-reply-content-type* "application/json")
 
 (defun set-reply-content-type (content-type)
@@ -142,7 +136,7 @@
 
 (defmethod validate ((resource-operation resource-operation))
   ;; Check resource-operation arguments have the right format
-  (loop for arg in (required-arguments resource-operation)
+  #+nil(loop for arg in (required-arguments resource-operation)
        do
        (assert (and (listp arg)
                     (symbolp (first arg))
@@ -155,7 +149,7 @@
                 Right format: (<name> <type> <documentation>)"
                arg))
 
-    (loop for arg in (optional-arguments resource-operation)
+    #+nil(loop for arg in (optional-arguments resource-operation)
        do
        (assert (and (listp arg)
                     (symbolp (first arg))
@@ -436,22 +430,18 @@
 		   args))))
 
 (defun format-optional-url-arg (arg value)
-  (destructuring-bind (name type default-value documentation) arg
-    (format nil "~A=~A" (string-downcase name)
-	    (%format-optional-url-arg type arg value))))
+  (destructuring-bind (name type default-value &optional documentation) arg
+    (format nil "~A=~A" 
+	    (string-downcase name)
+	    (format-argument-value value type))))
 
-(defgeneric %format-optional-url-arg (type arg value)
-  (:method ((type (eql :string)) arg value)
-    (assert (stringp value))
-    value)
-  (:method ((type (eql :boolean)) arg value)
-    (if value "true" "false"))
-  (:method ((type (eql :integer)) arg value)
-    (assert (integerp value))
-    (princ-to-string value))
-  (:method ((type (eql :list)) arg value)
-    (assert (listp value))
-    (format nil "~{~A~^,~}" value)))
+(defun parse-resource-operation-argument (arg) 
+  (destructuring-bind (name type &optional documentation) arg
+    (list name (parse-argument-type type) documentation)))
+
+(defun parse-optional-resource-operation-argument (arg)
+  (destructuring-bind (name type default-value &optional documentation) arg
+    (list name (parse-argument-type type) default-value documentation)))
 
 (defun parse-resource-operation-arguments (arguments-spec)
   (loop with required-arguments = '()
@@ -463,8 +453,8 @@
          (setf optional t)
          ;; else
          (if optional
-             (push argument optional-arguments)
-             (push argument required-arguments)))
+             (push (parse-optional-resource-operation-argument argument) optional-arguments)
+             (push (parse-resource-operation-argument argument) required-arguments)))
      finally (return (values (reverse required-arguments)
                              (reverse optional-arguments)))))
 

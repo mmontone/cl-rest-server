@@ -14,14 +14,14 @@
 		  for arg in args
 		  appending
 		    (list (make-keyword (symbol-name (first reqarg)))
-			  (parse-var-value arg (second reqarg)))))
+			  (parse-argument-value arg (second reqarg)))))
 	      (optional-args
 	       (loop 
 		  for (var . string) in (request-uri-parameters (hunchentoot:request-uri request))
 		  for optarg = (find-optional-argument (make-keyword var) resource-operation)
 		  appending 
 		  (list (make-keyword (symbol-name (first optarg)))
-                        (parse-var-value string (second optarg))))))
+                        (parse-argument-value string (second optarg))))))
 	  (append required-args optional-args))))))
 
 (defgeneric clear-cache (resource-operation-implementation &optional id)
