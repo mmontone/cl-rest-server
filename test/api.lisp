@@ -9,6 +9,7 @@
 	:rest-server.serialize
 	:rest-server.schema
 	:rest-server.logging
+	:rest-server.error
 	:cl))
 
 (in-package :api-test)
@@ -164,6 +165,7 @@
 	:rest-server.serialize
 	:rest-server.schema
 	:rest-server.logging
+	:rest-server.error
 	))
 
 (in-package :api-test-implementation)

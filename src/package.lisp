@@ -32,22 +32,12 @@
 	   #:start-api
 	   #:stop-api
 	   #:start-api-documentation
-	   #:*development-mode*
-	   #:*server-development-mode*
-	   #:http-error
-	   #:http-not-found-error
-	   #:http-internal-server-error
-	   #:http-authorization-required-error
-	   #:http-forbidden-error
-	   #:http-not-acceptable-error
-	   #:validation-error
 	   #:self-reference
 	   #:with-pagination
 	   #:with-content
 	   #:with-permission-checking
 	   #:clear-cache
 	   ;; Decorations
-	   #:error-handling
 	   #:caching
 	   #:fetch-content
 	   #:permission-checking
@@ -111,7 +101,18 @@
 	   #:serializable-class-schema
 	   #:define-serializable-class))
 
-
-
-		   
-
+(defpackage #:rest-server.error
+  (:nicknames #:rs.error)
+  (:use #:cl #:rest-server :rs.serialize)
+  (:export #:*development-mode*
+	   #:*server-development-mode*
+	   #:http-error
+	   #:http-not-found-error
+	   #:http-internal-server-error
+	   #:http-authorization-required-error
+	   #:http-forbidden-error
+	   #:http-not-acceptable-error
+	   #:http-unsupported-media-type-error
+	   #:validation-error
+	   #:error-handling
+	   #:with-condition-handling))

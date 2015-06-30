@@ -134,7 +134,7 @@
 (defun validate-with-schema (schema string-or-data &optional (format :json))
   "Validate input using schema. Useful for validate resource operation posted content (for :post and :put methods). Input can be a string or an association list."
   (let ((data (if (stringp string-or-data)
-		  (parse-api-input format string-or-data)
+		  (rs::parse-api-input format string-or-data)
 		  string-or-data)))
     (schema-validate-with-element schema data)))
 
@@ -177,51 +177,6 @@
 	(and (stringp value)
 	     (chronicity:parse value)))))
 
-(defgeneric parse-api-input (format string)
-  (:documentation "Parses content depending on its format"))
-
-(defmethod parse-api-input ((format (eql :json)) string)
-  (json:decode-json-from-string string)) 
-
-(defun fold-tree (f g tree)
-  (if (listp tree)
-      (let ((name (first tree))
-	    (children (cdr tree)))
-	(funcall f
-		 (cons name (mapcar (lambda (child)
-				      (fold-tree f g child))
-				    children))))
-	(funcall g tree)))
-
-(defmethod parse-api-input ((format (eql :xml)) string)
-  (let ((data
-	 (cxml:parse string (make-xmls-builder))))
-    (fold-tree (lambda (node)
-		 (cond
-		   ((equalp (car node) "_ITEM")
-		    ;; It is a list item
-		    (cons :li (string-trim '(#\") (cadr node))))
-		   ((equalp (aref (car node) 0) #\_)
-		    ;; It is an object
-		    (cdr node))
-		   ((stringp (cadr node))
-		    (cons (make-keyword (first node))
-			  (string-trim '(#\") (cadr node))))
-		   ((and (listp (cadr node))
-			 (equalp (first (cadr node)) :li))
-			;; The attribute value is a list
-			(cons (make-keyword (first node))
-			      (mapcar #'cdr (cdr node))))
-		   (t
-		    (let ((attr-name (make-keyword (first node)))
-			  (attr-value (cdr node)))
-		      (cons attr-name attr-value)))))
-	       #'identity
-	       data)))
-
-(defmethod parse-api-input ((format (eql :sexp)) string)
-  (read-from-string string))
-
 (defgeneric parse-with-schema (schema string-or-data &optional format)
   (:documentation "Parses the string to an association list using the schema"))
 
@@ -231,7 +186,7 @@
 (defmethod parse-with-schema (schema string-or-data &optional (format :json))
   (let ((data
 	 (if (stringp string-or-data)
-	     (parse-api-input format string-or-data)
+	     (rs::parse-api-input format string-or-data)
 	     string-or-data)))
     (%parse-with-schema (schema-type schema)
 			schema
@@ -408,7 +363,7 @@
 
 (defun unserialize-with-schema (schema string-or-data &optional (format :json))
   (let ((data (if (stringp string-or-data)
-		  (parse-api-input format string-or-data)
+		  (rs::parse-api-input format string-or-data)
 		  string-or-data)))
     (unserialize-schema-element schema data)))  
 

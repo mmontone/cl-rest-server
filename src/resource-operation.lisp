@@ -375,7 +375,7 @@
 
 (defun execute-resource-operation-implementation (function-implementation request)
   (let ((resource-operation (resource-operation function-implementation)))
-    (with-condition-handling
+    (rs.error:with-condition-handling
       (let ((args (extract-function-arguments resource-operation request)))
 	(apply function-implementation
 	       (append 
@@ -575,7 +575,7 @@
 	  status-code)))
     (t 
      (if signal-condition
-	 (http-error status-code)
+	 (rs.error:http-error status-code)
 	 (values 
 	  (if parse-response
 	    (parse-api-response response accept parse-reponse)

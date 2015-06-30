@@ -213,7 +213,7 @@
 					(funcall function)))))
 		   
 	      (log5:log-for (rest-server) "Request authorization failed.")
-	      (signal 'http-authorization-required-error))))))
+	      (signal 'rs.error:http-authorization-required-error))))))
 
 (defmethod process-api-option ((option (eql :authorization)) api
 			       &key (enabled t))			 

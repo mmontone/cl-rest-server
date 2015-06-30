@@ -62,7 +62,7 @@
       ,@(loop for x in resources
 	     collect `(define-api-resource ,@x)))))
 
-(defun start-api (api address port &optional (development-mode *development-mode*)
+(defun start-api (api address port &optional (development-mode rs.error:*development-mode*)
 				     configuration-args)
   "Start an api at address and port.
 
@@ -95,7 +95,7 @@
 	:initform (error "Provide the api"))
    (development-mode :initarg :development-mode
 		     :accessor development-mode
-		     :initform *development-mode*))
+		     :initform rs.error:*development-mode*))
   (:documentation "Hunchentoot api acceptor"))
 
 (defmethod api ((acceptor api-acceptor))
@@ -107,8 +107,8 @@
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
   (or 
    (api-dispatch-request (api acceptor) request)
-   (with-condition-handling
-     (error 'http-not-found-error
+   (rs.error::with-condition-handling
+     (error 'rs.error:http-not-found-error
 	    :format-control "Resource not found"))))
 
 ;; The api class
@@ -148,7 +148,7 @@
 	     (call-next-method)))
   (:method ((api api-definition) request)
     (flet ((resource-operation-dispatch ()
-	     (let ((*development-mode* (development-mode hunchentoot:*acceptor*)))
+	     (let ((rs.error:*development-mode* (development-mode hunchentoot:*acceptor*)))
 	       (loop for resource in (list-api-resources api)
 		  when (resource-matches-request-p resource request)
 		  do
@@ -411,6 +411,51 @@
 	 do (setf res (funcall test elem)))
     res))
 
+(defgeneric parse-api-input (format string)
+  (:documentation "Parses content depending on its format"))
+
+(defmethod parse-api-input ((format (eql :json)) string)
+  (json:decode-json-from-string string)) 
+
+(defun fold-tree (f g tree)
+  (if (listp tree)
+      (let ((name (first tree))
+	    (children (cdr tree)))
+	(funcall f
+		 (cons name (mapcar (lambda (child)
+				      (fold-tree f g child))
+				    children))))
+	(funcall g tree)))
+
+(defmethod parse-api-input ((format (eql :xml)) string)
+  (let ((data
+	 (cxml:parse string (make-xmls-builder))))
+    (fold-tree (lambda (node)
+		 (cond
+		   ((equalp (car node) "_ITEM")
+		    ;; It is a list item
+		    (cons :li (string-trim '(#\") (cadr node))))
+		   ((equalp (aref (car node) 0) #\_)
+		    ;; It is an object
+		    (cdr node))
+		   ((stringp (cadr node))
+		    (cons (make-keyword (first node))
+			  (string-trim '(#\") (cadr node))))
+		   ((and (listp (cadr node))
+			 (equalp (first (cadr node)) :li))
+			;; The attribute value is a list
+			(cons (make-keyword (first node))
+			      (mapcar #'cdr (cdr node))))
+		   (t
+		    (let ((attr-name (make-keyword (first node)))
+			  (attr-value (cdr node)))
+		      (cons attr-name attr-value)))))
+	       #'identity
+	       data)))
+
+(defmethod parse-api-input ((format (eql :sexp)) string)
+  (read-from-string string))
+
 ;; TODO: content negotiation is wrong!! Very wrong!!
 
 (defun parse-posted-content (posted-content &optional (method *parse-posted-content*))
@@ -432,7 +477,7 @@
 			    (lambda (ct)
 			      (cl-ppcre:scan ct content-type)))
 		 :sexp)
-		(t (error 'http-unsupported-media-type-error
+		(t (error 'rs.error:http-unsupported-media-type-error
 			  :format-control "Content type not supported ~A"
 			  :format-arguments (list content-type))))))
 	 (parse-api-input format posted-content))))
@@ -448,7 +493,7 @@
   (defmacro with-content ((var content) &body body)
     `(let ((,var ,content))
        (if (not ,var)
-	   (error 'http-not-found-error)
+	   (error 'rs.error:http-not-found-error)
 	   (progn ,@body)))))
 
 (defclass content-fetching-resource-operation-implementation-decoration
@@ -498,7 +543,7 @@
 
 (defun call-with-permission-checking (check function)
   (if (not check)
-      (error 'http-forbidden-error)
+      (error 'rs.error:http-forbidden-error)
       (funcall function)))
 
 (defclass permission-checking-resource-operation-implementation-decoration

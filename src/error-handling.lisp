@@ -1,4 +1,4 @@
-(in-package :rest-server)
+(in-package :rest-server.error)
 
 ;; Error handling configuration
 
@@ -105,7 +105,7 @@
 (defmethod setup-reply-from-error ((error error))
   (setf (hunchentoot:return-code*)
 	hunchentoot:+http-internal-server-error+)
-  (log5:log-for (rest-server) "ERROR: ~A" error)
+  (log5:log-for (rs::rest-server) "ERROR: ~A" error)
   (when *log-error-backtrace*
     #+nil(log5:log-for (rest-server)
 		       (trivial-backtrace:backtrace-string))
@@ -171,11 +171,11 @@
 ;; Plugging
 
 (defclass error-handling-resource-operation-implementation-decoration
-    (resource-operation-implementation-decoration)
+    (rs::resource-operation-implementation-decoration)
   ()
   (:metaclass closer-mop:funcallable-standard-class))
   
-(defmethod process-resource-operation-implementation-option
+(defmethod rs::process-resource-operation-implementation-option
     ((option (eql :error-handling))
      resource-operation-implementation
      &key (enabled t)
@@ -192,6 +192,6 @@
 
 (cl-annot:defannotation error-handling (args resource-operation-implementation)
     (:arity 2)
-  `(configure-resource-operation-implementation
-    (name (resource-operation ,resource-operation-implementation))
+  `(rs::configure-resource-operation-implementation
+    (rs::name (rs::resource-operation ,resource-operation-implementation))
     (list :error-handling ,@args)))

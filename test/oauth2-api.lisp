@@ -10,6 +10,7 @@
 	:rest-server.serialize
 	:rest-server.logging
 	:rest-server.mop
+	:rest-server.error
 	:cl))
 
 (defparameter *resource-server-id* "a7c87ae0-dabe-4b8a-8a45-ee9708696794")
