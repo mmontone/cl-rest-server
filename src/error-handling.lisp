@@ -6,6 +6,8 @@
 
 (defvar *server-development-mode* nil "Global server development mode. Takes precedence over *development-mode* when handling errors")
 
+(defvar *log-error-backtrace* t "Log the errors backtrace if T")
+
 ;; We have to disable hunchentoot handler and enable ours
 (setf hunchentoot:*catch-errors-p* nil)
 
@@ -103,6 +105,12 @@
 (defmethod setup-reply-from-error ((error error))
   (setf (hunchentoot:return-code*)
 	hunchentoot:+http-internal-server-error+)
+  (log5:log-for (rest-server) "ERROR: ~A" error)
+  (when *log-error-backtrace*
+    #+nil(log5:log-for (rest-server)
+		       (trivial-backtrace:backtrace-string))
+    
+    (trivial-backtrace:print-backtrace error :output *api-logging-output*))
   "Error")
 
 (defmethod setup-reply-from-error ((condition http-error))

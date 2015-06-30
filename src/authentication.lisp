@@ -151,11 +151,14 @@
 
 (defmethod authenticate
     ((authentication token-authentication))
-  (let ((token (hunchentoot:header-in* "Authorization")))
-    (if (not token)
-	"Provide the token"
-	(if (not (authenticate-token authentication token))
-	    "Invalid token"))))
+  (let* ((token (hunchentoot:header-in* "Authorization"))
+	 (result
+	  (if (not token)
+	      "Provide the token"
+	      (if (not (authenticate-token authentication token))
+		  "Invalid token"))))
+    (log5:log-for (rest-server) "Token authentication: ~A" (or result "Success"))
+    result))
 
 (defun resource-operation-authorizations (resource-operation)
   "Authorizations that apply to an resource-operation. Merges resources authorizations and
@@ -179,9 +182,13 @@
   (when (and *authorization-enabled-p*
 	     (authorization-enabled *api*))
     (let ((authentications (resource-operation-authorizations resource-operation)))
+      (log5:log-for (rest-server) "API: Authorizing request...")
+      (log5:log-for (rest-server) "Authorizations: ~A" authentications)
       (when (and (plusp (length authentications))
 		 (every #'authenticate authentications))
-	(signal 'http-authorization-required-error))))
+	(log5:log-for (rest-server) "Request authorization failed.")
+	(signal 'http-authorization-required-error))
+      (log5:log-for (rest-server) "Request authorization successful.")))
   t)
 
 (defmethod process-api-option ((option (eql :authorization)) api

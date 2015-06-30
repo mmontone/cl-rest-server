@@ -38,27 +38,29 @@
 
 (defmethod authenticate ((authentication oauth2-authentication))
   (let* ((access-token (hunchentoot:header-in* "Authentication"))
-	(result
-    ;; if there's no access token, error
-    (if (not access-token)
-	"Provide the token"
-	;; else, verify the access token
-	(destructuring-bind (token-type token-string)
-	    (split-sequence:split-sequence #\  access-token)
-	  ;; Check it is a Bearer token
-	  (if (not (equalp token-type "Bearer"))
-	      "Not a Bearer token"
-	      (multiple-value-bind (result status)
-		  (verify-access-token token-string)
-		;; if not valid, error
-		(if (not (equalp status 200))
-		    "Invalid token"
-		    ;; else, check that the scopes are ok
-		    (let ((token-scopes (getf result :scopes)))
-		      (if (not (every (lambda (scope)
-					(member scope token-scopes :test #'equalp))
-				      (scopes authentication)))
-			  "Scope not sufficient")))))))))    
+	 (result
+	  ;; if there's no access token, error
+	  (if (not access-token)
+	      "Provide the token"
+	      ;; else, verify the access token
+	      (let* ((token-type-and-value (split-sequence:split-sequence #\space  access-token))
+		     (token-type (first token-type-and-value))
+		     (token-string (second token-type-and-value)))
+		;; Check it is a Bearer token
+		(if (not (equalp token-type "Bearer"))
+		    "Not a Bearer token"
+		    (multiple-value-bind (result status)
+			(verify-access-token token-string)
+		      ;; if not valid, error
+		      (if (not (equalp status 200))
+			  "Invalid token"
+			  ;; else, check that the scopes are ok
+			  (let ((token-scopes (getf result :scopes)))
+			    (if (not (every (lambda (scope)
+					      (member scope token-scopes :test #'equalp))
+					    (scopes authentication)))
+				"Scope not sufficient")))))))))    
+    (log5:log-for (rest-server) "OAuth2 authentication: ~A" (or result "Success"))
     result))
 
 

@@ -109,7 +109,7 @@
    (api-dispatch-request (api acceptor) request)
    (with-condition-handling
      (error 'http-not-found-error
-	    :format-control "No resource found"))))
+	    :format-control "Resource not found"))))
 
 ;; The api class
 (defclass api-definition ()

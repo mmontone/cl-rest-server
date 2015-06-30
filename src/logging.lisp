@@ -9,8 +9,7 @@
 		     (log5:stream-sender :location *api-logging-output*)
 		     :category-spec 'rest-server
 		     :output-spec '(log5::time 
-				    log5::message 
-				    log5::context)))
+				    log5::message)))
 
 (defun stop-api-logging ()
   (log5:stop-sender 'api-info))
