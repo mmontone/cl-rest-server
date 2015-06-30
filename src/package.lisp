@@ -12,24 +12,6 @@
 	   #:with-json-reply
 	   #:with-xml-reply
 	   #:with-posted-content
-	   #:with-serializer
-	   #:with-serializer-output
-	   #:accept-serializer
-	   #:element
-	   #:attribute
-	   #:elements
-	   #:serialize
-	   #:with-element
-	   #:with-attribute
-	   #:with-list
-	   #:with-list-member
-	   #:add-list-member
-	   #:set-attribute
-	   #:name
-	   #:attributes
-	   #:value
-	   #:boolean-value
-	   #:list-value
 	   #:find-api
 	   #:find-resource-operation
 	   #:with-api
@@ -58,13 +40,6 @@
 	   #:http-authorization-required-error
 	   #:http-forbidden-error
 	   #:http-not-acceptable-error
-	   #:serialize-with-schema
-	   #:find-schema
-	   #:schema
-	   #:define-schema
-	   #:serializable-class
-	   #:define-serializable-class
-	   #:serializable-class-schema
 	   #:validation-error
 	   #:self-reference
 	   #:with-pagination
@@ -72,12 +47,8 @@
 	   #:with-permission-checking
 	   #:clear-cache
 	   ;; Decorations
-	   #:logging
-	   #:serialization
 	   #:error-handling
 	   #:caching
-	   #:validation
-	   #:unserialization
 	   #:fetch-content
 	   #:permission-checking
 	   #:cors-api
@@ -94,3 +65,53 @@
 	   #:logging
 	   #:*api-logging-output*
 	   #:logging-enabled))
+
+(defpackage #:rest-server.serialize
+  (:nicknames #:rs.serialize)
+  (:use :cl :rest-server)
+  (:export
+   #:with-serializer
+   #:with-serializer-output
+   #:accept-serializer
+   #:element
+   #:attribute
+   #:elements
+   #:serialize
+   #:with-element
+   #:with-attribute
+   #:with-list
+   #:with-list-member
+   #:add-list-member
+   #:set-attribute
+   #:name
+   #:attributes
+   #:value
+   #:boolean-value
+   #:list-value
+   #:serialize-value
+   #:serialization
+   #:unserialization
+   #:*default-serializer*))
+
+(defpackage #:rest-server.schema
+  (:nicknames #:rs.schema)
+  (:use :cl :rest-server :rs.serialize)
+  (:export #:serialize-with-schema
+	   #:find-schema
+	   #:schema
+	   #:define-schema
+	   #:validation
+	   #:parse-with-schema
+	   #:unserialize-with-schema))
+
+(defpackage #:rest-server.mop
+  (:nicknames #:rs.mop)
+  (:use :cl :rest-server :rs.serialize :rs.schema)
+  (:export #:serializable-class
+	   #:serializable-class-schema
+	   #:define-serializable-class))
+
+
+
+		   
+

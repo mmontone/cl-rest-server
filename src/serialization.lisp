@@ -1,4 +1,4 @@
-(in-package :rest-server)
+(in-package :rest-server.serialize)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
 
@@ -425,14 +425,14 @@
 ;; Plugging
 
 (defclass serialization-resource-operation-implementation-decoration
-    (resource-operation-implementation-decoration)
+    (rs::resource-operation-implementation-decoration)
   ((streamed :initarg :streamed
 	     :accessor streamed-p
 	     :initform nil
 	     :documentation "If the content is serialized with the streaming api"))
   (:metaclass closer-mop:funcallable-standard-class))
 
-(defmethod process-resource-operation-implementation-option
+(defmethod rs::process-resource-operation-implementation-option
     ((option (eql :serialization))
      resource-operation-implementation
      &key enabled streamed)
@@ -442,7 +442,7 @@
 		     :streamed streamed)
       resource-operation-implementation))
 
-(defmethod execute :around ((decoration serialization-resource-operation-implementation-decoration)
+(defmethod rs::execute :around ((decoration serialization-resource-operation-implementation-decoration)
 			    &rest args)
   (let ((serializer (accept-serializer)))
     (set-reply-content-type (serializer-content-type serializer))
@@ -458,13 +458,6 @@
 
 (cl-annot:defannotation serialization (args resource-operation-implementation)
     (:arity 2)
-  `(configure-resource-operation-implementation
-    (name (resource-operation ,resource-operation-implementation))
+  `(rs::configure-resource-operation-implementation
+    (rs::name (rs::resource-operation ,resource-operation-implementation))
     (list :serialization ,@args)))
-
-;; Utilities
-
-(defun self-reference (&rest args)
-  (set-attribute
-   :href
-   (apply #'format-absolute-resource-operation-url *resource-operation* args)))

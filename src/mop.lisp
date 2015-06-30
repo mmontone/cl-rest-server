@@ -1,4 +1,4 @@
-(in-package :rest-server)
+(in-package :rest-server.mop)
 
 (defclass serializable-object ()
   ())
@@ -115,8 +115,9 @@
 
   (let ((schema-name #+nil(intern (format nil "~A-SCHEMA" (class-name class)))
 		     (class-name class)))
-    (register-schema schema-name
-		     (serializable-class-schema class))))
+    (rs.schema::register-schema 
+     schema-name
+     (serializable-class-schema class))))
 
 (defmethod reinitialize-instance :around ((class serializable-class) 
 					  &rest initargs 
@@ -140,8 +141,9 @@
 	
 	(let ((schema-name #+nil(intern (format nil "~A-SCHEMA" (class-name class)))
 			   (class-name class)))
-	  (register-schema schema-name
-			   (serializable-class-schema class))))
+	  (rs.schema::register-schema 
+	   schema-name
+	   (serializable-class-schema class))))
       ;; if direct superclasses are not explicitly passed
       ;; we _must_ not change anything
       (call-next-method))) 
@@ -222,10 +224,13 @@
 		   ,@(when toggle-option
 			   (list :toggle toggle-option))
 		   ,@(when serialization-optional
-			   (list :optional t))))))))	   
+			   (list :optional t))))))))
 
-(defmethod serialize ((object serializable-object) &optional (serializer *serializer*)
-		      (stream *serializer-output*) &rest args)
+(defmethod rs.serialize::serialize ((object serializable-object) 
+				    &optional 
+				      (serializer rs.serialize::*serializer*)
+				      (stream rs.serialize::*serializer-output*) 
+				    &rest args)
   (serialize-with-schema (serializable-class-schema (class-of object))
 			 object
 			 serializer

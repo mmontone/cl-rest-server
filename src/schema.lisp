@@ -1,4 +1,4 @@
-(in-package :rest-server)
+(in-package :rest-server.schema)
 
 ;; Schemas
 
@@ -6,7 +6,8 @@
 
 (defgeneric serialize-with-schema (schema input &optional serializer stream)
   (:documentation "Serialize input using schema")
-  (:method (schema input &optional (serializer *serializer*) (stream *serializer-output*))
+  (:method (schema input &optional (serializer rs.serialize::*serializer*) 
+			   (stream rs.serialize::*serializer-output*))
     (%serialize-with-schema schema serializer input stream)))
 
 (defmethod %serialize-with-schema (schema serializer input stream)
@@ -61,10 +62,10 @@
 				     attribute-value
 				     stream))))))))
 
-(defmethod serialize-attribute-value (attribute-type attribute-value stream &optional (serializer *serializer*))
+(defmethod serialize-attribute-value (attribute-type attribute-value stream &optional (serializer rs.serialize::*serializer*))
   (serialize attribute-value serializer stream))
 
-(defmethod serialize-attribute-value ((attribute-type (eql :timestamp)) attribute-value stream &optional (serializer *serializer*))
+(defmethod serialize-attribute-value ((attribute-type (eql :timestamp)) attribute-value stream &optional (serializer rs.serialize::*serializer*))
   (if (integerp attribute-value)
       ;; Assume a universal time number
       (write (net.telent.date:universal-time-to-rfc-date attribute-value) :stream stream)
@@ -72,8 +73,8 @@
       (call-next-method)))
 
 (defmethod serialize ((thing local-time:timestamp)
-		      &optional (serializer *serializer*)
-			(stream *serializer-output*) &rest args)
+		      &optional (serializer rs.serialize::*serializer*)
+			(stream rs.serialize::*serializer-output*) &rest args)
   (local-time:format-rfc1123-timestring stream thing)) 
 
 (defun serialize-schema-list (schema-list serializer input stream)
@@ -500,7 +501,7 @@ See: parse-api-input (function)"
 ;; Validation
 
 (defclass validation-resource-operation-implementation-decoration
-    (resource-operation-implementation-decoration)
+    (rs::resource-operation-implementation-decoration)
   ((schema :initarg :schema
 	   :accessor validation-schema
 	   :initform (error "Provide the validation schema"))
@@ -509,7 +510,7 @@ See: parse-api-input (function)"
 	   :initform :json))
   (:metaclass closer-mop:funcallable-standard-class))
   
-(defmethod process-resource-operation-implementation-option
+(defmethod rs::process-resource-operation-implementation-option
     ((option (eql :validation))
      resource-operation-implementation
      &key (enabled t)
@@ -523,7 +524,7 @@ See: parse-api-input (function)"
 		     :decorates resource-operation-implementation)
       resource-operation-implementation))
   
-(defmethod execute :around ((decoration validation-resource-operation-implementation-decoration)
+(defmethod rs::execute :around ((decoration validation-resource-operation-implementation-decoration)
 			    &rest args)
   (let ((posted-content (first args))) ;; Asume the posted content is in the first argument
     (let ((valid-p (validate-with-schema (validation-schema decoration)
@@ -535,8 +536,8 @@ See: parse-api-input (function)"
 
 (cl-annot:defannotation validation (args resource-operation-implementation)
     (:arity 2)
-  `(configure-resource-operation-implementation
-    (name (resource-operation ,resource-operation-implementation))
+  `(rs::configure-resource-operation-implementation
+    (rs::name (rs::resource-operation ,resource-operation-implementation))
     (list :validation ,@args)))
 
 ;; Unserialization
@@ -551,7 +552,7 @@ See: parse-api-input (function)"
 	   :initform :json))
   (:metaclass closer-mop:funcallable-standard-class))
   
-(defmethod process-resource-operation-implementation-option
+(defmethod rs::process-resource-operation-implementation-option
     ((option (eql :unserialization))
      resource-operation-implementation
      &key (enabled t)
@@ -565,7 +566,7 @@ See: parse-api-input (function)"
 		     :decorates resource-operation-implementation)
       resource-operation-implementation))
   
-(defmethod execute :around ((decoration unserialization-resource-operation-implementation-decoration)
+(defmethod rs::execute :around ((decoration unserialization-resource-operation-implementation-decoration)
 			    &rest args)
   (let ((posted-content (first args))) ;; Asume the posted content is in the first argument
     (apply #'call-next-method
@@ -576,6 +577,6 @@ See: parse-api-input (function)"
 
 (cl-annot:defannotation unserialization (args resource-operation-implementation)
     (:arity 2)
-  `(configure-resource-operation-implementation
-    (name (resource-operation ,resource-operation-implementation))
+  `(rs::configure-resource-operation-implementation
+    (rs::name (rs::resource-operation ,resource-operation-implementation))
     (list :unserialization ,@args)))

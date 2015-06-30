@@ -133,9 +133,9 @@
 			      *development-mode*)))
     (labels ((serialize-condition (condition)
 	       (with-output-to-string (s)
-		 (with-serializer-output s
-		   (with-serializer *default-serializer*
-		     (serialize condition)))))
+		 (rs.serialize:with-serializer-output s
+		   (rs.serialize:with-serializer rs.serialize:*default-serializer*
+		     (rs.serialize:serialize condition)))))
 	     (handle-condition (condition)
 	       (if (equalp development-mode :production)
 		   (setup-reply-from-error condition)
@@ -151,14 +151,14 @@
 	    (error (c)
 	      (handle-condition c)))))))
 
-(defmethod serialize-value ((serializer (eql :json)) (error simple-error) stream &rest args) 
+(defmethod rs.serialize::serialize-value ((serializer (eql :json)) (error simple-error) stream &rest args) 
   "Serialize error condition"
   (json:encode-json-alist 
    (list (cons :condition (type-of error))
 	 (cons :message (simple-condition-format-control error)))
    stream))
 
-(defmethod serialize-value ((serializer (eql :json))
+(defmethod rs.serialize::serialize-value ((serializer (eql :json))
 			    (error simple-error) 
 			    stream &rest args)
   "Serialize simple error condition"

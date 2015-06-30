@@ -35,7 +35,7 @@
   (log5:log-for (rest-server::rest-server) "API: Handling ~A ~A by ~A"
 		(hunchentoot:request-method*)
 		(hunchentoot:request-uri*)
-		(name (rest-server::resource-operation decoration)))
+		(rs::name (rest-server::resource-operation decoration)))
   (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
 			  (hunchentoot:raw-post-data :external-format :utf8))))
     (when posted-content (log5:log-for (rs::rest-server) "Posted content: ~A" posted-content)))
@@ -46,7 +46,7 @@
 (cl-annot:defannotation logging (args resource-operation-implementation)
     (:arity 2)
   `(rs::configure-resource-operation-implementation
-    (name (rs::resource-operation ,resource-operation-implementation))
+    (rs::name (rs::resource-operation ,resource-operation-implementation))
     (list :logging ,@args)))
 
 ;; Api logging

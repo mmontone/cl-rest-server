@@ -8,11 +8,11 @@
   (let* ((fargs (copy-list args)))
     (remf fargs :page)
     (remf fargs :element-name)
-    `(with-element (,element-name)
-       (set-attribute :page ,page)
-       (set-attribute :next (format-absolute-resource-operation-url *resource-operation* :page (1+ ,page) ,@fargs))
-       (set-attribute :previous (format-absolute-resource-operation-url *resource-operation* :page (1- ,page),@fargs))
-       (with-attribute (:results)
+    `(rs.serialize:with-element (,element-name)
+       (rs.serialize:set-attribute :page ,page)
+       (rs.serialize:set-attribute :next (format-absolute-resource-operation-url *resource-operation* :page (1+ ,page) ,@fargs))
+       (rs.serialize:set-attribute :previous (format-absolute-resource-operation-url *resource-operation* :page (1- ,page),@fargs))
+       (rs.serialize:with-attribute (:results)
 	 ,@body))))
 
 (defun make-pagination-element (&rest args
@@ -24,17 +24,17 @@
     (remf fargs :page)
     (remf fargs :element-name)
     (remf fargs :results)
-    (element element-name
-	     (attribute :page page)
-	     (attribute :next
+    (rs.serialize:element element-name
+	     (rs.serialize:attribute :page page)
+	     (rs.serialize:attribute :next
 			(format-absolute-resource-operation-url *resource-operation*
 							  `(:page (1+ ,page)
 								  ,@fargs)))
-	     (attribute :previous
+	     (rs.serialize:attribute :previous
 			(format-absolute-resource-operation-url *resource-operation*
 							  `(:page (1- ,page)
 								  ,@fargs)))
-	     (attribute :results results))))	     
+	     (rs.serialize:attribute :results results))))	     
 
 ;; (defclass pagination ()
 ;;   ((function :initarg :function

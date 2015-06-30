@@ -5,7 +5,12 @@
 ;; OAuth2 API tests
 
 (defpackage :oauth2-test
-  (:use :rest-server :cl))
+  (:use :rest-server 
+	:rest-server.schema
+	:rest-server.serialize
+	:rest-server.logging
+	:rest-server.mop
+	:cl))
 
 (defparameter *resource-server-id* "a7c87ae0-dabe-4b8a-8a45-ee9708696794")
 (defparameter *resource-server-secret* "443c188d-60ce-40e2-b268-69c0c78ad055")
@@ -65,7 +70,7 @@
   (declare (ignore expand-groups))
   (with-output-to-string (s)
     (with-serializer-output s
-      (with-serializer (rest-server::accept-serializer)
+      (with-serializer (rest-server.serialize::accept-serializer)
 	(with-list ("users")
 	   (loop for user in (model-test:all-users)
 	      do

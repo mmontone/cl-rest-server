@@ -661,3 +661,9 @@
      :when-true (lambda ,args
 		  (with-reply-content-type (,accept-content-type)
 		    ,@body)))))
+
+(defun self-reference (&rest args)
+  (rs.serialize:set-attribute
+   :href
+   (apply #'format-absolute-resource-operation-url *resource-operation* args)))
+

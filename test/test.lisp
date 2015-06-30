@@ -1,5 +1,11 @@
 (defpackage :rest-server-tests
-  (:use :cl :rest-server :fiveam)
+  (:use :cl 
+	:rest-server 
+	:fiveam
+	:rest-server.serialize
+	:rest-server.schema
+	:rest-server.logging
+	:rest-server.mop)
   (:export :run-tests :debug-tests))
 
 (in-package :rest-server-tests)
