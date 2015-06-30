@@ -149,7 +149,11 @@
 
 (defmethod authenticate-token ((authentication token-authentication)
 			       token)
-  (funcall (authentication-function authentication) token))
+  (let ((authenticated-token
+	 (funcall (authentication-function authentication) token)))
+    (when authenticated-token
+      (list :authentication authentication
+	    :token authenticated-token))))
 
 (defmethod authenticate
     ((authentication token-authentication) resource-operation)
