@@ -241,8 +241,10 @@
      (apply #'execute resource-operation-implementation args))))
 
 (defmethod execute ((resource-operation-implementation resource-operation-implementation) &rest args)
-  (when (verify-authentication (resource-operation resource-operation-implementation))
-    (apply (primary resource-operation-implementation) args)))
+  (call-verifying-authentication 
+   (resource-operation resource-operation-implementation)
+   (lambda ()
+     (apply (primary resource-operation-implementation) args))))
 
 (defmacro implement-resource-operation (api-name name-and-options args &body body)
   "Define an resource operation implementation"

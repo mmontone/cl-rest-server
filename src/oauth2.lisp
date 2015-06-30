@@ -36,33 +36,39 @@
 		(string-downcase (symbol-name symbol-or-string))))
 	  (slot-value authentication 'scopes)))
 
-(defmethod authenticate ((authentication oauth2-authentication))
-  (let* ((access-token (hunchentoot:header-in* "Authentication"))
-	 (result
-	  ;; if there's no access token, error
-	  (if (not access-token)
-	      "Provide the token"
-	      ;; else, verify the access token
-	      (let* ((token-type-and-value (split-sequence:split-sequence #\space  access-token))
-		     (token-type (first token-type-and-value))
-		     (token-string (second token-type-and-value)))
-		;; Check it is a Bearer token
-		(if (not (equalp token-type "Bearer"))
-		    "Not a Bearer token"
-		    (multiple-value-bind (result status)
-			(verify-access-token token-string)
-		      ;; if not valid, error
-		      (if (not (equalp status 200))
-			  "Invalid token"
-			  ;; else, check that the scopes are ok
-			  (let ((token-scopes (getf result :scopes)))
-			    (if (not (every (lambda (scope)
-					      (member scope token-scopes :test #'equalp))
-					    (scopes authentication)))
-				"Scope not sufficient")))))))))    
-    (log5:log-for (rest-server) "OAuth2 authentication: ~A" (or result "Success"))
-    result))
-
+(defmethod authenticate ((authentication oauth2-authentication) resource-operation)
+  (flet ((auth-failed (message)
+	   (log5:log-for (rest-server) "OAuth2 authentication failed: ~A" message)
+	   (return-from authenticate message))
+	 (auth-succeeded (authenticated-token)
+	   (return-from authenticate 
+	     (let ((*token* authenticated-token))
+	       (log5:log-for (rest-server) "OAuth2 authentication: ~A" authenticated-token)
+	       (funcall resource-operation)))))
+    (let* ((access-token (hunchentoot:header-in* "Authentication")))
+      ;; if there's no access token, error
+      (if (not access-token)
+	  (auth-failed "Provide the token")
+	  ;; else, verify the access token
+	  (let* ((token-type-and-value (split-sequence:split-sequence #\space  access-token))
+		 (token-type (first token-type-and-value))
+		 (token-string (second token-type-and-value)))
+	    ;; Check it is a Bearer token
+	    (if (not (equalp token-type "Bearer"))
+		(auth-failed "Not a Bearer token")
+		(multiple-value-bind (result status)
+		    (verify-access-token token-string)
+		  ;; if not valid, error
+		  (if (not (equalp status 200))
+		      (auth-failed "Invalid token")
+		      ;; else, check that the scopes are ok
+		      (let ((token-scopes (getf result :scopes)))
+			(if (not (every (lambda (scope)
+					  (member scope token-scopes :test #'equalp))
+					(scopes authentication)))
+			    (auth-failed "Scope not sufficient")
+			    ;; else, success
+			    (auth-succeeded result)))))))))))
 
 (defun verify-access-token (access-token)
   

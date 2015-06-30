@@ -3,10 +3,12 @@
 (defclass oauth-authentication ()
   ())
 
-(defmethod authenticate ((authentication oauth-authentication))
+(defmethod authenticate ((authentication oauth-authentication) resource-operation)
   (handler-case (oauth:validate-access-token)
     (error (e)
-      (princ-to-string e))))
+      (princ-to-string e)
+      (return-from authenticate)))
+  (funcall resource-operation))
 
 (defmacro define-oauth-resource (api-name)
   ;; OAuth resource
