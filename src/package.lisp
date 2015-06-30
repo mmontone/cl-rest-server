@@ -50,10 +50,6 @@
 	   #:start-api
 	   #:stop-api
 	   #:start-api-documentation
-	   #:start-api-logging
-	   #:stop-api-logging
-	   #:enable-api-logging
-	   #:disable-api-logging
 	   #:*development-mode*
 	   #:*server-development-mode*
 	   #:http-error
@@ -86,3 +82,15 @@
 	   #:permission-checking
 	   #:cors-api
 	   #:cors-resource))
+
+(defpackage #:rest-server.logging
+  (:nicknames #:rs.log)
+  (:use :cl :rest-server)
+  (:export #:start-api-logging
+	   #:stop-api-logging
+	   #:enable-api-logging
+	   #:disable-api-logging
+	   #:logging-api
+	   #:logging
+	   #:*api-logging-output*
+	   #:logging-enabled))

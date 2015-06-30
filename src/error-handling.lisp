@@ -110,7 +110,7 @@
     #+nil(log5:log-for (rest-server)
 		       (trivial-backtrace:backtrace-string))
     
-    (trivial-backtrace:print-backtrace error :output *api-logging-output*))
+    (trivial-backtrace:print-backtrace error :output rs.log::*api-logging-output*))
   "Error")
 
 (defmethod setup-reply-from-error ((condition http-error))

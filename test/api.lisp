@@ -266,7 +266,7 @@
 
 (cl-annot:enable-annot-syntax)
 
-@logging ()
+@rs.log:logging ()
 (implement-resource-operation api-test::api-test
     api-test::logging-decoration ()
   "Hello")
