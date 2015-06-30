@@ -494,7 +494,11 @@
 	       (cons '&key
 		     (append
 		      (list '(accept "application/json"))
+		      (list '(additional-headers ()))
 		      (list '(parse-response t))
+		      (list '(signal-condition nil))
+		      (when (authorizations resource-operation)
+			(list '(authorization (error "Provide an authorization value"))))
 		      (when optional-args
 			(loop for x in optional-args collect 
 			     (list (intern (symbol-name (first x)) package) 
@@ -537,12 +541,42 @@
 						,(symbol-name (car x))
 						(format nil "~A" ,(intern (symbol-name 
 									   (car x)) package)))))))
-		  :additional-headers (list (cons "Accept" accept))) 
+		  :additional-headers (list (cons "Accept" accept)
+					    ,@(when (authorizations resource-operation)
+						    '((cons "Authorization" authorization)))))
 	       (log5:log-for (rest-server) "Response: ~A" ,response)
-	       (values (if (not parse-response)
-			   ,response
-			   (parse-api-response ,response accept parse-response))
-		       ,status-code))))))))
+	       (log5:log-for (rest-server) "Status: ~A" ,status-code)
+	       (handle-api-response ,response 
+				    ,status-code 
+				    accept
+				    parse-response 
+				    signal-condition))))))))
+
+(defun handle-api-response (response status-code accept parse-response signal-condition)
+  (cond
+    ((and (>= status-code 200)
+          (< status-code 400))
+     (values
+      (if parse-response
+	(parse-api-response response accept parse-response)
+	response)
+      status-code))
+    ((assoc status-code *http-status-codes-conditions*)
+     (if signal-condition
+	 (error (cdr (assoc status-code *http-status-codes-conditions*)))
+	 (values 
+	  (if parse-response
+	    (parse-api-response response accept parse-reponse)
+	    response)
+	  status-code)))
+    (t 
+     (if signal-condition
+	 (http-error status-code)
+	 (values 
+	  (if parse-response
+	    (parse-api-response response accept parse-reponse)
+	    response)
+	  status-code)))))
 
 (defun parse-api-response (response accept format)
   (if (functionp format)
