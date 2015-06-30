@@ -541,9 +541,11 @@
 						,(symbol-name (car x))
 						(format nil "~A" ,(intern (symbol-name 
 									   (car x)) package)))))))
-		  :additional-headers (list (cons "Accept" accept)
-					    ,@(when (authorizations resource-operation)
-						    '((cons "Authorization" authorization)))))
+		  :additional-headers (append
+				       (list (cons "Accept" accept)
+					     ,@(when (authorizations resource-operation)
+						     '((cons "Authorization" authorization))))
+				       additional-headers))
 	       (log5:log-for (rest-server) "Response: ~A" ,response)
 	       (log5:log-for (rest-server) "Status: ~A" ,status-code)
 	       (handle-api-response ,response 
