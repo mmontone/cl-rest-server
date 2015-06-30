@@ -565,9 +565,9 @@
 	(parse-api-response response accept parse-response)
 	response)
       status-code))
-    ((assoc status-code *http-status-codes-conditions*)
+    ((assoc status-code rs.error::*http-status-codes-conditions*)
      (if signal-condition
-	 (error (cdr (assoc status-code *http-status-codes-conditions*)))
+	 (error (cdr (assoc status-code rs.error::*http-status-codes-conditions*)))
 	 (values 
 	  (if parse-response
 	    (parse-api-response response accept parse-reponse)
