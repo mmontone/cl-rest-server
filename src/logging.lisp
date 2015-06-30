@@ -46,7 +46,7 @@
 (cl-annot:defannotation logging (args resource-operation-implementation)
     (:arity 2)
   `(rs::configure-resource-operation-implementation
-    (name (resource-operation ,resource-operation-implementation))
+    (name (rs::resource-operation ,resource-operation-implementation))
     (list :logging ,@args)))
 
 ;; Api logging
