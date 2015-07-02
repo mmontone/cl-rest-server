@@ -560,7 +560,7 @@
 	 (error (cdr (assoc status-code rs.error::*http-status-codes-conditions*)))
 	 (values 
 	  (if parse-response
-	    (parse-api-response response accept parse-reponse)
+	    (parse-api-response response accept parse-response)
 	    response)
 	  status-code)))
     (t 
@@ -568,7 +568,7 @@
 	 (rs.error:http-error status-code)
 	 (values 
 	  (if parse-response
-	    (parse-api-response response accept parse-reponse)
+	    (parse-api-response response accept parse-response)
 	    response)
 	  status-code)))))
 
