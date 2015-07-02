@@ -53,7 +53,6 @@
 	   #:disable-api-logging
 	   #:logging-api
 	   #:logging
-	   #:*api-logging-output*
 	   #:logging-enabled))
 
 (defpackage #:rest-server.serialize

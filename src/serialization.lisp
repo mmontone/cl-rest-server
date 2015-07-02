@@ -198,7 +198,7 @@
 	       :type (attr-type attribute)
 	       :formatter (attribute-formatter attribute))))
 
-(defmethod serialize-value ((serializer (eql :json)) value stream &key type formatter)
+(defmethod serialize-value ((serializer (eql :json)) value stream &key type formatter &allow-other-keys)
   (let ((formatted-value (or (and formatter (funcall formatter value))
 			     value)))
     (case type
@@ -233,7 +233,7 @@
 	       :type (attr-type attribute)
 	       :formatter (attribute-formatter attribute))))
 
-(defmethod serialize-value ((serializer (eql :xml)) value stream &key type formatter)
+(defmethod serialize-value ((serializer (eql :xml)) value stream &key type formatter &allow-other-keys)
   (cxml:text (prin1-to-string value)))
 
 ;; SEXP serializer
@@ -262,7 +262,7 @@
 	     :formatter (attribute-formatter attribute))
   (format stream ")"))
 
-(defmethod serialize-value ((serializer (eql :sexp)) value stream &key type formatter)
+(defmethod serialize-value ((serializer (eql :sexp)) value stream &key type formatter &allow-other-keys)
   (prin1 value stream))
 
 ;; HTML serializer
@@ -296,7 +296,7 @@
 				 :type (attr-type attribute)
 				 :formatter (attribute-formatter attribute))))))
 
-(defmethod serialize-value ((serializer (eql :html)) value stream &key type formatter)
+(defmethod serialize-value ((serializer (eql :html)) value stream &key type formatter &allow-other-keys)
   (cl-who:with-html-output (html stream)
     (cl-who:fmt "~A" value)))
 
@@ -419,7 +419,7 @@
 	       ("application/xml" :xml)
 	       ("text/html" :html)
 	       ("application/json" :json)
-	       ("text/lisp" :lisp))))
+	       ("text/lisp" :sexp))))
       *default-serializer*))
 
 ;; Plugging

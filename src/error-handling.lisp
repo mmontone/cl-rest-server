@@ -2,11 +2,14 @@
 
 ;; Error handling configuration
 
-(defvar *development-mode* :production "Api development mode. One of :development, :testing, :production. Influences how errors are handled from the api")
+(defvar *development-mode* :production)
 
-(defvar *server-development-mode* nil "Global server development mode. Takes precedence over *development-mode* when handling errors")
+(defvar *server-development-mode* nil)
 
 (defvar *log-error-backtrace* t "Log the errors backtrace if T")
+
+(defmacro with-condition-handling (&body body)
+  `(call-with-condition-handling (lambda () (progn ,@body))))
 
 ;; We have to disable hunchentoot handler and enable ours
 (setf hunchentoot:*catch-errors-p* nil)
@@ -20,106 +23,125 @@
   (:report (lambda (c s)
              (format s "HTTP error ~A" (status-code c)))))
 
-(defun http-error (status-code)
-  (error 'http-error :status-code status-code))
+(defun http-error (status-code datum &rest args)
+  (error 'http-error 
+	 :status-code status-code
+	 :format-control datum
+	 :format-arguments args))
 
 (define-condition http-not-found-error (http-error)
   ()
   (:default-initargs
-   :status-code hunchentoot:+http-not-found+))
+   :status-code hunchentoot:+http-not-found+
+    :format-control "Resource not found"))
 
 (define-condition http-internal-server-error (http-error)
   ()
   (:default-initargs
-   :status-code hunchentoot:+http-internal-server-error+))
+   :status-code hunchentoot:+http-internal-server-error+
+    :format-control "Internal server error"))
+
+(define-condition http-bad-request (http-error)
+  ()
+  (:default-initargs
+   :status-code hunchentoot:+http-bad-request+
+    :format-control "Bad request"))
 
 (define-condition http-authorization-required-error (http-error)
   ()
   (:default-initargs
-   :status-code hunchentoot:+http-authorization-required+))
+   :status-code hunchentoot:+http-authorization-required+
+    :format-control "Authorization required"))
 
 (define-condition http-forbidden-error (http-error)
   ()
   (:default-initargs
-   :status-code hunchentoot:+http-forbidden+))
+   :status-code hunchentoot:+http-forbidden+
+    :format-control "Forbidden"))
 
 (define-condition http-service-unavailable-error (http-error)
   ()
   (:default-initargs
-   :status-code hunchentoot:+http-service-unavailable+))
+   :status-code hunchentoot:+http-service-unavailable+
+    :format-control "Service unavailable"))
 
 (define-condition http-unsupported-media-type-error (http-error)
   ()
   (:default-initargs
-   :status-code hunchentoot:+http-unsupported-media-type+))
+   :status-code hunchentoot:+http-unsupported-media-type+
+    :format-control "Unsupported media type"))
 
 (define-condition http-not-acceptable-error (http-error)
   ()
   (:default-initargs
-   :status-code hunchentoot:+http-not-acceptable+))   
+   :status-code hunchentoot:+http-not-acceptable+
+    :format-control "Not acceptable"))
 
 (defparameter *http-status-codes-conditions*
   '((404 . http-not-found-error)
+    (400 . http-bad-request)
     (401 . http-authorization-required-error)
     (403 . http-forbidden-error)
     (500 . http-internal-server-error)
     (415 . http-unsupported-media-type-error)))
 
-(defvar *conditions-mapping* nil "Assoc list mapping application conditions to HTTP conditions. (.i.e. permission-denied-error to http-forbidden-error)")
+(defun serialize-error (error)
+  (with-output-to-string (s)
+    (rs.serialize:with-serializer-output s
+      (rs.serialize:with-serializer (rs.serialize:accept-serializer)
+	(rs.serialize:serialize error)))))
 
-(defgeneric decode-response (response content-type)
-  (:method (response content-type)
-    (error "Not implemented")))
+(defmethod rs.serialize:serialize ((error error) &optional 
+						   (serializer rs.serialize::*serializer*)
+						   (stream rs.serialize::*serializer-output*) &rest args)
+  (declare (ignore args))
+  (rs.serialize:with-element ("error" :serializer serializer
+				      :stream stream)
+    (rs.serialize:set-attribute 
+     "detail" 
+     (if (eql (or *server-development-mode*
+		  *development-mode*)
+	      :production)
+	 "Internal server error"
+	 (princ-to-string error))
+     :serializer serializer
+     :stream stream)))
 
-(defmethod decode-response (response (content-type (eql :json)))
-  (json:decode-json-from-string
-          (babel:octets-to-string
-           response
-           :external-format :utf8)))
+(defmethod rs.serialize:serialize ((error http-error) &optional 
+							(serializer rs.serialize::*serializer*)
+							(stream rs.serialize::*serializer-output*) &rest args)
+  (declare (ignore args))
+  (rs.serialize:with-element ("error" :serializer serializer
+				      :stream stream)
+    (rs.serialize:set-attribute 
+     "detail" 
+     (apply #'format
+	    nil
+	    (simple-condition-format-control error)
+	    (simple-condition-format-arguments error))	 
+     :serializer serializer
+     :stream stream)))
 
-(defun handle-response (response status-code content-type)
-  (cond
-    ((and (>= status-code 200)
-          (< status-code 400))
-     (decode-response response content-type))
-    ((assoc status-code *http-status-codes-conditions*)
-     (error (cdr (assoc status-code *http-status-codes-conditions*))))
-    (t (http-error status-code))))
-
-(defmacro with-condition-handling (&body body)
-  `(%with-condition-handling (lambda () (progn ,@body))))
-
-(define-condition harmless-condition ()
-  ()
-  (:documentation "Inherit your condition from this if you dont want your condition to be catched by the error handler. (.i.e validation-errors to be serialized to the server, always)"))
-
-(defmethod http-return-code (condition)
-  hunchentoot:+http-ok+)
-
-(defmethod http-return-code ((condition http-error))
-  (status-code condition))
+;; http-return-code decides the HTTP status code to return for 
+;; the signaled condition. Implement this method for new conditions.
+;; Example:
+;; (defmethod http-return-code ((error validation-error))
+;;     400)
 
 (defmethod http-return-code ((condition error))
   hunchentoot:+http-internal-server-error+)
 
+(defmethod http-return-code ((condition http-error))
+  (status-code condition))
+
 (defmethod setup-reply-from-error ((error error))
   (setf (hunchentoot:return-code*)
-	hunchentoot:+http-internal-server-error+)
+	(http-return-code error))
   (log5:log-for (rs::rest-server) "ERROR: ~A" error)
   (when *log-error-backtrace*
-    #+nil(log5:log-for (rest-server)
-		       (trivial-backtrace:backtrace-string))
-    
-    (trivial-backtrace:print-backtrace error :output rs.log::*api-logging-output*))
-  "Error")
-
-(defmethod setup-reply-from-error ((condition http-error))
-  (setf (hunchentoot:return-code*) (http-return-code condition))
-  (when (simple-condition-format-control condition)
-    (apply #'format
-	   nil
-	   (simple-condition-format-control condition)
-	   (simple-condition-format-arguments condition))))	  
+    (log5:log-for (rs::rest-server)
+		  (trivial-backtrace:backtrace-string)))
+  (serialize-error error))
 
 (defvar *retry-after-seconds* 5)
 
@@ -128,45 +150,10 @@
   (call-next-method)
   (setf (hunchentoot:header-out "Retry-After") *retry-after-seconds*))
 
-(defun %with-condition-handling (function)
-  (let ((development-mode (or *server-development-mode*
-			      *development-mode*)))
-    (labels ((serialize-condition (condition)
-	       (with-output-to-string (s)
-		 (rs.serialize:with-serializer-output s
-		   (rs.serialize:with-serializer rs.serialize:*default-serializer*
-		     (rs.serialize:serialize condition)))))
-	     (handle-condition (condition)
-	       (if (equalp development-mode :production)
-		   (setup-reply-from-error condition)
-					; else, we are in :testing, serialize the condition
-		   (serialize-condition condition))))
-      (if (equalp development-mode :development)
-	  (handler-case (funcall function)
-	    (harmless-condition (c)
-	      (serialize-condition c)))
-	  (handler-case (funcall function)
-	    (harmless-condition (c)
-	      (serialize-condition c))
-	    (error (c)
-	      (handle-condition c)))))))
-
-(defmethod rs.serialize::serialize-value ((serializer (eql :json)) (error simple-error) stream &rest args) 
-  "Serialize error condition"
-  (json:encode-json-alist 
-   (list (cons :condition (type-of error))
-	 (cons :message (simple-condition-format-control error)))
-   stream))
-
-(defmethod rs.serialize::serialize-value ((serializer (eql :json))
-			    (error simple-error) 
-			    stream &rest args)
-  "Serialize simple error condition"
-  (json:with-object (stream)
-    (json:as-object-member (:condition stream)
-      (json:encode-json (type-of error) stream))
-    (json:as-object-member (:message stream)
-      (json:encode-json (simple-condition-format-control error) stream))))
+(defun call-with-condition-handling (function)
+  (handler-case (funcall function)
+    (error (e)
+      (setup-reply-from-error e))))
 
 ;; Plugging
 

@@ -1,4 +1,4 @@
-4(in-package :rest-server)
+(in-package :rest-server)
 
 (defvar *authorization-enabled-p* t "Globally enable/disable API authorization")
 

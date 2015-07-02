@@ -581,7 +581,7 @@
 	       ("application/xml" :xml)
 	       ("text/html" :html)
 	       ("application/json" :json)
-	       ("text/lisp" :lisp)
+	       ("text/lisp" :sexp)
 	       (t (error "Could not parse accept: ~A" accept)))))
 	(%parse-api-response response parsed-accept format))))
 
@@ -592,7 +592,7 @@
 	(:plist (alexandria:alist-plist parsed))
 	(:alist parsed)
 	(t parsed))))
-  (:method (response (accept (eql :lisp)) format)
+  (:method (response (accept (eql :sexp)) format)
     (read-from-string response)))
 
 (defgeneric url-pattern-noparams (resource-operation))
