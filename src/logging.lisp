@@ -2,45 +2,83 @@
 
 ;; Defaults and api
 
-(defvar *api-logging-output* *standard-output* "Where the API logging message go")
+(defparameter *default-logging-output* *standard-output*)
 
-(defun start-api-logging ()
-  (log5:start-sender 'api-info  
-		     (log5:stream-sender :location *api-logging-output*)
-		     :category-spec 'rs::rest-server
-		     :output-spec '(log5::time 
-				    log5::message)))
+(defun %log-for (category-spec message &rest args)
+  (if (log5::%log-p category-spec)
+      (let ((category (log5::update-category-spec nil category-spec)))
+	(log5::%handle-message
+	 (log5::category-id category)
+	 message
+	 (lambda () args)))
+      (values)))
 
-(defun stop-api-logging ()
-  (log5:stop-sender 'api-info))
+(defun api-log-for (api message &rest args)
+  (apply #'%log-for (log-category-spec api) message args))
+
+(defmethod start-api-logging ((api symbol))
+  (start-api-logging (find-api api)))
+
+(defmethod start-api-logging ((api rs::api-definition))
+  (apply #'log5::start-sender-fn 
+	 (rs::name api) 
+	 (log-category-spec api)
+	 (log-output-spec api)
+	 (first (log-sender-type api))
+	 (rest (log-sender-type api))))
+
+(defmethod stop-api-logging ((api symbol))
+  (stop-api-logging (find-api api)))
+
+(defmethod stop-api-logging ((api rs::api-definition))
+  (log5:stop-sender (rs::name api)))
 
 ;; Api function logging
 
 (defclass logging-resource-operation-implementation-decoration
     (rs::resource-operation-implementation-decoration)
-  ()
+  ((log-category-spec :initarg :category-spec
+		      :accessor log-category-spec
+		      :initform '(rs::rest-server))
+   (log-output-spec :initarg :output-spec
+		    :accessor log-output-spec
+		    :initform '(log5::time 
+				log5::message))
+   (log-sender-type :initarg :sender-type
+		    :accessor log-sender-type
+		    :initform `(log5:stream-sender :location ,*default-logging-output*)))
   (:metaclass closer-mop:funcallable-standard-class))
   
 (defmethod rs::process-resource-operation-implementation-option
     ((option (eql :logging))
      resource-operation-implementation
-     &key (enabled t))
+     &key 
+       (enabled t) 
+       (category-spec '(rs::rest-server))
+       (output-spec '(log5::time 
+		      log5::message))
+       (sender-type `(log5:stream-sender :location ,*default-logging-output*)))
   (if enabled
       (make-instance 'logging-resource-operation-implementation-decoration
-		     :decorates resource-operation-implementation)
+		     :decorates resource-operation-implementation
+		     :category-spec category-spec
+		     :output-spec output-spec
+		     :sender-type sender-type)
       resource-operation-implementation))
   
 (defmethod rs::execute :around ((decoration logging-resource-operation-implementation-decoration)
 			    &rest args)
-  (log5:log-for (rest-server::rest-server) "API: Handling ~A ~A by ~A"
+  (api-log-for rs::*api* 
+	       "API: Handling ~A ~A by ~A"
 		(hunchentoot:request-method*)
 		(hunchentoot:request-uri*)
 		(rs::name (rest-server::resource-operation decoration)))
   (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
 			  (hunchentoot:raw-post-data :external-format :utf8))))
-    (when posted-content (log5:log-for (rs::rest-server) "Posted content: ~A" posted-content)))
+    (when posted-content 
+      (api-log-for rs::*api* "Posted content: ~A" posted-content)))
   (let ((result (call-next-method)))
-    (log5:log-for (rs::rest-server) "Response: ~A" result)
+    (api-log-for rs::*api* "Response: ~A" result)
     result))
 
 (cl-annot:defannotation logging (args resource-operation-implementation)
@@ -54,7 +92,17 @@
 (defclass logging-api ()
   ((logging-enabled :initarg :logging-enabled
 		    :initform t
-		    :accessor logging-enabled)))
+		    :accessor logging-enabled)
+   (log-category-spec :initarg :category-spec
+		      :accessor log-category-spec
+		      :initform '(rs::rest-server))
+   (log-output-spec :initarg :output-spec
+		    :accessor log-output-spec
+		    :initform '(log5::time 
+				log5::message))
+   (log-sender-type :initarg :sender-type
+		    :accessor log-sender-type
+		    :initform `(log5:stream-sender :location ,*default-logging-output*))))
 
 (defmethod rest-server::process-api-option ((option (eql :logging)) api
 					    &key (enabled t))			 
@@ -62,15 +110,17 @@
   (setf (logging-enabled api) enabled))
 
 (defmethod rest-server::api-execute-function-implementation :around ((api logging-api) resource-operation-implementation resource request)
-  (log5:log-for (rs::rest-server) "API: Handling ~A ~A by ~A"
-		(hunchentoot:request-method*)
-		(hunchentoot:request-uri*)
-		(rs::name (rs::resource-operation resource-operation-implementation)))
+  (api-log-for rs::*api*
+	       "API: Handling ~A ~A by ~A"
+	       (hunchentoot:request-method*)
+	       (hunchentoot:request-uri*)
+	       (rs::name (rs::resource-operation resource-operation-implementation)))
   (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
 			  (hunchentoot:raw-post-data :external-format :utf8))))
-    (when posted-content (log5:log-for (rs::rest-server) "Posted content: ~A" posted-content)))
+    (when posted-content 
+      (api-log-for rs::*api* "Posted content: ~A" posted-content)))
   (let ((result (call-next-method)))
-    (log5:log-for (rs::rest-server) "Response: ~A" result)
+    (api-log-for rs::*api* "Response: ~A" result)
     result))
 
 (defun enable-api-logging (api-name &optional (start t))
