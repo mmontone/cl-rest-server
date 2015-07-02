@@ -488,7 +488,7 @@
 		      (list '(accept "application/json"))
 		      (list '(additional-headers ()))
 		      (list '(parse-response t))
-		      (list '(signal-condition nil))
+		      (list '(error-p nil))
 		      (when (authorizations resource-operation)
 			(list '(authorization (error "Provide an authorization value"))))
 		      (when optional-args
@@ -544,9 +544,9 @@
 				    ,status-code 
 				    accept
 				    parse-response 
-				    signal-condition))))))))
+				    error-p))))))))
 
-(defun handle-api-response (response status-code accept parse-response signal-condition)
+(defun handle-api-response (response status-code accept parse-response error-p)
   (cond
     ((and (>= status-code 200)
           (< status-code 400))
@@ -556,7 +556,7 @@
 	response)
       status-code))
     ((assoc status-code rs.error::*http-status-codes-conditions*)
-     (if signal-condition
+     (if error-p
 	 (error (cdr (assoc status-code rs.error::*http-status-codes-conditions*)))
 	 (values 
 	  (if parse-response
@@ -564,7 +564,7 @@
 	    response)
 	  status-code)))
     (t 
-     (if signal-condition
+     (if error-p
 	 (rs.error:http-error status-code)
 	 (values 
 	  (if parse-response
