@@ -13,7 +13,7 @@
 (def-suite rest-server-tests :description "rest-server system tests")
 
 (defun run-tests ()
-  (run 'rest-server-tests))
+  (run! 'rest-server-tests))
 
 (defun debug-tests ()
   (debug! 'rest-server-tests))

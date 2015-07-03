@@ -488,6 +488,7 @@
 		      (list '(accept "application/json"))
 		      (list '(additional-headers ()))
 		      (list '(parse-response t))
+		      (list '(encode-request-arguments t))
 		      (list '(error-p nil))
 		      (when (authorizations resource-operation)
 			(list '(authorization (error "Provide an authorization value"))))
@@ -508,7 +509,11 @@
                                         (list
                                          ,@(loop for x in required-args 
                                               collect (make-keyword (car x))
-                                              collect (intern (symbol-name (car x)) package)))))))
+                                              collect `(if encode-request-arguments
+							   (format-argument-value 
+							    ,(intern (symbol-name (car x)) package)
+							    (parse-argument-type ,(argument-type-spec (second x))))
+							   ,(intern (symbol-name (car x)) package))))))))
              (log5:log-for (rest-server)  "Request: ~A ~A" ,(request-method resource-operation) ,request-url)
              ,(when (member (request-method resource-operation) 
                             '(:post :put))
@@ -531,8 +536,13 @@
 				      `(when ,(intern (format nil "~A-PROVIDED-P" (symbol-name (car x))) package)
 					 (list (cons 
 						,(symbol-name (car x))
-						(format nil "~A" ,(intern (symbol-name 
-									   (car x)) package)))))))
+						(if encode-request-arguments
+						    (format-argument-value 
+						     ,(intern (symbol-name 
+							       (car x)) package)
+						     (parse-argument-type ,(argument-type-spec (second x))))
+						    ,(intern (symbol-name 
+							      (car x)) package)))))))
 		  :additional-headers (append
 				       (list (cons "Accept" accept)
 					     ,@(when (authorizations resource-operation)

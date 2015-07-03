@@ -202,7 +202,7 @@
      (:logging :enabled nil)
      (:serialization :enabled t))
     (id &key expand)
-  (declare (ignore expand-groups))
+  (declare (ignore expand))
   (let ((user (model-test:get-user id)))
     (if (not user)
 	(error 'http-not-found-error)
@@ -220,7 +220,7 @@
 	       :content-id :id)
      (:serialization :enabled t))
     (id &key expand)
-  (declare (ignore expand-groups))
+  (declare (ignore expand))
   (let ((user (model-test:get-user id)))
     (if (not user)
 	(error 'http-not-found-error)
@@ -359,12 +359,6 @@
 	(drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
       (declare (ignore result))
       (is (equalp status-code 500)))
-    (setf (rest-server::development-mode *api-acceptor*) :testing)
-    (multiple-value-bind (result status-code)
-	(drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
-      (is (equalp status-code 200))
-      (let ((condition (json:decode-json-from-string result)))
-	(is (equalp (cdr (assoc :condition condition)) "simpleError"))))
     ;; We can not test development mode like this. We are in a different thread.
     #+nil(setf *development-mode* :development)
     #+nil(signals simple-error
@@ -409,18 +403,16 @@
 	 (json:encode-json-plist-to-string
 	  (list :realname "Felipe"))))
     (is (equalp status 200))
-    (let ((created-user (json:decode-json-from-string result)))
+    (let ((created-user result))
       ;; Retrieve the list of users
       (multiple-value-bind (users status)
 	  (with-api-backend *api-url*
 	    (api-test::get-users))
-	(finishes (json:decode-json-from-string users))
-	(equalp status 200))
+	(is (equalp status 200)))
       ;; Fetch the created user
       (multiple-value-bind (result status)
 	  (with-api-backend *api-url*
 	    (api-test::get-user (cdr (assoc :id created-user))))
-	(finishes (json:decode-json-from-string result))
 	(is (equalp status 200)))
       ;; Fetch an unexisting user
       (multiple-value-bind (result status)
@@ -452,7 +444,7 @@
 	       `(progn
 		  (is (equalp status 200))
 		  (is (equalp (cdr (assoc ,key
-					  (json:decode-json-from-string result)))
+					  result))
 			      ,value)))))
     ;; No parameters
     (multiple-value-bind (result status)
@@ -471,38 +463,30 @@
 	  (api-test::parameters :boolean t))
       (is (equalp status 200))
       (is (cdr (assoc :boolean
-		      (json:decode-json-from-string result)))))
+		      result))))
+
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :boolean "t" :encode-request-arguments nil))
+      (is (equalp status hunchentoot:+http-not-acceptable+)))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :boolean nil))
       (is (equalp status 200))
       (is (not (cdr (assoc :boolean
-			   (json:decode-json-from-string result))))))
+			   result)))))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :boolean 44))
-      (is (equalp status 500)))
+      (is (equalp status 200)))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
-	  (api-test::parameters :boolean "true"))
-      (is (equalp status 200))
-      (is (cdr (assoc :boolean
-		      (json:decode-json-from-string result)))))
+	  (api-test::parameters :boolean "44" :encode-request-arguments nil))
+      (is (equalp status hunchentoot:+http-not-acceptable+)))
 
-    (multiple-value-bind (result status)
-	(with-api-backend *api-url*
-	  (api-test::parameters :boolean "false"))
-      (is (equalp status 200))
-      (is (not (cdr (assoc :boolean
-			   (json:decode-json-from-string result))))))
-
-    (multiple-value-bind (result status)
-	(with-api-backend *api-url*
-	  (api-test::parameters :boolean "lala"))
-      (is (equalp status 500)))
 
     ;; String
 
@@ -511,7 +495,7 @@
 	  (api-test::parameters :string "asd"))
       (is (equalp status 200))
       (is (equalp (cdr (assoc :string
-			      (json:decode-json-from-string result)))
+			      result))
 		  "asd")))
 
     ;; Integer
@@ -522,33 +506,40 @@
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
-	  (api-test::parameters :integer "34"))
+	  (api-test::parameters :integer "34" :encode-request-arguments nil))
       (check :integer 34))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
-	  (api-test::parameters :integer t))
-      (is (equalp status 500)))
+	  (api-test::parameters :integer "t" :encode-request-arguments nil))
+      (is (equalp status hunchentoot:+http-not-acceptable+)))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
-	  (api-test::parameters :integer nil))
-      (is (equalp status 500)))
+	  (api-test::parameters :integer "nil" :encode-request-arguments nil))
+      (is (equalp status hunchentoot:+http-not-acceptable+)))
 
     ;; Lists
     #+fails(multiple-value-bind (result status)
-	(with-api-backend *api-url*
-	  (api-test::parameters :list (list "foo" "bar")))
-      (check :list (list "foo" "bar")))
+	       (with-api-backend *api-url*
+		 (api-test::parameters :list (list "foo" "bar")))
+	     (check :list (list "foo" "bar")))
   
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
-	  (api-test::parameters :list "foo,bar"))
+	  (api-test::parameters :list "foo,bar" :encode-request-arguments nil))
+      (check :list (list "foo" "bar")))
+
+    (multiple-value-bind (result status)
+	(with-api-backend *api-url*
+	  (api-test::parameters :list (list "foo" "bar")))
       (check :list (list "foo" "bar")))
 
     (multiple-value-bind (result status)
 	(drakma:http-request "http://localhost:8181/parameters?list=foo,bar" :method :get)
-      (check :list (list "foo" "bar")))))
+      (is (equalp status 200))
+      (is (equalp (cdr (assoc :list (json:decode-json-from-string result)))
+		  (list "foo" "bar"))))))
 
 (test caching-test
   ;; Create a new user

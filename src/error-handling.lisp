@@ -86,10 +86,12 @@
     (415 . http-unsupported-media-type-error)))
 
 (defun serialize-error (error)
-  (with-output-to-string (s)
-    (rs.serialize:with-serializer-output s
-      (rs.serialize:with-serializer (rs.serialize:accept-serializer)
-	(rs.serialize:serialize error)))))
+  (let ((serializer (rs.serialize:accept-serializer)))
+    (set-reply-content-type (rs.serialize::serializer-content-type serializer))
+    (with-output-to-string (s)
+      (rs.serialize:with-serializer-output s
+	(rs.serialize:with-serializer serializer
+	  (rs.serialize:serialize error))))))
 
 (defmethod rs.serialize:serialize ((error error) &optional 
 						   (serializer rs.serialize::*serializer*)
@@ -99,11 +101,13 @@
 				      :stream stream)
     (rs.serialize:set-attribute 
      "detail" 
-     (if (eql (or *server-development-mode*
-		  *development-mode*)
-	      :production)
-	 "Internal server error"
+     (ecase (or *server-development-mode*
+		*development-mode*)
+       (:production
+	"Internal server error")
+       (:testing
 	 (princ-to-string error))
+       (:development "REST SERVER INTERNAL ERROR: this should not have happened"))
      :serializer serializer
      :stream stream)))
 
@@ -125,8 +129,9 @@
 ;; http-return-code decides the HTTP status code to return for 
 ;; the signaled condition. Implement this method for new conditions.
 ;; Example:
-;; (defmethod http-return-code ((error validation-error))
-;;     400)
+
+ (defmethod http-return-code ((error rs.schema:validation-error))
+   400)
 
 (defmethod http-return-code ((condition error))
   hunchentoot:+http-internal-server-error+)
@@ -151,9 +156,14 @@
   (setf (hunchentoot:header-out "Retry-After") *retry-after-seconds*))
 
 (defun call-with-condition-handling (function)
-  (handler-case (funcall function)
-    (error (e)
-      (setup-reply-from-error e))))
+  (if (not (eql 
+	    (or *server-development-mode*
+		*development-mode*)
+	    :development))
+      (handler-case (funcall function)
+	(error (e)
+	  (setup-reply-from-error e)))
+      (funcall function)))     
 
 ;; Plugging
 

@@ -90,6 +90,7 @@
 	   #:schema
 	   #:define-schema
 	   #:validation
+	   #:validation-error
 	   #:parse-with-schema
 	   #:unserialize-with-schema))
 
@@ -112,6 +113,5 @@
 	   #:http-forbidden-error
 	   #:http-not-acceptable-error
 	   #:http-unsupported-media-type-error
-	   #:validation-error
 	   #:error-handling
 	   #:with-condition-handling))

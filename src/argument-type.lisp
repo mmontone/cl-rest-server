@@ -15,6 +15,7 @@
 
 (defgeneric parse-argument-value (value argument-type))
 (defgeneric format-argument-value (value argument-type))
+(defgeneric argument-type-spec (argument-type))
   
 (defgeneric %parse-argument-type (argument-type spec))
 
@@ -37,6 +38,10 @@
 	    (:format-value
 	     (destructuring-bind (args &body body) (rest option)
 	       `(defmethod format-argument-value (,@args (argument-type ,name))
+		  ,@body)))
+	    (:format-spec
+	     (destructuring-bind ((argument-type) &body body) (rest option)
+	       `(defmethod argument-type-spec ((,argument-type ,name))
 		  ,@body)))))
      (pushnew ',name *argument-types*)))
 
@@ -55,25 +60,38 @@
 		  (member (first spec) (list :integer :int)))
 	     (apply #'make-instance 'integer-argument-type (rest spec)))))
   (:parse-value (string)
-		(parse-integer string 
-			       :radix (radix argument-type)
-			       :junk-allowed (junk-allowed argument-type)))
+		(or
+		 (ignore-errors
+		   (parse-integer string 
+				  :radix (radix argument-type)
+				  :junk-allowed (junk-allowed argument-type)))
+		 (error 'rs.error:http-not-acceptable-error
+			:format-control "~A is not an integer"
+			:format-arguments (list string))))
   (:format-value (value)
 		 (check-type value integer)
-		 (princ-to-string value)))
+		 (princ-to-string value))
+  (:format-spec (argument-type)
+		:integer))
 
 (def-argument-type string-argument-type ()
   ((max-length :initarg :max-length
 	       :accessor max-length
 	       :initform nil))
   (:parse (spec)
-	  (when (member spec (list :string :str :text))
-	    (make-instance 'string-argument-type)))
+	  (cond 
+	    ((member spec (list :string :str :text))
+	     (make-instance 'string-argument-type))
+	    ((and (listp spec)
+		  (member (first spec) (list :string :str :text)))
+	     (apply #'make-instance 'string-argument-type (rest spec)))))
   (:parse-value (string)
 		string)
   (:format-value (value)
 		 (assert (stringp value))
-		 value))
+		 value)
+  (:format-spec (argument-type)
+		:string))
 
 (def-argument-type boolean-argument-type ()
   ()
@@ -86,9 +104,15 @@
 		   t)
 		  ((member string (list "false" "no" "off") :test #'equalp)
 		   nil)
-		  (t (error "Could not parse boolean value: ~A" string))))
+		  (t (error 'rs.error:http-not-acceptable-error 
+			    :format-control
+			    "Could not parse boolean value: ~A" 
+			    :format-arguments
+			    (list string)))))
   (:format-value (value)
-		 (if value "true" "false")))
+		 (if value "true" "false"))
+  (:format-spec (argument-type)
+		:boolean))
 
 (def-argument-type list-argument-type ()
   ((elems-type-spec 
@@ -110,7 +134,9 @@
 		   (split-sequence:split-sequence #\, string))))
   (:format-value (value)
 		 (assert (listp value))
-		 (format nil "~{~A~^,~}" value)))
+		 (format nil "~{~A~^,~}" value))
+  (:format-spec (argument-type)
+		:list))
 
 (def-argument-type timestamp-argument-type ()
   ()
@@ -119,7 +145,9 @@
 	    (make-instance 'timestamp-argument-type)))
   (:parse-value (string)
 		(or (chronicity:parse string)
-		    (error "Could not parse timestamp: ~A" string)))
+		    (error rs.error:http-not-acceptable-error
+			   :format-control "Could not parse timestamp: ~A" 
+			   :format-arguments (list string))))
   (:format-value (value)
 		 (cond
 		   ((integerp value)
@@ -131,4 +159,6 @@
 		     nil
 		     value))
 		   (t
-		    (error "Not a timestamp: ~A" value)))))
+		    (error "Not a timestamp: ~A" value))))
+  (:format-spec (argument-type)
+		:timestamp))

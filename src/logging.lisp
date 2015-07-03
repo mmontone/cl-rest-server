@@ -68,7 +68,7 @@
   
 (defmethod rs::execute :around ((decoration logging-resource-operation-implementation-decoration)
 			    &rest args)
-  (api-log-for rs::*api* 
+  (api-log-for decoration 
 	       "API: Handling ~A ~A by ~A"
 		(hunchentoot:request-method*)
 		(hunchentoot:request-uri*)
@@ -76,9 +76,9 @@
   (let ((posted-content (when (hunchentoot:raw-post-data :external-format :utf8)
 			  (hunchentoot:raw-post-data :external-format :utf8))))
     (when posted-content 
-      (api-log-for rs::*api* "Posted content: ~A" posted-content)))
+      (api-log-for decoration "Posted content: ~A" posted-content)))
   (let ((result (call-next-method)))
-    (api-log-for rs::*api* "Response: ~A" result)
+    (api-log-for decoration "Response: ~A" result)
     result))
 
 (cl-annot:defannotation logging (args resource-operation-implementation)
