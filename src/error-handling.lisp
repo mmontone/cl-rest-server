@@ -148,6 +148,11 @@
 		  (trivial-backtrace:backtrace-string)))
   (serialize-error error))
 
+(defmethod setup-reply-from-error ((error http-error))
+  (setf (hunchentoot:return-code*)
+	(http-return-code error))
+  (serialize-error error))
+
 (defvar *retry-after-seconds* 5)
 
 (defmethod setup-reply-from-error ((error http-service-unavailable-error))
