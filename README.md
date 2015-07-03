@@ -23,6 +23,7 @@ Features:
 
 * Error handling
   - Development and production modes
+  - HTTP status codes
 
 * Validation via schemas
 
