@@ -31,5 +31,8 @@ Features:
 * Authentication
   - Different methods (token based, oauth)
 
+* API client
+  - Generation of API client functions via macros
+
 * APIs documentation
   - Via Swagger: http://swagger.wordnik.com
