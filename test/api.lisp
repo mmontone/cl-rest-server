@@ -468,7 +468,7 @@
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :boolean "t" :encode-request-arguments nil))
-      (is (equalp status hunchentoot:+http-not-acceptable+)))
+      (is (equalp status hunchentoot:+http-bad-request+)))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
@@ -485,8 +485,7 @@
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :boolean "44" :encode-request-arguments nil))
-      (is (equalp status hunchentoot:+http-not-acceptable+)))
-
+      (is (equalp status hunchentoot:+http-bad-request+)))
 
     ;; String
 
@@ -512,12 +511,12 @@
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :integer "t" :encode-request-arguments nil))
-      (is (equalp status hunchentoot:+http-not-acceptable+)))
+      (is (equalp status hunchentoot:+http-bad-request+)))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :integer "nil" :encode-request-arguments nil))
-      (is (equalp status hunchentoot:+http-not-acceptable+)))
+      (is (equalp status hunchentoot:+http-bad-request+)))
 
     ;; Lists
     #+fails(multiple-value-bind (result status)

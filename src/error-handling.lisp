@@ -130,8 +130,24 @@
 ;; the signaled condition. Implement this method for new conditions.
 ;; Example:
 
- (defmethod http-return-code ((error rs.schema:validation-error))
-   400)
+(defmethod http-return-code ((error rs.schema:validation-error))
+  hunchentoot:+http-bad-request+)
+
+(defmethod rs.serialize:serialize ((error rs.schema:validation-error) 
+				   &optional 
+				     (serializer rs.serialize::*serializer*)
+				     (stream rs.serialize::*serializer-output*) &rest args)
+  (declare (ignore args))
+  (rs.serialize:with-element ("error" :serializer serializer
+				      :stream stream)
+    (rs.serialize:set-attribute 
+     "detail" 
+     (apply #'format
+	    nil
+	    (simple-condition-format-control error)
+	    (simple-condition-format-arguments error))	 
+     :serializer serializer
+     :stream stream)))
 
 (defmethod http-return-code ((condition error))
   hunchentoot:+http-internal-server-error+)

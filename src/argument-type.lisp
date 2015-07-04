@@ -13,7 +13,7 @@
      :do (return-from parse-argument-type parsed-argument-type))
   (error "Invalid argument type: ~A" spec))
 
-(defgeneric parse-argument-value (value argument-type))
+(defgeneric parse-argument-value (value argument-type &key error-p))
 (defgeneric format-argument-value (value argument-type))
 (defgeneric argument-type-spec (argument-type))
   
@@ -33,8 +33,15 @@
 		  ,@body)))
 	    (:parse-value
 	     (destructuring-bind (args &body body) (rest option)
-	       `(defmethod parse-argument-value (,@args (argument-type ,name))
-		  ,@body)))
+	       `(defmethod parse-argument-value (,@args (argument-type ,name) &key (error-p t))
+		  (flet ((parse-error (message &rest args)
+			   (if error-p
+			       (cerror "Continue" 'rs.schema:validation-error
+				       :format-control message
+				       :format-arguments args)
+			       (return-from parse-argument-value
+				 (values nil (apply #'format message args))))))
+		    ,@body))))
 	    (:format-value
 	     (destructuring-bind (args &body body) (rest option)
 	       `(defmethod format-argument-value (,@args (argument-type ,name))
@@ -65,9 +72,7 @@
 		   (parse-integer string 
 				  :radix (radix argument-type)
 				  :junk-allowed (junk-allowed argument-type)))
-		 (error 'rs.error:http-not-acceptable-error
-			:format-control "~A is not an integer"
-			:format-arguments (list string))))
+		 (parse-error "~A is not an integer" string)))
   (:format-value (value)
 		 (check-type value integer)
 		 (princ-to-string value))
@@ -86,7 +91,9 @@
 		  (member (first spec) (list :string :str :text)))
 	     (apply #'make-instance 'string-argument-type (rest spec)))))
   (:parse-value (string)
-		string)
+		(or (and (stringp string)
+			 string)
+		    (parse-error "Not a string: ~A" string)))
   (:format-value (value)
 		 (assert (stringp value))
 		 value)
@@ -104,11 +111,8 @@
 		   t)
 		  ((member string (list "false" "no" "off") :test #'equalp)
 		   nil)
-		  (t (error 'rs.error:http-not-acceptable-error 
-			    :format-control
-			    "Could not parse boolean value: ~A" 
-			    :format-arguments
-			    (list string)))))
+		  (t (parse-error "Could not parse boolean value: ~A" 
+				  string))))
   (:format-value (value)
 		 (if value "true" "false"))
   (:format-spec (argument-type)
@@ -145,9 +149,8 @@
 	    (make-instance 'timestamp-argument-type)))
   (:parse-value (string)
 		(or (chronicity:parse string)
-		    (error 'rs.error:http-not-acceptable-error
-			   :format-control "Could not parse timestamp: ~A" 
-			   :format-arguments (list string))))
+		    (parse-error "Could not parse timestamp: ~A" 
+				 string)))
   (:format-value (value)
 		 (cond
 		   ((integerp value)
@@ -170,9 +173,8 @@
 	    (make-instance 'keyword-argument-type)))
   (:parse-value (string)
 		(or (and string (intern (string-upcase string) :keyword))
-		    (error 'rs.error:http-not-acceptable-error
-			   :format-control "Could not parse keyword: ~A" 
-			   :format-arguments (list string))))
+		    (parse-error "Could not parse keyword: ~A" 
+				 string)))
   (:format-value (value)
 		 (princ-to-string value))
   (:format-spec (argument-type)
@@ -193,10 +195,39 @@
 		(let ((elem (parse-argument-value string (elems-type-spec argument-type))))
 		  (or (member elem (choices argument-type)
 			      :test #'equalp)
-		      (error 'rs.error:http-not-acceptable-error
-			     :format-control "Could not parse choice ~A: ~A" 
-			     :format-arguments (list argument-type elem)))))
+		      (parse-error "Could not parse choice ~A: ~A" 
+			     argument-type elem))))
   (:format-value (value)
-		 (format-argument-value value (elems-type-sepc argument-type)))
+		 (format-argument-value value (elems-type-spec argument-type)))
   (:format-spec (argument-type)
 		`(:choice ,@(choices argument-type))))
+
+(def-argument-type or-argument-type ()
+  ((types :initarg :types
+	  :accessor types
+	  :initform (error "Provide the types")))
+  (:parse (spec)
+	  (when (and (listp spec)
+		     (member (first spec) (list :or)))
+	    (make-instance 'or-argument-type 
+			   :types (mapcar #'parse-argument-type (rest spec)))))
+  (:parse-value (string)
+		(loop 
+		   :for type :in (types argument-type)
+		   :do
+		     (destructuring-bind (parse-result parse-error)
+			 (parse-argument-value string type :error-p nil)
+		       (when (not parse-error)
+			 (return-from parse-argument-value parse-result))))
+		(parse-error "Could not parse ~A: ~A" argument-type string))
+  (:format-value (value)
+		 (loop for type in (types argument-type)
+		      for formatted = (ignore-errors (format-argument-value value type))
+		      when formatted
+		      return formatted)
+		 (error "Could not format value: ~A" value))
+  (:format-spec (argument-type)
+		`(:or ,@(mapcar #'argument-type-spec (types argument-type)))))
+
+
+
