@@ -352,14 +352,14 @@
 	       (loop
 		  for reqarg in (required-arguments resource-operation)
 		  for arg in args
-		  collect (parse-argument-value arg (second reqarg))))
+		  collect (parse-argument-value arg (argument-type reqarg))))
 	      (optional-args
 	       (loop 
 		  for (var . string) in (request-uri-parameters (hunchentoot:request-uri request))
 		  for optarg = (find-optional-argument (make-keyword var) resource-operation)
 		  appending 
-		  (list (make-keyword (symbol-name (first optarg)))
-                        (parse-argument-value string (second optarg))))))
+		  (list (make-keyword (string (argument-name optarg)))
+                        (parse-argument-value string (argument-type optarg))))))
 	  (append required-args optional-args))))))
 
 ;; Implementation

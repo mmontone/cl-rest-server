@@ -170,7 +170,7 @@
                        vars)))
     (loop for arg in args-in-uri
 	 do
-	 (assert (member arg (mapcar #'first (required-arguments resource-operation)))
+	 (assert (member arg (mapcar #'argument-name (required-arguments resource-operation)))
 		 nil
 		 "Argument ~a not declared in ~a" arg resource-operation))))
 
@@ -208,6 +208,39 @@
 				      (resource-operation resource-operation))
   (setf (hunchentoot:header-out "Allow")
 	(string-upcase (string (request-method resource-operation)))))
+
+(defclass resource-operation-argument ()
+  ((name :initarg :name
+	 :type symbol
+	 :accessor argument-name
+	 :documentation "The argument name")
+   (url-name :initarg :url-name
+	     :type string
+	     :accessor argument-url-name
+	     :documentation "The name with which the argument appears in the url")
+   (type :initarg :type
+	 :accessor argument-type
+	 :documentation "The argument type")
+   (default
+       :initarg :default
+     :accessor argument-default
+     :initform nil
+     :documentation "The argument default value")
+   (required-p :initarg :required-p
+	       :accessor argument-required-p
+	       :initform t
+	       :documentation "Whether the argument is required or not")
+   (documentation :initarg :documentation
+		  :accessor argument-documentation
+		  :initform nil
+		  :documentation "The argument documentation")))
+
+(defmethod print-object ((argument resource-operation-argument) stream)
+  (print-unreadable-object (argument stream :type t :identity t)
+    (format stream "~S (~S) required: ~A"
+	    (argument-name argument)
+	    (argument-type argument)
+	    (argument-required-p argument))))
 
 (defclass resource-operation-implementation ()
   ((resource-operation :initarg :resource-operation
@@ -279,7 +312,7 @@
 	    (loop for arg0 in (cdr (required-arguments resource-operation))
 	       for arg1 in required
 	       do
-		 (let ((arg0-name (first arg0))
+		 (let ((arg0-name (argument-name arg0))
 		       (arg1-name arg1))
 		   (ensure (equalp (symbol-name arg0-name)
 				   (symbol-name arg1-name))
@@ -289,25 +322,25 @@
 	  (loop for arg0 in (required-arguments resource-operation)
 	     for arg1 in required
 	     do
-	       (let ((arg0-name (first arg0))
+	       (let ((arg0-name (argument-name arg0))
 		     (arg1-name arg1))
 		 (ensure (equalp (symbol-name arg0-name)
 				 (symbol-name arg1-name))
 			 "Invalid resource operation implementation args list: ~A <> ~A"
 			 arg0-name arg1-name))))
       (let ((optional-args-names
-	     (mapcar (alexandria:compose #'symbol-name #'cadar)
+	     (mapcar (alexandria:compose #'string #'cadar)
 		     keyword))
 	    (resource-operation-optional-args
-	     (mapcar (alexandria:compose #'symbol-name #'car)
-				     (optional-arguments resource-operation))))
+	     (mapcar (alexandria:compose #'string #'argument-name)
+		     (optional-arguments resource-operation))))
 	(loop for optional-arg in optional-args-names
 	   do
 	     (ensure (member optional-arg
 			     resource-operation-optional-args
 			     :test #'equalp)
 		     "Optional argument ~A not found in resource operation implementation args"
-		     optional-arg))))))		   
+		     optional-arg))))))
 
 (defun configure-resource-operation-implementation
     (name &rest options)
@@ -384,7 +417,7 @@
 (defun find-optional-argument (name resource-operation)
   (or
    (find name (optional-arguments resource-operation)
-	 :key (alexandria:compose #'make-keyword #'first))
+	 :key (alexandria:compose #'make-keyword #'argument-name))
    (error "Optional argument ~A not found in ~A ~A" 
 	  name 
 	  resource-operation 
@@ -409,7 +442,7 @@
 	      for key in args by #'cddr
 	      for value in (cdr args) by #'cddr
 	      for optional-arg = (find key (optional-arguments resource-operation)
-				       :key (alexandria:compose #'make-keyword #'first))
+				       :key (alexandria:compose #'make-keyword #'argument-name))
 	      when optional-arg
 	      collect (format-optional-url-arg optional-arg value))))
       (format nil "~A~@[?~{~A~^&~}~]"
@@ -430,18 +463,29 @@
 		   args))))
 
 (defun format-optional-url-arg (arg value)
-  (destructuring-bind (name type default-value &optional documentation) arg
-    (format nil "~A=~A" 
-	    (string-downcase name)
-	    (format-argument-value value type))))
+  (format nil "~A=~A" 
+	  (or (argument-url-name arg)
+	      (string-downcase (string (argument-name arg))))
+	  (format-argument-value value (argument-type arg))))
 
 (defun parse-resource-operation-argument (arg) 
   (destructuring-bind (name type &optional documentation) arg
-    (list name (parse-argument-type type) documentation)))
+    (make-instance 'resource-operation-argument
+		   :name name
+		   :url-name (string-downcase (string name))
+		   :type (parse-argument-type type)
+		   :required-p t
+		   :documentation documentation)))
 
 (defun parse-optional-resource-operation-argument (arg)
   (destructuring-bind (name type default-value &optional documentation) arg
-    (list name (parse-argument-type type) default-value documentation)))
+    (make-instance 'resource-operation-argument
+		   :name name
+		   :url-name (string-downcase (string name))
+		   :type (parse-argument-type type)
+		   :required-p nil
+		   :default default-value
+		   :documentation documentation)))
 
 (defun parse-resource-operation-arguments (arguments-spec)
   (loop with required-arguments = '()
@@ -481,8 +525,8 @@
              ,(append
 	       (when (member (request-method resource-operation) '(:post :put))
 		 (list 'posted-content))
-	       (loop for x in required-args collect 
-		    (intern (symbol-name (car x)) package))
+	       (loop for arg in required-args collect 
+		    (intern (symbol-name (argument-name arg)) package))
 	       (cons '&key
 		     (append
 		      (list '(accept "application/json"))
@@ -493,10 +537,12 @@
 		      (when (authorizations resource-operation)
 			(list '(authorization (error "Provide an authorization value"))))
 		      (when optional-args
-			(loop for x in optional-args collect 
-			     (list (intern (symbol-name (first x)) package) 
-				   (third x)
-				   (intern (format nil "~A-PROVIDED-P" (symbol-name (first x))) package))))
+			(loop for arg in optional-args collect 
+			     (list (intern (symbol-name (argument-name arg)) package) 
+				   (argument-default arg)
+				   (intern (format nil "~A-PROVIDED-P" 
+						   (symbol-name (argument-name arg))) 
+					   package))))
 		      (when (member (request-method resource-operation) '(:post :put))
 			(list '(content-type "application/json"))))))
 	   ,(api-documentation resource-operation)
@@ -507,13 +553,13 @@
                                        (replace-vars-in-url 
                                         ,(url-pattern-noparams resource-operation)
                                         (list
-                                         ,@(loop for x in required-args 
-                                              collect (make-keyword (car x))
+                                         ,@(loop for arg in required-args 
+                                              collect (make-keyword (argument-name arg))
                                               collect `(if encode-request-arguments
 							   (format-argument-value 
-							    ,(intern (symbol-name (car x)) package)
-							    (parse-argument-type ,(argument-type-spec (second x))))
-							   ,(intern (symbol-name (car x)) package))))))))
+							    ,(intern (symbol-name (argument-name arg)) package)
+							    (parse-argument-type ,(argument-type-spec (argument-type arg))))
+							   ,(intern (symbol-name (argument-name arg)) package))))))))
              (log5:log-for (rest-server)  "Request: ~A ~A" ,(request-method resource-operation) ,request-url)
              ,(when (member (request-method resource-operation) 
                             '(:post :put))
@@ -531,18 +577,18 @@
 					       '(:post :put))
 				       'content-type)
 		  :parameters (append
-			       ,@(loop for x in optional-args
+			       ,@(loop for arg in optional-args
 				    collect
-				      `(when ,(intern (format nil "~A-PROVIDED-P" (symbol-name (car x))) package)
+				      `(when ,(intern (format nil "~A-PROVIDED-P" (symbol-name (argument-name arg))) package)
 					 (list (cons 
-						,(symbol-name (car x))
+						,(symbol-name (argument-name arg))
 						(if encode-request-arguments
 						    (format-argument-value 
 						     ,(intern (symbol-name 
-							       (car x)) package)
-						     (parse-argument-type ,(argument-type-spec (second x))))
+							       (argument-name arg)) package)
+						     (parse-argument-type ,(argument-type-spec (argument-type arg))))
 						    ,(intern (symbol-name 
-							      (car x)) package)))))))
+							      (argument-name arg)) package)))))))
 		  :additional-headers (append
 				       (list (cons "Accept" accept)
 					     ,@(when (authorizations resource-operation)

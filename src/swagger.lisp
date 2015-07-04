@@ -71,7 +71,11 @@
 (defun encode-swagger-operation (operation)
   (flet ((encode-parameter (parameter required-p)
 	   (if (not required-p)
-	       (destructuring-bind (name type default-value documentation) parameter
+	       (with-accessors ((name argument-name)
+				(type argument-type)
+				(default-value argument-default)
+				(documentation argument-documentation))
+		   parameter
 		 (declare (ignore default-value))
 		 (json:with-object ()
 		   (json:encode-object-member :name name)
@@ -80,7 +84,10 @@
 		   (json:encode-object-member :description documentation)
 		   (json:encode-object-member :required :false)
 		   (json:encode-object-member :allow-multiple :false)))
-	       (destructuring-bind (name type documentation) parameter
+	       (with-accessors ((name argument-name)
+				(type argument-type)
+				(documentation argument-documentation))
+		   parameter
 		 (json:with-object ()
 		   (json:encode-object-member :name name)
 		   (json:encode-object-member :type type)
@@ -150,7 +157,7 @@
 			    do (json:as-array-member ()
 				 (encode-swagger-operation operation)))))))))))      
       (json:as-object-member (:models)
-	(encode-swagger-models (mapcar #'find-schema (resource-models resource))))
+	(encode-swagger-models (mapcar #'rs.schema:find-schema (resource-models resource))))
 	)))
 
 (defun mime-to-string (mime-type)
@@ -168,9 +175,9 @@
 
 (defun encode-swagger-model (schema-element)
   (flet ((encode-model-property (attribute)
-	   (json:as-object-member ((attribute-name attribute))
+	   (json:as-object-member ((rs.schema::attribute-name attribute))
 	     (json:with-object ()
-	       (let ((attribute-type (attribute-type attribute)))
+	       (let ((attribute-type (rs.schema::attribute-type attribute)))
 		 (cond
 		   ((keywordp attribute-type) ;; A primitive type
 		    (json:encode-object-member
@@ -197,15 +204,15 @@
 		      (:option (json:encode-object-member :enum
 							  (rest attribute-type)))
 		      (:element (error "Not implemented yet"))))))		     
-	       (let ((desc (or (attribute-option :description attribute)
-			       (attribute-option :documentation attribute))))
+	       (let ((desc (or (rs.schema::attribute-option :description attribute)
+			       (rs.schema::attribute-option :documentation attribute))))
 		 (when desc
 		   (json:encode-object-member :description desc)))))))
     (json:with-object ()
-      (json:encode-object-member :id (element-name schema-element))
+      (json:encode-object-member :id (rs.schema::element-name schema-element))
       (json:as-object-member (:properties)
 	(json:with-object ()
-	  (loop for attribute in (element-attributes schema-element)
+	  (loop for attribute in (rs.schema::element-attributes schema-element)
 	     do
 	       (encode-model-property attribute)))))))
 
@@ -213,7 +220,7 @@
   (json:with-object ()
     (loop for schema in schemas
 	 do
-	 (json:as-object-member ((element-name schema))
+	 (json:as-object-member ((rs.schema::element-name schema))
 	   (encode-swagger-model schema)))))
 
 (defun encode-swagger-authorization (authorization)
