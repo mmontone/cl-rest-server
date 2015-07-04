@@ -5,6 +5,10 @@
 (defclass argument-type ()
   ())
 
+(defmethod print-object ((argument-type argument-type) stream)
+  (print-unreadable-object (argument-type stream :type t :identity t)
+    (format stream "~S" (argument-type-spec argument-type))))
+
 (defun parse-argument-type (spec)
   (loop 
      :for argument-type in *argument-types*
@@ -21,7 +25,7 @@
 
 (defmacro def-argument-type (name super-types slots &rest options)
   `(progn
-     (defclass ,name ,super-types
+     (defclass ,name ,(remove-duplicates (cons 'argument-type super-types))
        ,slots)
      ,@(loop 
 	  :for option :in options
