@@ -145,7 +145,7 @@
 	    (make-instance 'timestamp-argument-type)))
   (:parse-value (string)
 		(or (chronicity:parse string)
-		    (error rs.error:http-not-acceptable-error
+		    (error 'rs.error:http-not-acceptable-error
 			   :format-control "Could not parse timestamp: ~A" 
 			   :format-arguments (list string))))
   (:format-value (value)
@@ -162,3 +162,41 @@
 		    (error "Not a timestamp: ~A" value))))
   (:format-spec (argument-type)
 		:timestamp))
+
+(def-argument-type keyword-argument-type ()
+  ()
+  (:parse (spec)
+	  (when (member spec (list :keyword))
+	    (make-instance 'keyword-argument-type)))
+  (:parse-value (string)
+		(or (and string (intern (string-upcase string) :keyword))
+		    (error 'rs.error:http-not-acceptable-error
+			   :format-control "Could not parse keyword: ~A" 
+			   :format-arguments (list string))))
+  (:format-value (value)
+		 (princ-to-string value))
+  (:format-spec (argument-type)
+		:keyword))
+
+(def-argument-type choice-argument-type ()
+  ((choices :initarg :choices
+	    :accessor choices
+	    :initform (error "Provide the choices"))
+   (elems-type-spec :initarg :type
+		    :accessor elems-type-spec
+		    :initform :string))
+  (:parse (spec)
+	  (when (and (listp spec)
+		     (member (first spec) (list :option :choice)))
+	    (make-instance 'choice-argument-type :values (rest spec))))
+  (:parse-value (string)
+		(let ((elem (parse-argument-value string (elems-type-spec argument-type))))
+		  (or (member elem (choices argument-type)
+			      :test #'equalp)
+		      (error 'rs.error:http-not-acceptable-error
+			     :format-control "Could not parse choice ~A: ~A" 
+			     :format-arguments (list argument-type elem)))))
+  (:format-value (value)
+		 (format-argument-value value (elems-type-sepc argument-type)))
+  (:format-spec (argument-type)
+		`(:choice ,@(choices argument-type))))
