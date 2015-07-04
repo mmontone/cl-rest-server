@@ -87,25 +87,16 @@
 (defmethod initialize-instance :after ((resource-operation resource-operation) &rest initargs)
   (declare (ignore initargs))
 
-  ;; Parse the uri to obtain the required parameters
-  #+nil(let ((args-in-uri (multiple-value-bind (scanner vars)
-			      (parse-resource-operation-path (path resource-operation))
-			    (declare (ignore scanner))
-			    vars)))
-	 (setf (required-arguments resource-operation)
-	       (append args-in-uri (required-arguments resource-operation))))
-
-  ;; Parse the optional parameters
-  #+nil(setf (optional-arguments resource-operation)
-	     (mapcar (lambda (arg)
-		       (setf (first arg)
-			     (make-keyword (symbol-name (first arg))))
-		       arg)
-		     (alexandria:copy-sequence '(or cons null)
-					       (optional-arguments resource-operation))))
-
-  ;; Validate the function
-  (validate resource-operation)
+  ;; Validate the operation
+  (let ((args-in-uri (multiple-value-bind (scanner vars)
+                         (parse-resource-operation-path (path resource-operation))
+                       (declare (ignore scanner))
+                       vars)))
+    (loop for arg in args-in-uri
+	 do
+	 (assert (member arg (mapcar #'argument-name (required-arguments resource-operation)))
+		 nil
+		 "Argument ~a not declared in ~a" arg resource-operation)))
 
   ;; Install the resource operation
   (when *register-resource-operation*
@@ -119,60 +110,12 @@
       (setf (gethash (name resource-operation) (resource-operations resource))
             resource-operation))))
 
-;; (defmethod initialize-instance :after ((resource-operation resource-operation) &rest args)
-;;   (closer-mop:set-funcallable-instance-function
-;;    resource-operation
-;;    (lambda (&rest args)
-;;      (call-resource-operation resource-operation args))))
-
-;; (defun call-resource-operation (resource-operation args))
-
 (defmethod print-object ((resource-operation resource-operation) stream)
   (print-unreadable-object (resource-operation stream :type t :identity t)
     (format stream "~A ~A ~S"
 	    (name resource-operation)
 	    (request-method resource-operation)
 	    (path resource-operation))))
-
-(defmethod validate ((resource-operation resource-operation))
-  ;; Check resource-operation arguments have the right format
-  #+nil(loop for arg in (required-arguments resource-operation)
-       do
-       (assert (and (listp arg)
-                    (symbolp (first arg))
-                    (keywordp (second arg))
-                    (member (second arg) *resource-operation-arguments-types*)
-                    (or (not (third arg))
-                        (stringp (third arg))))
-               nil
-               "The argument is not in the right format ~A.
-                Right format: (<name> <type> <documentation>)"
-               arg))
-
-    #+nil(loop for arg in (optional-arguments resource-operation)
-       do
-       (assert (and (listp arg)
-                    (symbolp (first arg))
-                    (keywordp (second arg))
-                    (member (second arg) *resource-operation-arguments-types*)
-                    ;(resource-operation-typep (third arg) (second arg))
-                    (or (not (nth 3 arg))
-                        (stringp (nth 3 arg))))
-               nil
-               "The argument is not in the right format ~A.
-                Right format: (<name> <type> <default-value> <documentation>)"
-               arg))
-  
-  ; Ensure uri parameters have been declared
-  (let ((args-in-uri (multiple-value-bind (scanner vars)
-                         (parse-resource-operation-path (path resource-operation))
-                       (declare (ignore scanner))
-                       vars)))
-    (loop for arg in args-in-uri
-	 do
-	 (assert (member arg (mapcar #'argument-name (required-arguments resource-operation)))
-		 nil
-		 "Argument ~a not declared in ~a" arg resource-operation))))
 
 (defun make-resource-operation (name attributes args options)
   "Make an resource operation."
