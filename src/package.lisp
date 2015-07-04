@@ -91,6 +91,7 @@
 	   #:define-schema
 	   #:validation
 	   #:validation-error
+	   #:validate-with-schema
 	   #:parse-with-schema
 	   #:unserialize-with-schema))
 

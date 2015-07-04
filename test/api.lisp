@@ -550,7 +550,7 @@
 	  (list :realname "Cached user"))))
     (is (equalp status 200))
     ;; Fetch the created user
-    (let ((created-user (json:decode-json-from-string result)))
+    (let ((created-user result))
       (let ((user-id (cdr (assoc :id created-user))))
 	(multiple-value-bind (result status headers)
 	    (drakma:http-request

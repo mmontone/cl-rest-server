@@ -2,20 +2,74 @@
 
 ;; Schemas
 
+(defvar *schemas* (make-hash-table))
+
+(defun register-schema (name definition)
+  (setf (gethash name *schemas*)
+	definition))
+
+(defmacro define-schema (name schema)
+  "Define a schema"
+  `(register-schema ',name
+		    (schema ,schema)))
+
+(defmacro schema (schema-def)
+  `(quote ,schema-def))
+
+(defun find-schema (name &optional (errorp t))
+  "Find a schema definition by name"
+  (multiple-value-bind (schema foundp)
+      (gethash name *schemas*)
+    (if (not foundp)
+	(if errorp
+	    (error "Schema ~a not found" name)
+	    nil)
+	schema)))
+
+(defvar *collect-validation-errors* t)
+(defvar *signal-validation-errors* t)
+(defvar *validation-errors-collection*)
+
 ;; Schemas may be used either to serialize objects or validate input
 
-(defgeneric serialize-with-schema (schema input &optional serializer stream)
-  (:documentation "Serialize input using schema")
-  (:method (schema input &optional (serializer rs.serialize::*serializer*) 
-			   (stream rs.serialize::*serializer-output*))
-    (%serialize-with-schema schema serializer input stream)))
+(defun serialize-with-schema (schema input 
+			      &optional (serializer rs.serialize::*serializer*) 
+				(stream rs.serialize::*serializer-output*))
+  (%serialize-with-schema schema serializer input stream))
 
 (defmethod %serialize-with-schema (schema serializer input stream)
-  (if (listp schema)
-      (ecase (first schema)
-	(:list (serialize-schema-list schema serializer input stream))
-	(:option (serialize-value serializer input stream))
-	(:element (serialize-schema-element schema serializer input stream)))))
+  (let ((schema-type (if (listp schema)
+			 (first schema)
+			 schema)))
+    (%%serialize-with-schema schema-type schema serializer input stream)))
+
+(defmethod %%serialize-with-schema ((schema-type (eql :list))
+				    schema serializer input stream)
+  (serialize-schema-list schema serializer input stream))
+
+(defmethod %%serialize-with-schema ((schema-type (eql :option))
+				   schema serializer input stream)
+  (serialize-value serializer input stream))
+
+(defmethod %%serialize-with-schema ((schema-type (eql :element))
+				   schema serializer input stream)
+  (serialize-schema-element schema serializer input stream))
+
+(defmethod %%serialize-with-schema ((schema-type (eql :integer))
+				   schema serializer input stream)
+  (serialize-value serializer input stream))
+
+(defmethod %%serialize-with-schema ((schema-type (eql :boolean))
+				   schema serializer input stream)
+    (serialize-value serializer input stream))
+
+(defmethod %%serialize-with-schema ((schema-type (eql :string))
+				   schema serializer input stream)
+  (serialize-value serializer input stream))
+
+(defmethod %%serialize-with-schema ((schema-type (eql :timestamp))
+				   schema serializer input stream)
+    (serialize-value serializer input stream))
 
 (defun serialize-schema-element (schema-element serializer input stream)
   (destructuring-bind (_ element-name attributes &rest options) schema-element
@@ -107,75 +161,121 @@
 					  :stream stream)
 		  (%serialize-with-schema schema serializer elem stream)))))))))
 
-(defvar *schemas* (make-hash-table))
-
-(defun register-schema (name definition)
-  (setf (gethash name *schemas*)
-	definition))
-
-(defmacro define-schema (name schema)
-  "Define a schema"
-  `(register-schema ',name
-		    (schema ,schema)))
-
-(defmacro schema (schema-def)
-  `(quote ,schema-def))
-
-(defun find-schema (name &optional (errorp t))
-  "Find a schema definition by name"
-  (multiple-value-bind (schema foundp)
-      (gethash name *schemas*)
-    (if (not foundp)
-	(if errorp
-	    (error "Schema ~a not found" name)
-	    nil)
-	schema)))
-
-(defun validate-with-schema (schema string-or-data &optional (format :json))
-  "Validate input using schema. Useful for validate resource operation posted content (for :post and :put methods). Input can be a string or an association list."
-  (let ((data (if (stringp string-or-data)
-		  (rs::parse-api-input format string-or-data)
-		  string-or-data)))
-    (schema-validate-with-element schema data)))
-
 (define-condition validation-error (simple-error)
   ())
 
-(defun validation-error (message &rest args)
-  (error 'validation-error :format-control message
-	 :format-arguments args))
+(define-condition validation-error-collection (validation-error)
+  ((validation-errors :initarg :validation-errors
+		      :initform (error "Provide the validation errors")
+		      :accessor validation-errors))
+  (:report (lambda (c s)
+	     (format s "Validation errors: ~{~A~^, ~}" 
+		     (validation-errors c)))))  
 
-(defun schema-validate-with-element (schema data)
+(defun validation-error (message &rest args)
+  (cerror "Continue"
+	  'validation-error 
+	  :format-control message
+	  :format-arguments args))
+
+(defun simple-condition-message (condition)
+  (apply #'format 
+	 (simple-condition-format-control condition)
+	 (simple-condition-format-arguments condition)))
+
+(defun validate-with-schema (schema string-or-data 
+			     &key 
+			       (format :json)
+			       (collect-errors *collect-validation-errors*)
+			       (error-p *signal-validation-errors*))
+  "Validate input using schema. 
+Useful for validating resource operations posted content (for :post and :put methods). 
+Input can be a string or an association list.
+
+Args:
+  - schema (symbol or schema): The schema
+  - string-or-data(string or list): The data to validate.
+  - format (keyword): The data format
+  - collect-errors (boolean): If true, collect all the validation errors. If false, return the first validation error found. Default: true.
+  - error-p (boolean): If true, when validation errors are found, a validation error is signaled. If false, the validation errors are returned as the function result and no error is signaled."
+  (let ((schema (or (and (symbolp schema) (find-schema schema))
+		    schema))
+	(data (if (stringp string-or-data)
+		  (rs::parse-api-input format string-or-data)
+		  string-or-data))
+	(*collect-validation-errors* collect-errors)
+	(*signal-validation-errors* error-p)
+	(*validation-errors-collection* nil))
+    (let ((validation-error
+	   (handler-bind ((validation-error 
+			   (lambda (validation-error)
+			     (cond 
+			       (collect-errors
+				(push validation-error *validation-errors-collection*)
+				(invoke-restart (find-restart 'continue)))
+			       ((not error-p)
+				(return-from validate-with-schema validation-error))
+			       (t
+				(error validation-error))))))
+	     (schema-validate schema data))))
+      (if collect-errors
+	  *validation-errors-collection*
+	  validation-error))))
+
+(defun schema-validate (schema data &optional attribute)
+  (%schema-validate (first schema) schema data attribute))
+
+(defmethod %schema-validate ((schema-type (eql :element)) schema data &optional attribute)
   "Validate data using schema element. "
   (loop
-     for schema-attribute in (element-attributes schema)
-     for data-attribute = (assoc (string (attribute-name schema-attribute))
-				  data
-				  :test #'equalp
-				  :key #'string)
-     do
-       (when (and (not data-attribute)
-		  (not (attribute-optional-p schema-attribute)))
-	 (validation-error "Attribute ~a not found in ~a"
-			   (attribute-name schema-attribute)
-			   data))
-       (when (not (schema-typep (cdr data-attribute)
-				(attribute-type schema-attribute)))
-	 (validation-error "~A is not of type ~A"
-			   (cdr data-attribute)
-			   (attribute-type schema-attribute)))))
+     :for schema-attribute :in (element-attributes schema)
+     :for data-attribute := (assoc (string (attribute-name schema-attribute))
+				   data
+				   :test #'equalp
+				   :key #'string)
+     :do
+     (when (and (not data-attribute)
+		(not (attribute-optional-p schema-attribute)))
+       (validation-error "Attribute ~a not found in ~a"
+			 (attribute-name schema-attribute)
+			 data))
+     (schema-validate (attribute-type schema-attribute)
+		      (cdr data-attribute)
+		      schema-attribute)))
 
-(defgeneric schema-typep (value type)
-  (:method (value (type (eql :string)))
-    (stringp value))
-  (:method (value (type (eql :integer)))
-    (numberp value))
-  (:method (value (type (eql :list)))
-    (listp value))
-  (:method (value (type (eql :date)))
-    (or (typep value 'local-time:timestamp)
-	(and (stringp value)
-	     (chronicity:parse value)))))
+(defmethod %schema-validate ((schema-type (eql :list)) schema data &optional attribute)
+  (let ((list-type (or (and (listp schema-type)
+			    (second schema-type))
+		       :any)))
+      (when (not (listp data))
+	(validation-error "~A: ~A is not of type ~A"
+			  (attribute-name attribute)
+			  attribute
+			  (attribute-type attribute)))
+      (every (lambda (val)
+	       (schema-validate (second schema-type) val))
+	     data)))
+
+(defmethod %schema-validate ((schema-type (eql :string)) schema data &optional attribute)
+  (when (not (stringp data))
+    (validation-error "~A: ~A is not a string"
+		      (attribute-name attribute)
+		      data)))
+
+(defmethod %schema-validate ((schema-type (eql :integer)) schema data &optional attribute)
+  (when (not (integerp data))
+    (validation-error "~A: ~A is not a number"
+		      (attribute-name attribute)
+		      data)))
+
+(defmethod %schema-validate ((schema-type (eql :timestamp)) schema data &optional attribute)
+  (when (not
+	 (or (typep data 'local-time:timestamp)
+	     (and (stringp data)
+		  (chronicity:parse data))))
+    (validation-error "~A: ~A is not a timestamp"
+		      (attribute-name attribute)
+		      data)))
 
 (defgeneric parse-with-schema (schema string-or-data &optional format)
   (:documentation "Parses the string to an association list using the schema"))
@@ -342,10 +442,16 @@
   (attribute-option :accessor attribute))
 
 (defun attribute-writer (attribute)
-  (attribute-option :writer attribute))
+  (or (attribute-option :writer attribute)
+      (and (attribute-accessor attribute)
+	   (fdefinition
+	    `(setf
+	      ,(attribute-accessor attribute))))))
 
 (defun attribute-reader (attribute)
-  (attribute-option :reader attribute))
+  (or
+   (attribute-option :reader attribute)
+   (attribute-accessor attribute)))
 
 ;; Unserialization
 
@@ -443,7 +549,7 @@ See: parse-api-input (function)"
 	 collect (unserialize-schema-attribute-value list-type elem))))
   (:method ((type-name (eql :option)) type input)
     input)
-  (:method (type-name type input)
+  (:method ((type-name symbol) type input)
     ;; Assume a schema reference
     (let ((schema (find-schema type-name nil)))
       (if (not schema)
@@ -484,7 +590,7 @@ See: parse-api-input (function)"
   (let ((posted-content (first args))) ;; Asume the posted content is in the first argument
     (let ((valid-p (validate-with-schema (validation-schema decoration)
 					 posted-content
-					 (validation-format decoration))))
+					 :format (validation-format decoration))))
       (if (not valid-p)
 	  (error "The posted content is invalid")
 	  (call-next-method)))))
