@@ -26,10 +26,6 @@
 	    nil)
 	schema)))
 
-(defclass schema ()
-  ((attributes :initarg attributes
-	       
-
 (defvar *collect-validation-errors* t)
 (defvar *signal-validation-errors* t)
 (defvar *validation-errors-collection*)
