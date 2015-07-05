@@ -291,7 +291,7 @@
 (push (cons "application" "json") drakma:*text-content-types*)
 (push (cons "application" "xml") drakma:*text-content-types*)
 
-(test api-post-test
+(deftest api-post-test
   (drakma:http-request
    "http://localhost:8181/users"
    :method :post
@@ -311,7 +311,7 @@
    :accept "application/json"
    :content (json:encode-json-plist-to-string '(:realname "user3"))))   
   
-(test api-setup-test
+(deftest api-setup-test
   (multiple-value-bind (result status-code headers)
       (drakma:http-request "http://localhost:8181/users" :method :get)
     (is (equalp status-code 200))
@@ -325,13 +325,13 @@
 	   (list "user1" "user2" "user3")
 	   :test #'equalp)))))
 
-#+nil(test basic-parameters-test
+#+nil(deftest basic-parameters-test
   (multiple-value-bind (result status-code)
       (drakma:http-request "http://localhost:8181/users?expand-groups=true" :method :get)
     (is (equalp status-code 200))
     (is (equalp (read-from-string result) (list "user1" "user2" "user3")))))
 
-#+nil(test boolean-parameters-test
+#+nil(deftest boolean-parameters-test
   (setf *development-mode* :production)
   (multiple-value-bind (result status-code)
       (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
@@ -342,7 +342,7 @@
     (is (equalp status-code 200))
     (is (equalp (read-from-string result) (list "user1" "user2" "user3" t)))))
 
-(test error-handling-test
+(deftest error-handling-test
   (let ((development-mode (rest-server::development-mode *api-acceptor*)))
     (setf (rest-server::development-mode *api-acceptor*) :production)
     (multiple-value-bind (result status-code)
@@ -355,7 +355,7 @@
 	   (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get))
     (setf (rest-server::development-mode *api-acceptor*) development-mode)))
 
-(test accept-content-test
+(deftest accept-content-test
   (multiple-value-bind (result status headers)
       (drakma:http-request "http://localhost:8181/users/2"
 			   :method :get
@@ -389,7 +389,7 @@
 
 (defparameter *api-url* "http://localhost:8181")
 
-(test client-api-access-test
+(deftest client-api-access-test
   ;; Create a new user
   (multiple-value-bind (result status)
       (with-api-backend *api-url*
@@ -414,7 +414,7 @@
 	   (api-test::get-user 123456))
 	(is (equalp status 404))))))
 
-#+fails(test content-type-test
+#+fails(deftest content-type-test
   "Specify the content type we are sending explicitly"
   (setf *development-mode* :production)
   (multiple-value-bind (result status-code)
@@ -433,7 +433,7 @@
     (is (equalp status-code 200))
     (is (equalp (read-from-string result) (list "user1" "user2" "user3" t)))))
 
-(test resource-operations-parameters-test
+(deftest resource-operations-parameters-test
   (macrolet ((check (key value)
 	       `(progn
 		  (is (equalp status 200))
@@ -534,7 +534,7 @@
       (is (equalp (cdr (assoc :list (json:decode-json-from-string result)))
 		  (list "foo" "bar"))))))
 
-(test caching-test
+(deftest caching-test
   ;; Create a new user
   (multiple-value-bind (result status)
       (with-api-backend *api-url*
@@ -598,7 +598,7 @@
 	      (is (cdr (assoc :etag headers)))
 	      (finishes (json:decode-json-from-string result)))))))))
 
-(test conditional-dispatch-test
+(deftest conditional-dispatch-test
   ;; No accept content-type
   (multiple-value-bind (result status)
       (drakma:http-request
@@ -632,7 +632,7 @@
     (is (equalp status 200))
     (is (ppcre:scan "application/xml" (cdr (assoc :content-type headers))))))
 
-(test not-found-test
+(deftest not-found-test
   "Test that http-not-found is obtained on non existant resources"
   (multiple-value-bind (result status)
       (drakma:http-request

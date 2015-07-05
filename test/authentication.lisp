@@ -135,7 +135,7 @@
 
 (in-suite auth-api-test)
 
-(test basic-token-authentication-test
+(deftest basic-token-authentication-test
   ;; Unauthentication access doesn't work
   (multiple-value-bind (result status-code)
       (drakma:http-request "http://localhost:8182/users"

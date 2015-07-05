@@ -88,7 +88,7 @@
 					     :age 31
 					     )))
 
-(test basic-json-schema-serialization-test
+(deftest basic-json-schema-serialization-test
   (let ((user (make-instance 'user
 			     :realname "Mariano"
 			     :id 2
@@ -138,7 +138,7 @@
       (serialize-with-schema 
        (find-schema 'minimal-user-schema) *user*))))
 
-#+fails(test parse-api-input-test
+#+fails(deftest parse-api-input-test
   (let ((input-1 "{\"id\":2,\"realname\":\"Mariano\",\"age\":30,\"bestFriend\":{\"id\":3,\"realname\":\"Fernando\"},\"groups\":[{\"id\":3,\"name\":\"My group\"}]}")
 	(input-2 "<user><id>2</id><realname>Mariano</realname><age>30</age><best-friend><user><id>3</id><realname>Fernando</realname></user></best-friend><groups><group><id>3</id><name>My group</name></group></groups></user>")
 	(input-3 "(user ((id . 2) (realname . \"Mariano\") (age . 30) (best-friend . ((id . 3) (realname . \"Fernando\"))) (groups . ((group ((id . 3) (name . \"My group\")))))))"))
@@ -266,7 +266,7 @@
 
 ;; Validation
 
-(test schema-parsing-validation-test 
+(deftest schema-parsing-validation-test 
 
   ;; Fails
   (signals validation-error
@@ -320,7 +320,7 @@
        (find-schema 'user-schema)
        data))))
 
-(test schema-unserialization-validation-test 
+(deftest schema-unserialization-validation-test 
 
   ;; Fails
   (signals validation-error

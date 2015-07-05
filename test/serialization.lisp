@@ -14,12 +14,12 @@
 					 (attribute "id" 33)
 					 (attribute "title" "My group"))))))
 
-(test intermediate-representation-test
+(deftest intermediate-representation-test
   (is (equalp (name *element*) "user"))
   (is (equalp (value (find "realname" (attributes *element*)  :key #'name :test #'equalp))
 	      "Mike")))
 
-(test json-serialization-test
+(deftest json-serialization-test
   (let ((json-output
 	 (with-output-to-string (s)
 	   (with-serializer-output s
@@ -32,7 +32,7 @@
 	(is (equalp (cdr (assoc :id (first groups)))
 		    33))))))
 
-#+fails(test xml-serialization-test
+#+fails(deftest xml-serialization-test
   (let ((xml-output
 	 (with-output-to-string (s)
 	   (cxml:with-xml-output (cxml:make-character-stream-sink s :indentation nil :omit-xml-declaration-p t)
@@ -80,7 +80,7 @@
 	      (set-attribute "id" 33)
 	      (set-attribute "title" "My group"))))))))
 
-(test json-stream-serialization-test
+(deftest json-stream-serialization-test
   (let ((json-output
 	 (with-output-to-string (s)
 	   (with-serializer-output s
@@ -93,7 +93,7 @@
 	(is (equalp (cdr (assoc :id (first groups)))
 		    33))))))
 
-#+fails(test xml-stream-serialization-test
+#+fails(deftest xml-stream-serialization-test
   (let ((xml-output
 	 (with-output-to-string (s)
 	   (with-serializer-output s
@@ -114,7 +114,7 @@
 	    (let ((title (find "title" children :test #'equalp :key #'first)))
 	      (is (equalp (third title) "My group")))))))))
 
-(test html-serialization-test
+(deftest html-serialization-test
   (multiple-value-bind (doc errors)
       (let ((html
 	     (with-output-to-string (s)
@@ -133,7 +133,7 @@
 	(html5-parser:parse-html5 html))
     (is (and doc (not errors)))))
 
-(test sexp-serialization-test
+(deftest sexp-serialization-test
   (let ((str
 	 (with-output-to-string (s)
 	   (with-serializer-output s
@@ -157,7 +157,7 @@
 	   (attribute "empty" nil :list)
 	   (attribute "not-empty" (list 1 2 3) :list)))
 
-(test typed-serialization-test
+(deftest typed-serialization-test
   (let ((result (with-output-to-string (s)
 		  (with-serializer-output s
 		    (with-serializer :json

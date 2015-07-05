@@ -34,6 +34,10 @@
     (&body)
     (stop-api *auth-api*)))
 
+(defmacro deftest (name &body body)
+  `(test (,name :compile-at :definition-time)
+     ,@body))
+
 (defun run-tests ()
   (with-fixture api-fixture ()
 		(with-fixture auth-api-fixture ()

@@ -161,7 +161,7 @@
 	(format s "Status: ~A" status-code)
 	(format s "Result: ~A" result)))))
 
-(test basic-oauth2-authentication-test
+(deftest basic-oauth2-authentication-test
   ;; Unauthentication access doesn't work
   (multiple-value-bind (result status-code)
       (drakma:http-request "http://localhost:8183/users"
