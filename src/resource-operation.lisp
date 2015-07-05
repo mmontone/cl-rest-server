@@ -144,23 +144,23 @@
 	   :optional-arguments optional-arguments
 	   attributes)))
 
-(defmethod find-resource-operation ((api symbol) function-name &optional (error-p t))
-  (find-resource-operation (find-api api) function-name error-p))
+(defmethod find-resource-operation ((api symbol) operation-name &optional (error-p t))
+  (find-resource-operation (find-api api) operation-name error-p))
 
-(defmethod find-resource-operation ((api api-definition) function-name &optional (error-p t))
+(defmethod find-resource-operation ((api api-definition) operation-name &optional (error-p t))
   (loop for resource being the hash-values of (resources api)
-       when (gethash function-name (resource-operations resource))
+       when (gethash operation-name (resource-operations resource))
        do (return-from find-resource-operation
-	    (gethash function-name (resource-operations resource))))
+	    (gethash operation-name (resource-operations resource))))
   (when error-p
-    (error "resource operation not found ~A" function-name)))
+    (error "resource operation not found ~A" operation-name)))
 
-(defmethod format-api-url ((api-name symbol) function-name &rest args)
+(defmethod format-api-url ((api-name symbol) operation-name &rest args)
   (let ((api (find-api api-name)))
-    (apply #'format-api-url resource operation-name args)))
+    (apply #'format-api-url api-name operation-name args)))
 
-(defmethod format-api-url ((api api-definition) function-name &rest args)
-  (let ((resource-operation (find-resource-operation resource operation-name)))
+(defmethod format-api-url ((api api-definition) operation-name &rest args)
+  (let ((resource-operation (find-resource-operation api operation-name)))
     (replace-vars-in-url (url-pattern resource-operation) args)))
 
 (defmethod resource-operation-http-options ((api api-definition)
@@ -589,7 +589,7 @@
 	  status-code)))
     (t 
      (if error-p
-	 (rs.error:http-error status-code)
+	 (rs.error:http-error status-code "Error")
 	 (values 
 	  (if parse-response
 	    (parse-api-response response accept parse-response)

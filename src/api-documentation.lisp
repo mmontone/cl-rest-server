@@ -28,7 +28,7 @@
                            api))))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-documentation-acceptor) request)
-  (loop for resource-operation being the hash-value of (functions (api acceptor))
+  (loop for resource-operation being the hash-value of (resource-operations (api acceptor))
      when (equalp (format nil "/~A" (name resource-operation)) (hunchentoot:request-uri*))
      return (with-documentation-toplevel (api acceptor)
               (document-resource-operation acceptor resource-operation))
@@ -41,7 +41,7 @@
       (:div :class "api-documentation"
             (cl-who:str (api-documentation api)))
       (:div :class "resource-operations"
-            (loop for resource-operation being the hash-value of (functions api)
+            (loop for resource-operation being the hash-value of (resource-operations api)
                  do
                  (document-resource-operation acceptor resource-operation))))))
       

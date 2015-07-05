@@ -252,6 +252,7 @@
   (setf (hunchentoot:header-out "Access-Control-Allow-Origin") "*"))
 
 (defmethod process-api-resource-option ((option (eql :swagger)) resource &rest args)
+  (declare (ignore args))
   (dynamic-mixins:ensure-mix resource 'swagger-resource))
 
 (defclass swagger-api (api-definition)
@@ -263,4 +264,5 @@
   (setf (hunchentoot:header-out "Access-Control-Allow-Origin") "*"))
 
 (defmethod process-api-option ((option (eql :swagger)) api &rest args)
+  (declare (ignore args))
   (dynamic-mixins:ensure-mix api 'swagger-api))
