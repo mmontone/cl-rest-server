@@ -4,14 +4,6 @@
 
 ;; API tests
 
-(defpackage :api-test
-  (:use :rest-server 
-	:rest-server.serialize
-	:rest-server.schema
-	:rest-server.logging
-	:rest-server.error
-	:cl))
-
 (in-package :api-test)
 
 (define-api api-test
@@ -183,6 +175,7 @@
      (:logging :enabled t)
      (:error-handling :enabled t))
     (&rest args &key expand (page 1))
+  (declare (ignorable args))
   (let ((serializer (rest-server.serialize:accept-serializer)))
     (set-reply-content-type (rest-server.serialize::serializer-content-type serializer))
     (with-output-to-string (s)
@@ -295,9 +288,6 @@
 
 (in-package :rest-server-tests)
 
-(defparameter *api-acceptor*
-  (start-api 'api-test::api-test "localhost" 8181))
-
 (push (cons "application" "json") drakma:*text-content-types*)
 (push (cons "application" "xml") drakma:*text-content-types*)
 
@@ -370,20 +360,24 @@
       (drakma:http-request "http://localhost:8181/users/2"
 			   :method :get
 			   :additional-headers '(("Accept" . "application/json")))
+    (is (equal status 200))
     (finishes (json:decode-json-from-string result))
     (is (equalp (cdr (assoc :content-type headers)) "application/json")))
   (multiple-value-bind (result status headers)
       (drakma:http-request "http://localhost:8181/users/2"
 			   :method :get
 			   :additional-headers '(("Accept" . "application/xml")))
+    (is (equal status 200))
     (finishes (cxml:parse result (cxml-xmls:make-xmls-builder)))
     (is (equalp (cdr (assoc :content-type headers)) "application/xml")))
   (multiple-value-bind (result status headers)
       (drakma:http-request "http://localhost:8181/users/2"
 			   :method :get
 			   :additional-headers '(("Accept" . "text/html")))
+    (declare (ignorable headers))
     (multiple-value-bind (html error)
 	(html5-parser:parse-html5 result :strictp t)
+      (declare (ignorable error html))
       ;(is (null error))
       )
     (is (cl-ppcre:scan  "text/html" (cdr (assoc :content-type headers)))))

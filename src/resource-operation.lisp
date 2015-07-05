@@ -473,7 +473,7 @@
 
 ;; Client implementation
 
-(defun client-stub (api-name resource-operation &optional (package *package*))
+(defun client-stub (resource-operation &optional (package *package*))
   (let ((request-url (gensym "REQUEST-URL-"))
         (response (gensym "RESPONSE-"))
 	(status-code (gensym "STATUS-CODE-")))
@@ -481,7 +481,7 @@
 	  (optional-args (optional-arguments resource-operation)))
       `(progn
 	 (defun ,(intern (symbol-name (name resource-operation)) package)
-             ,(append
+	     ,(append
 	       (when (member (request-method resource-operation) '(:post :put))
 		 (list 'posted-content))
 	       (loop for arg in required-args collect 
@@ -504,7 +504,9 @@
 					   package))))
 		      (when (member (request-method resource-operation) '(:post :put))
 			(list '(content-type "application/json"))))))
-	   ,(api-documentation resource-operation)
+	   ,@(when (api-documentation resource-operation)
+		   (list (api-documentation resource-operation)))
+	   (declare (ignorable encode-request-arguments))
            (log5:log-for (rest-server) "Client stub: ~A" ',(name resource-operation))
            (assert *api-backend* nil "Error: this is an resource operation. No api backend selected. Wrap this function call with with-api-backend")
            (let ((,request-url (format nil "~A~A" 

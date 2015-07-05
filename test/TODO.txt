@@ -1,0 +1,1 @@
+* Use something other than fiveam for testing, so that it is possible run :before and :after suite code (maybe port to stefil?)

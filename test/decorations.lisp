@@ -30,6 +30,7 @@
 (defmethod rs::process-api-option
     ((option-name (eql :simple-decoration))
      api &rest args)
+  (declare (ignorable args))
   (dynamic-mixins:ensure-mix api 'simple-api-decoration))
 
 (rs::configure-api 'decorated-api '(:simple-decoration))
@@ -48,6 +49,7 @@
   ())
 
 (defmethod rs::process-api-resource-option ((option (eql :simple-decoration)) resource &rest args)
+  (declare (ignorable args))
   (dynamic-mixins:ensure-mix resource 'simple-resource-decoration))
 
 (defmethod rs::resource-execute-function-implementation :around

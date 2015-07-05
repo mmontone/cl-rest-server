@@ -123,7 +123,7 @@
 		   (with-element ("user")
 		     (set-attribute "realname" "Hola")))))))
 	(html5-parser:parse-html5 html))
-    (is (not errors)))
+    (is (and doc (not errors))))
   (multiple-value-bind (doc errors)
       (let ((html
 	     (with-output-to-string (s)
@@ -131,7 +131,7 @@
 		 (with-serializer :html
 		   (serialize *element*))))))
 	(html5-parser:parse-html5 html))
-    (is (not errors))))
+    (is (and doc (not errors)))))
 
 (test sexp-serialization-test
   (let ((str

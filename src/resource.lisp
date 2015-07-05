@@ -120,8 +120,7 @@
      ,@(let ((*register-resource-operation* nil))
             (loop for x in functions
                collect (client-stub
-                        name
-                        (destructuring-bind (name attributes args &rest options) x
+			(destructuring-bind (name attributes args &rest options) x
                           (make-resource-operation
                            name
                            attributes
