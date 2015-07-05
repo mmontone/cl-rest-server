@@ -22,13 +22,26 @@
 
 (defvar *api-acceptor*)
 
-(defun run-tests ()
-  (let ((*api-acceptor*
-	 (start-api 'api-test::api-test "localhost" 8181)))
-    (run! 'rest-server-tests)
+(def-fixture api-fixture ()
+  (let ((*api-acceptor* (start-api 'api-test::api-test "localhost" 8181)))
+    (&body)
     (stop-api *api-acceptor*)))
 
+(defvar *auth-api*)  
+
+(def-fixture auth-api-fixture ()
+  (let ((*auth-api* (start-api 'auth-api-test "localhost" 8182)))
+    (&body)
+    (stop-api *auth-api*)))
+
+(defun run-tests ()
+  (with-fixture api-fixture ()
+		(with-fixture auth-api-fixture ()
+			      (run! 'rest-server-tests))))
+
 (defun debug-tests ()
-  (debug! 'rest-server-tests))
+  (with-fixture api-fixture ()
+		(with-fixture auth-api-fixture ()
+			      (debug! 'rest-server-tests))))
 
 (in-suite rest-server-tests)

@@ -129,9 +129,6 @@
     delete-user (id)
   (model-test::delete-user id))
 
-(defparameter *auth-api*
-  (start-api 'auth-api-test "localhost" 8182))
-
 (def-suite auth-api-test 
     :in rest-server-tests
     :description "Authentication tests")
@@ -185,5 +182,3 @@
 						 ("Authorization" . ,token)))
       (finishes (json:decode-json-from-string result))
       (is (equalp status-code 200)))))
-
-(stop-api *auth-api*)
