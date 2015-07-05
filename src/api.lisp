@@ -440,31 +440,30 @@
 (defmethod parse-api-input ((format (eql :sexp)) string)
   (read-from-string string))
 
-;; TODO: content negotiation is wrong!! Very wrong!!
-
+(defun parse-content-type (content-type)
+  (cond
+    ((some-test (list "text/xml" "application/xml")
+		(lambda (ct)
+		  (cl-ppcre:scan ct content-type)))
+     :xml)
+    ((some-test (list "application/json")
+		(lambda (ct)
+		  (cl-ppcre:scan ct content-type)))
+     :json)
+    ((some-test (list "application/lisp" "text/lisp")
+		(lambda (ct)
+		  (cl-ppcre:scan ct content-type)))
+     :sexp)
+    (t (error 'rs.error:http-unsupported-media-type-error
+	      :format-control "Content type not supported ~A"
+	      :format-arguments (list content-type)))))
+  
 (defun parse-posted-content (posted-content &optional (method *parse-posted-content*))
   (ecase method
     (:use-request-content-type
      ;; Use the request content type to parse the posted content
-     (let ((content-type (hunchentoot:header-in* :content-type)))
-       (let ((format
-	      (cond
-		((some-test (list "text/xml" "application/xml")
-			    (lambda (ct)
-			      (cl-ppcre:scan ct content-type)))
-		 :xml)
-		((some-test (list "application/json")
-			    (lambda (ct)
-			      (cl-ppcre:scan ct content-type)))
-		 :json)
-		((some-test (list "application/lisp" "text/lisp")
-			    (lambda (ct)
-			      (cl-ppcre:scan ct content-type)))
-		 :sexp)
-		(t (error 'rs.error:http-unsupported-media-type-error
-			  :format-control "Content type not supported ~A"
-			  :format-arguments (list content-type))))))
-	 (parse-api-input format posted-content))))
+     (let ((format (parse-content-type  (hunchentoot:header-in* :content-type))))
+       (parse-api-input format posted-content)))
     (:infer
      (error "Not implemented"))
      
