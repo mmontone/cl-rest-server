@@ -62,26 +62,28 @@
       ,@(loop for x in resources
 	     collect `(define-api-resource ,@x)))))
 
-(defun start-api (api address port &optional (development-mode rs.error:*development-mode*)
-				     configuration-args)
+(defun start-api (api address port &rest args)
   "Start an api at address and port.
 
    In production mode, we bind the api directly. In development mode, we only bind the API name in order to be able to make modifications to the api"
-  (when configuration-args
-    (configure-api api configuration-args)) 
-  (let ((api (if (equalp development-mode :development)
+  (when (getf args :config)
+    (configure-api api (getf args :config)))
+  (let ((api (if (and (getf args :development-mode)
+		      (eql (getf args :development-mode) :development))
 		 (if (symbolp api)
 		     api
-		     (api-name api))
+		     (name api))
 		 ;; else
 		 (if (symbolp api)
 		     (find-api api)
 		     api))))
-    (let ((api-acceptor (make-instance 'api-acceptor
-				       :address address
-				       :port port
-				       :api api
-				       :development-mode development-mode)))
+    (let ((api-acceptor (apply #'make-instance 
+			       'api-acceptor
+			       :address address
+			       :port port
+			       :api api
+			       :allow-other-keys t
+			       args)))
       (hunchentoot:start api-acceptor)
       api-acceptor)))
 

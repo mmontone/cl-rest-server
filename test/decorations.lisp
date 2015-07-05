@@ -37,7 +37,7 @@
 
 (find-api 'decorated-api)
 
-(start-api 'decorated-api "localhost" 8085)
+(start-api 'decorated-api "localhost" 8085 :access-log-destination nil)
 
 (drakma:http-request "http://localhost:8085/decorations/simple-decoration")
 

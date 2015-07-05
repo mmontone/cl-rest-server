@@ -33,7 +33,10 @@
 (in-package :rest-server-tests)
 
 (defparameter *acceptor*
-  (start-api 'oauth-test::oauth-api "localhost" 8187 :production
+  (start-api 'oauth-test::oauth-api "localhost" 8187 
+	     :development-mode :production
+	     :access-log-destination nil
+	     :config
 	     '(:logging :enabled nil)))
 
 (stop-api *acceptor*)

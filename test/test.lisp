@@ -23,14 +23,16 @@
 (defvar *api-acceptor*)
 
 (def-fixture api-fixture ()
-  (let ((*api-acceptor* (start-api 'api-test::api-test "localhost" 8181)))
+  (let ((*api-acceptor* (start-api 'api-test::api-test "localhost" 8181 
+				   :access-log-destination nil)))
     (&body)
     (stop-api *api-acceptor*)))
 
 (defvar *auth-api*)  
 
 (def-fixture auth-api-fixture ()
-  (let ((*auth-api* (start-api 'auth-api-test "localhost" 8182)))
+  (let ((*auth-api* (start-api 'auth-api-test "localhost" 8182
+			       :access-log-destination nil)))
     (&body)
     (stop-api *auth-api*)))
 
