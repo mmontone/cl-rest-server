@@ -375,6 +375,7 @@
 			   :method :get
 			   :additional-headers '(("Accept" . "text/html")))
     (declare (ignorable headers))
+    (is (eql status 200))
     (multiple-value-bind (html error)
 	(html5-parser:parse-html5 result :strictp t)
       (declare (ignorable error html))
@@ -396,22 +397,26 @@
 	(api-test::create-user
 	 (json:encode-json-plist-to-string
 	  (list :realname "Felipe"))))
+    (declare (ignorable result))
     (is (equalp status 200))
     (let ((created-user result))
       ;; Retrieve the list of users
       (multiple-value-bind (users status)
 	  (with-api-backend *api-url*
 	    (api-test::get-users))
-	(is (equalp status 200)))
+	(is (equalp status 200))
+	(is (listp users)))
       ;; Fetch the created user
       (multiple-value-bind (result status)
 	  (with-api-backend *api-url*
 	    (api-test::get-user (cdr (assoc :id created-user))))
+	(declare (ignorable result))
 	(is (equalp status 200)))
       ;; Fetch an unexisting user
       (multiple-value-bind (result status)
 	 (with-api-backend *api-url*
 	   (api-test::get-user 123456))
+	(declare (ignorable result))	
 	(is (equalp status 404))))))
 
 #+fails(deftest content-type-test
@@ -444,17 +449,20 @@
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters))
+      (declare (ignorable result))
       (is (equalp status 200)))    
 
     ;; Wrong parameter
     (multiple-value-bind (result status)
 	(drakma:http-request "http://localhost:8181/parameters?foo=foo" :method :get)
+      (declare (ignorable result))
       (is (equalp status 500)))
 
     ;; Boolean
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :boolean t))
+      (declare (ignorable result))
       (is (equalp status 200))
       (is (cdr (assoc :boolean
 		      result))))
@@ -462,11 +470,13 @@
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :boolean "t" :encode-request-arguments nil))
+      (declare (ignorable result))
       (is (equalp status hunchentoot:+http-bad-request+)))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :boolean nil))
+      (declare (ignorable result))
       (is (equalp status 200))
       (is (not (cdr (assoc :boolean
 			   result)))))
@@ -474,11 +484,13 @@
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :boolean 44))
+      (declare (ignorable result))
       (is (equalp status 200)))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :boolean "44" :encode-request-arguments nil))
+      (declare (ignorable result))
       (is (equalp status hunchentoot:+http-bad-request+)))
 
     ;; String
@@ -486,6 +498,7 @@
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :string "asd"))
+      (declare (ignorable result))
       (is (equalp status 200))
       (is (equalp (cdr (assoc :string
 			      result))
@@ -495,21 +508,25 @@
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :integer 34))
+      (declare (ignorable result))
       (check :integer 34))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :integer "34" :encode-request-arguments nil))
+      (declare (ignorable result))
       (check :integer 34))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :integer "t" :encode-request-arguments nil))
+      (declare (ignorable result))
       (is (equalp status hunchentoot:+http-bad-request+)))
 
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :integer "nil" :encode-request-arguments nil))
+      (declare (ignorable result))
       (is (equalp status hunchentoot:+http-bad-request+)))
 
     ;; Lists
@@ -521,6 +538,7 @@
     (multiple-value-bind (result status)
 	(with-api-backend *api-url*
 	  (api-test::parameters :list "foo,bar" :encode-request-arguments nil))
+      (declare (ignorable result))
       (check :list (list "foo" "bar")))
 
     (multiple-value-bind (result status)
@@ -550,6 +568,7 @@
 	     (format nil "http://localhost:8181/users/~A/cached" user-id)
 	     :method :get
 	     :additional-headers '(("Accept" . "application/json")))
+	  (declare (ignorable result status headers))
 	  ;; Test there's an ETag
 	  (let ((etag (cdr (assoc :etag headers))))
 	    (is (not (null etag)))
@@ -560,6 +579,7 @@
 		 :method :get
 		 :additional-headers `(("Accept" . "application/json")
 				       ("If-None-Match" . ,etag)))
+	      (declare (ignorable result))
 	      (is (equalp status 304)))
 	    ;; If we use an invalid etag, we get the user and an etag
 	    (multiple-value-bind (result status headers)
@@ -568,6 +588,7 @@
 		 :method :get
 		 :additional-headers '(("Accept" . "application/json")
 				       ("If-None-Match" . "foo")))
+	      (declare (ignorable result headers))
 	      (is (equalp status 200))
 	      (finishes (json:decode-json-from-string result)))
 	      
@@ -578,6 +599,7 @@
 		 :method :get
 		 :additional-headers `(("Accept" . "application/json")
 				       ("If-None-Match" . ,etag)))
+	      (declare (ignorable result))
 	      (is (equalp status 304)))
 	    
 	    ;; Update the user
@@ -604,7 +626,8 @@
       (drakma:http-request
 		 (format nil "http://localhost:8181/conditional-dispatch")
 		 :method :get)
-      (is (equalp status hunchentoot:+http-not-acceptable+)))
+    (declare (ignorable result))
+    (is (equalp status hunchentoot:+http-not-acceptable+)))
 
   ;; Html accept
   (multiple-value-bind (result status headers)
@@ -612,8 +635,9 @@
 		 (format nil "http://localhost:8181/conditional-dispatch")
 		 :method :get
 		 :additional-headers `(("Accept" . "text/html")))
-      (is (equalp status 200))
-      (is (ppcre:scan "text/html" (cdr (assoc :content-type headers)))))
+    (declare (ignorable result))
+    (is (equalp status 200))
+    (is (ppcre:scan "text/html" (cdr (assoc :content-type headers)))))
 
   ;; Json accept
   (multiple-value-bind (result status headers)
@@ -621,6 +645,7 @@
        (format nil "http://localhost:8181/conditional-dispatch")
        :method :get
        :additional-headers `(("Accept" . "application/json")))
+    (declare (ignorable result))
     (is (equalp status 200))
     (is (ppcre:scan "application/json" (cdr (assoc :content-type headers)))))
 
@@ -629,6 +654,7 @@
        (format nil "http://localhost:8181/conditional-dispatch")
        :method :get
        :additional-headers `(("Accept" . "application/xml")))
+    (declare (ignorable result))
     (is (equalp status 200))
     (is (ppcre:scan "application/xml" (cdr (assoc :content-type headers))))))
 
@@ -638,4 +664,5 @@
       (drakma:http-request
        (format nil "http://localhost:8181/foo")
        :method :get)
+    (declare (ignorable result))
     (is (equalp status hunchentoot:+http-not-found+))))

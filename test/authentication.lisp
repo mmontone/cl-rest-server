@@ -141,6 +141,7 @@
       (drakma:http-request "http://localhost:8182/users"
 			   :method :get
 			   :additional-headers '(("Accept" .  "application/json")))
+    (declare (ignorable result))
     (is (equalp status-code 401)))
 
   ;; Failed login
@@ -152,6 +153,7 @@
 				     (list :username "test"
 					   :password "bad"))
 			   :additional-headers '(("Accept" .  "application/json")))
+    (declare (ignorable token))
     (is (equalp status-code 401)))
 
     ;; Invalid token access
@@ -160,6 +162,7 @@
 			   :method :get
 			   :additional-headers '(("Accept" .  "application/json")
 						 ("Authorization" . "Invalid token")))
+    (declare (ignorable result))
     (is (equalp status-code 401)))
   
   ;; Successful login
