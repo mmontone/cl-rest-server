@@ -25,6 +25,16 @@
 	    collect `(,arg (cdr (assoc ,(make-keyword arg) ,posted-content))))
      ,@body))
 
+(defmacro with-text-content-types (&body body)
+  `(call-with-text-content-types (lambda () ,@body)))
+
+(defun call-with-text-content-types (function)
+  (let ((drakma:*text-content-types* 
+	 (append drakma:*text-content-types*
+		 (list (cons "application" "json")
+		       (cons "application" "xml")))))
+    (funcall function)))
+
 (defmacro define-resource-operation (name attributes args &rest options)
   "Helper macro to define an resource operation"
   `(make-resource-operation ',name ',attributes ',args ',options))
@@ -509,34 +519,35 @@
                     `(log5:log-for (rest-server) "Posted content: ~A"
                                    posted-content))
              (multiple-value-bind (,response ,status-code)
-		 (drakma:http-request 
-		  ,request-url
-		  :method ,(request-method resource-operation)
-		  :proxy *rest-server-proxy*
-		  :content ,(when (member (request-method resource-operation) 
-					  '(:post :put))
-				  `(babel:string-to-octets posted-content))
-		  :content-type ,(when (member (request-method resource-operation) 
-					       '(:post :put))
-				       'content-type)
-		  :parameters (append
-			       ,@(loop for arg in optional-args
-				    collect
-				      `(when ,(intern (format nil "~A-PROVIDED-P" (symbol-name (argument-name arg))) package)
-					 (list (cons 
-						,(symbol-name (argument-name arg))
-						(if encode-request-arguments
-						    (format-argument-value 
+		 (with-text-content-types
+		  (drakma:http-request 
+		   ,request-url
+		   :method ,(request-method resource-operation)
+		   :proxy *rest-server-proxy*
+		   :content ,(when (member (request-method resource-operation) 
+					   '(:post :put))
+				   `(babel:string-to-octets posted-content))
+		   :content-type ,(when (member (request-method resource-operation) 
+						'(:post :put))
+					'content-type)
+		   :parameters (append
+				,@(loop for arg in optional-args
+				     collect
+				       `(when ,(intern (format nil "~A-PROVIDED-P" (symbol-name (argument-name arg))) package)
+					  (list (cons 
+						 ,(symbol-name (argument-name arg))
+						 (if encode-request-arguments
+						     (format-argument-value 
+						      ,(intern (symbol-name 
+								(argument-name arg)) package)
+						      (parse-argument-type ,(argument-type-spec (argument-type arg))))
 						     ,(intern (symbol-name 
-							       (argument-name arg)) package)
-						     (parse-argument-type ,(argument-type-spec (argument-type arg))))
-						    ,(intern (symbol-name 
-							      (argument-name arg)) package)))))))
-		  :additional-headers (append
-				       (list (cons "Accept" accept)
-					     ,@(when (authorizations resource-operation)
-						     '((cons "Authorization" authorization))))
-				       additional-headers))
+							       (argument-name arg)) package)))))))
+		   :additional-headers (append
+					(list (cons "Accept" accept)
+					      ,@(when (authorizations resource-operation)
+						      '((cons "Authorization" authorization))))
+					additional-headers)))
 	       (log5:log-for (rest-server) "Response: ~A" ,response)
 	       (log5:log-for (rest-server) "Status: ~A" ,status-code)
 	       (handle-api-response ,response 
