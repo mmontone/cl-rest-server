@@ -311,18 +311,36 @@ Args:
 				 data))
 	     (when (or (equalp (attribute-type schema-attribute) :boolean)
 		       (not (null (cdr data-attribute))))
-	       (list (cons (attribute-name schema-attribute)
+	       (list (cons (intern (string (attribute-name schema-attribute)) :keyword)
 			   (parse-schema-attribute-value (attribute-type schema-attribute)
 							 (cdr data-attribute)))))))))
 
 (defmethod %parse-with-schema ((schema-type (eql :list))
 			       schema data)
-  (let ((list-schema (second schema)))
+  (let ((elem-schema (second schema)))
+    (flet ((parse-elem (elem)
+	     (if (symbolp elem-schema)
+		 (parse-schema-attribute-value elem-schema elem)
+		 (parse-with-schema elem-schema elem))))
     (loop for elem in data
-	 collect (parse-with-schema list-schema elem))))
+	 collect (parse-elem elem)))))
 
 (defmethod parse-schema-attribute-value ((type (eql :string)) data)
   (string data))
+
+(defmethod parse-schema-attribute-value ((type (eql :boolean)) data)
+  (cond
+    ((or (eql data t)
+	 (eql data nil))
+     data)
+    ((stringp data)
+     (cond
+       ((member data (list "true" "t" "yes" "on") :test #'equalp)
+	t)
+       ((member data (list "false" "f" "no" "off") :test #'equalp)
+	nil)
+       (t (validation-error "~A is not a boolean" data))))
+    (t (validation-error "~A is not a boolean" data))))
 
 (defmethod parse-schema-attribute-value ((type (eql :integer)) data)
   (cond
