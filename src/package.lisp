@@ -1,6 +1,6 @@
 (defpackage :rest-server
   (:nicknames :rs)
-  (:use :cl)
+  (:use :<cl>)
   (:export #:define-api
 	   #:implement-resource-operation
 	   #:configure-resource-operation-implementation
@@ -46,7 +46,7 @@
 
 (defpackage #:rest-server.logging
   (:nicknames #:rs.log)
-  (:use :cl :rest-server)
+  (:use :<cl> :rest-server)
   (:export #:start-api-logging
 	   #:stop-api-logging
 	   #:enable-api-logging
@@ -57,7 +57,7 @@
 
 (defpackage #:rest-server.serialize
   (:nicknames #:rs.serialize)
-  (:use :cl :rest-server)
+  (:use :<cl> :rest-server)
   (:export
    #:with-serializer
    #:with-serializer-output
@@ -84,7 +84,7 @@
 
 (defpackage #:rest-server.schema
   (:nicknames #:rs.schema)
-  (:use :cl :rest-server :rs.serialize)
+  (:use :<cl> :rest-server :rs.serialize)
   (:export #:serialize-with-schema
 	   #:find-schema
 	   #:schema
@@ -97,14 +97,14 @@
 
 (defpackage #:rest-server.mop
   (:nicknames #:rs.mop)
-  (:use :cl :rest-server :rs.serialize :rs.schema)
+  (:use :<cl> :rest-server :rs.serialize :rs.schema)
   (:export #:serializable-class
 	   #:serializable-class-schema
 	   #:define-serializable-class))
 
 (defpackage #:rest-server.error
   (:nicknames #:rs.error)
-  (:use #:cl #:rest-server :rs.serialize)
+  (:use #:<cl> #:rest-server :rs.serialize)
   (:export #:*development-mode*
 	   #:*server-development-mode*
 	   #:http-error
