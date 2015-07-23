@@ -170,7 +170,7 @@
 		      :accessor validation-errors))
   (:report (lambda (c s)
 	     (format s "Validation errors: ~{~A~^, ~}" 
-		     (validation-errors c)))))  
+		     (validation-errors c)))))
 
 (defun validation-error (message &rest args)
   (cerror "Continue"

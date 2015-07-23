@@ -6,7 +6,7 @@
 (defclass serializable-class (standard-class)
   ((serialization-name :initarg :serialization-name
 		       :accessor serialization-name
-		       :type symbol
+		       ;:type (or string symbol)
 		       :initform nil))
   (:documentation "Metaclass for serializable objects"))
 
@@ -22,7 +22,7 @@
     :initarg :serialization-type)
    (serialization-accessor
     :initform nil
-    :type function
+    :type (or function null)
     :accessor serialization-accessor
     :initarg :serialize-accessor)
    (serialization-name
@@ -150,7 +150,7 @@
 
 (defun superclass-member-p (class superclasses)
   "Searches superclass list for class"
-  (some #'(lambda (superclass)
+  (some (lambda (superclass)
 	    (or (eq class superclass)
 		(let ((supers (closer-mop:class-direct-superclasses superclass)))
 		  (when supers
@@ -160,7 +160,7 @@
 (defun ensure-class-inherits-from (class from-classnames direct-superclasses)
   (let* ((from-classes (mapcar #'find-class from-classnames))
 	 (has-persistent-objects 
-	  (every #'(lambda (class) (superclass-member-p class direct-superclasses))
+	  (every (lambda (class) (superclass-member-p class direct-superclasses))
 		 from-classes)))
     (if (not (or (member class from-classes) has-persistent-objects))
 	(progn
