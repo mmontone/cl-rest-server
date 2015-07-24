@@ -16,12 +16,14 @@
 
 ;; Conditions
 
+(defun report-http-error (c s)
+  (format s "HTTP error ~A" (status-code c)))
+
 (define-condition http-error (simple-error)
   ((status-code :initarg :status-code
                 :initform (error "Provide the status code")
                 :accessor status-code))
-  (:report (lambda (c s)
-             (format s "HTTP error ~A" (status-code c)))))
+  (:report report-http-error))
 
 (defun http-error (status-code datum &rest args)
   (error 'http-error 

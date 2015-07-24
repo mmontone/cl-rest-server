@@ -164,13 +164,15 @@
 (define-condition validation-error (simple-error)
   ())
 
+(defun report-validation-error-collection (c s)
+  (format s "Validation errors: ~{~A~^, ~}" 
+	  (validation-errors c)))
+
 (define-condition validation-error-collection (validation-error)
-  ((validation-errors :initarg :validation-errors
-		      :initform (error "Provide the validation errors")
-		      :accessor validation-errors))
-  (:report (lambda (c s)
-	     (format s "Validation errors: ~{~A~^, ~}" 
-		     (validation-errors c)))))
+    ((validation-errors :initarg :validation-errors
+			:initform (error "Provide the validation errors")
+			:accessor validation-errors))
+    (:report report-validation-error-collection))
 
 (defun validation-error (message &rest args)
   (cerror "Continue"
