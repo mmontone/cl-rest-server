@@ -473,14 +473,16 @@
 
 ;; Client implementation
 
-(defun client-stub (resource-operation &optional (package *package*))
+(defun client-stub (resource-operation &key (package *package*)
+					 export-p)
   (let ((request-url (gensym "REQUEST-URL-"))
         (response (gensym "RESPONSE-"))
 	(status-code (gensym "STATUS-CODE-")))
     (let ((required-args (required-arguments resource-operation))
-	  (optional-args (optional-arguments resource-operation)))
+	  (optional-args (optional-arguments resource-operation))
+	  (client-stub-name (intern (symbol-name (name resource-operation)) package)))
       `(progn
-	 (defun ,(intern (symbol-name (name resource-operation)) package)
+	 (defun ,client-stub-name
 	     ,(append
 	       (when (member (request-method resource-operation) '(:post :put))
 		 (list 'posted-content))
@@ -528,47 +530,49 @@
                                    posted-content))
              (multiple-value-bind (,response ,status-code)
 		 (with-text-content-types
-		  (drakma:http-request 
-		   ,request-url
-		   :method ,(request-method resource-operation)
-		   :proxy *rest-server-proxy*
-		   :content ,(when (member (request-method resource-operation) 
-					   '(:post :put))
-				   (alexandria:with-gensyms (encoded-posted-content)
-				     `(let ((,encoded-posted-content 
-					     (if (not (stringp posted-content))
-						 (encode-posted-content posted-content 
-									(parse-content-type content-type))
-						 posted-content)))
-					(babel:string-to-octets ,encoded-posted-content))))
-		   :content-type ,(when (member (request-method resource-operation) 
-						'(:post :put))
-					'content-type)
-		   :parameters (append
-				,@(loop for arg in optional-args
-				     collect
-				       `(when ,(intern (format nil "~A-PROVIDED-P" (symbol-name (argument-name arg))) package)
-					  (list (cons 
-						 ,(symbol-name (argument-name arg))
-						 (if encode-request-arguments
-						     (format-argument-value 
+		   (drakma:http-request 
+		    ,request-url
+		    :method ,(request-method resource-operation)
+		    :proxy *rest-server-proxy*
+		    :content ,(when (member (request-method resource-operation) 
+					    '(:post :put))
+				    (alexandria:with-gensyms (encoded-posted-content)
+				      `(let ((,encoded-posted-content 
+					      (if (not (stringp posted-content))
+						  (encode-posted-content posted-content 
+									 (parse-content-type content-type))
+						  posted-content)))
+					 (babel:string-to-octets ,encoded-posted-content))))
+		    :content-type ,(when (member (request-method resource-operation) 
+						 '(:post :put))
+					 'content-type)
+		    :parameters (append
+				 ,@(loop for arg in optional-args
+				      collect
+					`(when ,(intern (format nil "~A-PROVIDED-P" (symbol-name (argument-name arg))) package)
+					   (list (cons 
+						  ,(symbol-name (argument-name arg))
+						  (if encode-request-arguments
+						      (format-argument-value 
+						       ,(intern (symbol-name 
+								 (argument-name arg)) package)
+						       (parse-argument-type ,(argument-type-spec (argument-type arg))))
 						      ,(intern (symbol-name 
-								(argument-name arg)) package)
-						      (parse-argument-type ,(argument-type-spec (argument-type arg))))
-						     ,(intern (symbol-name 
-							       (argument-name arg)) package)))))))
-		   :additional-headers (append
-					(list (cons "Accept" accept)
-					      ,@(when (authorizations resource-operation)
-						      '((cons "Authorization" authorization))))
-					additional-headers)))
+								(argument-name arg)) package)))))))
+		    :additional-headers (append
+					 (list (cons "Accept" accept)
+					       ,@(when (authorizations resource-operation)
+						       '((cons "Authorization" authorization))))
+					 additional-headers)))
 	       (log5:log-for (rest-server) "Response: ~A" ,response)
 	       (log5:log-for (rest-server) "Status: ~A" ,status-code)
 	       (handle-api-response ,response 
 				    ,status-code 
 				    accept
 				    parse-response 
-				    error-p))))))))
+				    error-p))))
+	 ,@(when export-p
+		 `((export ',client-stub-name ,(package-name package))))))))
 
 (defun handle-api-response (response status-code accept parse-response error-p)
   (cond

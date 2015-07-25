@@ -59,8 +59,22 @@
 	    :name ',name
 	    ',options)
      (with-api ,name
-      ,@(loop for x in resources
-	     collect `(define-api-resource ,@x)))))
+       ,@(let ((client-package (or (find-package (getf options :client-package))
+				   *package*)))
+	      (loop for resource in resources
+		 collect (destructuring-bind (name resource-options &body operations)
+			     resource
+			   (let ((resource-options 
+				  (list* :client-package 
+					(package-name 
+					 (or (getf options :client-package)
+					    client-package))
+					:export-client-function 
+					(or (getf resource-options :export-client-function)
+					    (getf options :export-client-functions))
+					resource-options)))
+							     
+			     `(define-api-resource ,name ,resource-options ,@operations))))))))
 
 (defun start-api (api address port &rest args)
   "Start an api at address and port.
@@ -133,6 +147,12 @@
    (documentation :accessor api-documentation
 		  :initarg :documentation
 		  :initform nil)
+   (client-package :initarg :client-package
+		   :initform *package*
+		   :accessor client-package)
+   (export-client-functions :initarg :export-client-functions
+			    :initform nil
+			    :accessor export-client-functions)
    (authorization-enabled 
     :initarg :authorization-enabled
     :accessor authorization-enabled

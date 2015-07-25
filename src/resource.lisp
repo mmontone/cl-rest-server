@@ -35,10 +35,12 @@
 		   :initform nil
 		   :accessor resource-authorizations
 		   :documentation "A list of authorizations schemes required for the operations listed in this API declaration. Individual operations may override this setting. If there are multiple authorization schemes described here, it means they're all applied.")
-   (options :initarg :options
-	    :initform nil
-	    :accessor resource-options
-	    :documentation "Options applied to resource resource operations. Can be overwritten in resource operation options"))
+   (client-package :initarg :client-package
+		   :initform nil
+		   :accessor client-package)
+   (export-client-function :initarg :export-client-function
+			  :initform nil
+			  :accessor export-client-function))
   (:documentation "An api resource. Contains resource operations"))
 
 (defmethod print-object ((api-resource api-resource) stream)
@@ -114,8 +116,8 @@
 	    :name ',name
 	    ',options)
      (with-api-resource ,name
-      ,@(loop for x in functions
-         collect `(define-resource-operation ,@x)))
+       ,@(loop for x in functions
+	    collect `(define-resource-operation ,@x)))
      ;; Generate client API access function
      ,@(let ((*register-resource-operation* nil))
             (loop for x in functions
@@ -126,9 +128,11 @@
                            attributes
                            args
                            options))
-			(or (and (getf options :package)
-				 (find-package (getf options :package)))
-			    *package*))))))
+			:package
+			(or (and (getf options :client-package)
+				 (find-package (getf options :client-package)))
+			    *package*)
+			:export-p (getf options :export-client-function))))))
 
 (defmacro implement-api-resource (api-name name-and-options &body resource-operations-implementations)
   "Define an api resource implementation"
