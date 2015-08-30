@@ -38,9 +38,9 @@
    (client-package :initarg :client-package
 		   :initform nil
 		   :accessor client-package)
-   (export-client-function :initarg :export-client-function
+   (export-client-functions :initarg :export-client-functions
 			  :initform nil
-			  :accessor export-client-function))
+			  :accessor export-client-functions))
   (:documentation "An api resource. Contains resource operations"))
 
 (defmethod print-object ((api-resource api-resource) stream)
@@ -132,7 +132,7 @@
 			(or (and (getf options :client-package)
 				 (find-package (getf options :client-package)))
 			    *package*)
-			:export-p (getf options :export-client-function))))))
+			:export-p (getf options :export-client-functions))))))
 
 (defmacro implement-api-resource (api-name name-and-options &body resource-operations-implementations)
   "Define an api resource implementation"

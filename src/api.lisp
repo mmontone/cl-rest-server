@@ -69,8 +69,8 @@
 					(package-name 
 					 (or (getf options :client-package)
 					    client-package))
-					:export-client-function 
-					(or (getf resource-options :export-client-function)
+					:export-client-functions 
+					(or (getf resource-options :export-client-functions)
 					    (getf options :export-client-functions))
 					resource-options)))
 							     
