@@ -219,8 +219,19 @@ Args:
           *validation-errors-collection*
           validation-error))))
 
-(defun schema-validate (schema data &optional attribute)
+(defgeneric schema-validate (schema data &optional attribute)
+  )
+
+(defmethod schema-validate (schema data &optional attribute)
   (%schema-validate (schema-type schema) schema data attribute))
+
+(defmethod schema-validate :after (schema data &optional attribute)
+  (when (and attribute (attribute-validator attribute))
+	(multiple-value-bind (valid-p error-message) (funcall (attribute-validator attribute) data)
+	  (when (not valid-p)
+		(validation-error (or error-message
+							  (format nil "~A: is invalid"
+									  (attribute-name attribute))))))))
 
 (defmethod %schema-validate ((schema-type (eql :element)) schema data &optional attribute)
   "Validate data using schema element. "
@@ -457,6 +468,9 @@ Args:
 
 (defun attribute-accessor (attribute)
   (attribute-option :accessor attribute))
+
+(defun attribute-validator (attribute)
+  (attribute-option :validator attribute))
 
 (defun attribute-writer (attribute)
   (or (attribute-option :writer attribute)
