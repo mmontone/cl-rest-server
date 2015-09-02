@@ -147,7 +147,44 @@
 
        ;; Define resource operation implementations
        ,@(loop for resource-operation-implementation in resource-operations-implementations
-	    collect `(implement-resource-operation ,api-name ,@resource-operation-implementation)))))
+			collect `(implement-resource-operation ,api-name ,@resource-operation-implementation)))))
+
+(defun parse-resource-path (string)
+  (let* ((vars nil)
+         (path-regex (remove
+                      nil
+                      (loop for x in (cl-ppcre:split '(:register (:char-class #\{ #\})) string :with-registers-p t)
+                         with status = :norm
+                         collect
+                           (case status
+                             (:norm
+                              (cond ((string= x "{")
+                                     (setf status :invar)
+                                     nil)
+                                    ((string= x "}")
+                                     (error "Parse error"))
+                                    (t x)))
+                             (:invar
+                              (cond ((string= x "}")
+                                     (setf status :norm)
+                                     nil)
+                                    ((string= x "{")
+                                     (error "Parse error"))
+                                    (t
+                                     (push (intern (string-upcase x))
+                                           vars)
+                                     `(:register (:non-greedy-repetition 1 nil (:inverted-char-class #\/ #\?))))))))))
+         (scanner
+          `(:sequence
+            :start-anchor
+            (:alternation
+             (:sequence
+              ,@path-regex)
+             (:sequence
+              ,@path-regex
+              #\?
+              (:non-greedy-repetition 0 nil :everything))))))
+    (values scanner vars)))
 
 (defmethod resource-execute-function-implementation ((resource api-resource)
 						     resource-operation-implementation
@@ -155,8 +192,8 @@
   (execute-resource-operation-implementation resource-operation-implementation request))
 
 (defmethod resource-matches-request-p ((resource api-resource) request)
-  (cl-ppcre:scan (format nil "^~A" (resource-path resource))
-		 (hunchentoot:request-uri request)))
+  (let ((scanner (parse-resource-path (resource-path resource))))
+    (cl-ppcre:scan scanner (hunchentoot:request-uri request))))
 
 (defgeneric process-api-resource-option (option-name resource &rest args)
   (:method (option-name resource &rest args)
