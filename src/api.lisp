@@ -12,6 +12,18 @@
 (defvar *register-resource-operation* t
   "Whether to try to register the resource operation on creation. Bind to nil to prevent that")
 
+(defparameter *text-content-types* (list :json :xml :lisp))
+
+(defun get-posted-content (&optional (request hunchentoot:*request*))
+  (hunchentoot:raw-post-data
+   :force-text
+   (text-content-type?
+	(parse-content-type
+	 (hunchentoot:header-in "content-type" request)))))
+
+(defun text-content-type? (content-type)
+  (member content-type *text-content-types*))
+
 ;; Util
 
 (defmethod json:encode-json ((o (eql :false))
@@ -463,6 +475,9 @@
 (defmethod parse-api-input ((format (eql :sexp)) string)
   (read-from-string string))
 
+(defmethod parse-api-input ((format (eql :raw)) data)
+  data)
+
 (defun parse-content-type (content-type)
   (cond
     ((some-test (list "text/xml" "application/xml")
@@ -477,7 +492,8 @@
                 (lambda (ct)
                   (cl-ppcre:scan ct content-type)))
      :sexp)
-    (t (error 'rs.error:http-unsupported-media-type-error
+	(t :raw
+	   #+nil(error 'rs.error:http-unsupported-media-type-error
               :format-control "Content type not supported ~A"
               :format-arguments (list content-type)))))
 
