@@ -288,9 +288,6 @@
 
 (in-package :rest-server-tests)
 
-(push (cons "application" "json") drakma:*text-content-types*)
-(push (cons "application" "xml") drakma:*text-content-types*)
-
 (deftest api-post-test
   (drakma:http-request
    "http://localhost:8181/users"

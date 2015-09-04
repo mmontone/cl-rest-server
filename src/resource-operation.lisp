@@ -36,10 +36,10 @@
     (funcall function)))
 
 (defgeneric encode-posted-content (content content-type)
-  (:method (content (content-type (eql :json)))
-    (json:encode-json-to-string content))
+  (:method ((content cons) (content-type (eql :json)))
+	(babel:string-to-octets (json:encode-json-to-string content)))
   (:method (content content-type)
-    (error "Not implemented")))
+    content))
 
 (defmacro define-resource-operation (name attributes args &rest options)
   "Helper macro to define an resource operation"
@@ -534,13 +534,8 @@
                     :proxy *rest-server-proxy*
                     :content ,(when (member (request-method resource-operation)
                                             '(:post :put))
-                                (alexandria:with-gensyms (encoded-posted-content)
-                                  `(let ((,encoded-posted-content
-                                          (if (not (stringp posted-content))
-                                              (encode-posted-content posted-content
-                                                                     (parse-content-type content-type))
-                                              posted-content)))
-                                     (babel:string-to-octets ,encoded-posted-content))))
+                                `(encode-posted-content posted-content
+                                                        (parse-content-type content-type)))
                     :content-type ,(when (member (request-method resource-operation)
                                                  '(:post :put))
                                      'content-type)

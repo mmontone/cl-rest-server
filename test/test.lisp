@@ -24,16 +24,18 @@
 
 (def-fixture api-fixture ()
   (let ((*api-acceptor* (start-api 'api-test::api-test "localhost" 8181 
-				   :access-log-destination nil)))
-    (&body)
+								   :access-log-destination nil)))
+	(rs::with-text-content-types 
+	  (&body))
     (stop-api *api-acceptor*)))
 
 (defvar *auth-api*)  
 
 (def-fixture auth-api-fixture ()
   (let ((*auth-api* (start-api 'auth-api-test "localhost" 8182
-			       :access-log-destination nil)))
-    (&body)
+							   :access-log-destination nil)))
+	(rs::with-text-content-types 
+	  (&body))
     (stop-api *auth-api*)))
 
 (defmacro deftest (name &body body)
