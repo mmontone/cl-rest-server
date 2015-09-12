@@ -83,5 +83,5 @@ OTHER DEALINGS IN THE SOFTWARE."
 	       :cl-annot
 	       :dynamic-mixins
 	       :cl-oauth
-	       :trivial-shell)
+	       #-abcl :trivial-shell)
   :in-order-to ((asdf:test-op (asdf:test-op :rest-server-tests))))
