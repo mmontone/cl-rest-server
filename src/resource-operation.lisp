@@ -3,7 +3,7 @@
 (defparameter *default-reply-content-type* "application/json")
 
 (defun set-reply-content-type (content-type)
-  (setf (hunchentoot:header-out "Content-Type") content-type))
+  (setf (response-header* :content-type) content-type))
 
 (defun call-with-reply-content-type (content-type function)
   (set-reply-content-type content-type)
@@ -37,7 +37,7 @@
 
 (defgeneric encode-posted-content (content content-type)
   (:method ((content cons) (content-type (eql :json)))
-	(babel:string-to-octets (json:encode-json-to-string content)))
+    (babel:string-to-octets (json:encode-json-to-string content)))
   (:method (content content-type)
     content))
 
@@ -165,7 +165,7 @@
 
 (defmethod resource-operation-http-options ((api api-definition)
                                             (resource-operation resource-operation))
-  (setf (hunchentoot:header-out "Allow")
+  (setf (response-header* :allow)
         (string-upcase (string (request-method resource-operation)))))
 
 (defclass resource-operation-argument ()
@@ -382,10 +382,10 @@
 
 (defun resource-operation-matches-request-p (resource-operation request)
   (let ((scanner (parse-resource-operation-path (path resource-operation))))
-    (and (cl-ppcre:scan scanner (hunchentoot:request-uri request))
-         (or (equalp (hunchentoot:request-method request) :options)
+    (and (cl-ppcre:scan scanner (lack.request:request-uri request))
+         (or (equalp (lack.request:request-method request) :options)
              (equalp (request-method resource-operation)
-                     (hunchentoot:request-method request))))))
+                     (lack.request:request-method request))))))
 
 ;; url formatting
 
@@ -406,18 +406,29 @@
               url-noparams
               optional-args))))
 
+#+nil(defun format-absolute-resource-operation-url (resource-operation &rest args)
+       (let ((base-url (format nil "~A://~A:~A"
+                               (if (hunchentoot:acceptor-ssl-p hunchentoot:*acceptor*)
+                                   "https"
+                                   "http")
+                               (hunchentoot:acceptor-address hunchentoot:*acceptor*)
+                               (hunchentoot:acceptor-port hunchentoot:*acceptor*))))
+         (format nil "~A~A"
+                 base-url
+                 (apply #'format-resource-operation-url
+                        resource-operation
+                        args))))
+
 (defun format-absolute-resource-operation-url (resource-operation &rest args)
   (let ((base-url (format nil "~A://~A:~A"
-                          (if (hunchentoot:acceptor-ssl-p hunchentoot:*acceptor*)
-                              "https"
-                              "http")
-                          (hunchentoot:acceptor-address hunchentoot:*acceptor*)
-                          (hunchentoot:acceptor-port hunchentoot:*acceptor*))))
-    (format nil "~A~A"
-            base-url
-            (apply #'format-resource-operation-url
-                   resource-operation
-                   args))))
+                          "http"
+                          (app-address *app*)
+                          (app-port *app*))))
+	(format nil "~A~A"
+			base-url
+			(apply #'format-resource-operation-url
+				   resource-operation
+				   args))))
 
 (defun format-optional-url-arg (arg value)
   (format nil "~A=~A"
@@ -665,8 +676,8 @@
      :conditional-dispatch
      :predicate (lambda (&rest args)
                   (declare (ignore args))
-                  (and (hunchentoot:header-in* "accept")
-                       (let ((accepts (split-sequence:split-sequence #\, (hunchentoot:header-in* "accept"))))
+                  (and (request-header* :accept)
+                       (let ((accepts (split-sequence:split-sequence #\, (request-header* :accept))))
                          (intersection (list ,accept-content-type)
                                        accepts :test #'equalp))))
      :when-true (lambda ,args

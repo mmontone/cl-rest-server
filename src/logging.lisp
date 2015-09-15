@@ -70,8 +70,8 @@
 			    &rest args)
   (api-log-for decoration 
 	       "API: Handling ~A ~A by ~A"
-		(hunchentoot:request-method*)
-		(hunchentoot:request-uri*)
+		(request-method*)
+		(request-uri*)
 		(rs::name (rest-server::resource-operation decoration)))
   (let ((posted-content (get-posted-content)))
     (when posted-content 
@@ -111,8 +111,8 @@
 (defmethod rest-server::api-execute-function-implementation :around ((api logging-api) resource-operation-implementation resource request)
   (api-log-for rs::*api*
 			   "API: Handling ~A ~A by ~A"
-			   (hunchentoot:request-method*)
-			   (hunchentoot:request-uri*)
+			   (request-method*)
+			   (request-uri*)
 			   (rs::name (rs::resource-operation resource-operation-implementation)))
   (let ((posted-content (rs::get-posted-content)))
     (when posted-content 

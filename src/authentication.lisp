@@ -165,7 +165,7 @@
 	     (let ((*token* authenticated-token))
 	       (log5:log-for (rest-server) "Token authentication: ~A" authenticated-token)
 	       (funcall resource-operation)))))
-    (let* ((token (hunchentoot:header-in* "Authorization")))
+    (let* ((token (getf (lack.request:request-headers *http-request*) :authorization)))
       (if (not token)
 	  (auth-failed "Provide the token")
 					; else

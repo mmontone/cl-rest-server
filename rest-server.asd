@@ -2,7 +2,7 @@
 
 (defpackage rest-server-system
   (:use :cl :asdf))
-  
+
 (in-package :rest-server-system)
 
 (defsystem rest-server
@@ -37,51 +37,56 @@ OTHER DEALINGS IN THE SOFTWARE."
   :long-description "REST APIs servers in Common Lisp"
   :components
   ((:module :src
-	    :components
-	    ((:file "package")
-	     (:file "rest-server")
-	     (:file "mimeparse")
-	     (:file "argument-type")
-	     (:file "serialization")
-	     (:file "mop")
-	     (:file "xml")
-	     (:file "schema")
-	     (:file "error-handling")
-	     (:file "authentication")
-	     (:file "oauth")
-	     (:file "oauth2")
-	     (:file "api")
-	     (:file "resource")
-	     (:file "resource-operation")
-	     (:file "logging")
-	     (:file "caching")
-	     (:file "pagination")
-	     (:file "jwt")
-	     (:file "cors")
-	     (:file "swagger")
-	     (:file "api-documentation"))
-	    :serial t))
+            :components
+            ((:file "package")
+             (:file "rest-server")
+             (:file "mimeparse")
+             (:file "argument-type")
+             (:file "serialization")
+             (:file "mop")
+             (:file "xml")
+             (:file "schema")
+             (:file "error-handling")
+             (:file "authentication")
+             (:file "oauth")
+             (:file "oauth2")
+             (:file "api")
+             (:file "resource")
+             (:file "resource-operation")
+             (:file "logging")
+             (:file "caching")
+             (:file "pagination")
+             (:file "jwt")
+             (:file "cors")
+             (:file "swagger")
+             (:file "api-documentation"))
+            :serial t))
   :serial t
-  :depends-on (:hunchentoot 
-	       :alexandria 
-	       :log5 
-	       :cl-json 
-	       :cxml 
-	       :local-time 
-	       :split-sequence
-	       :parse-number
-	       :string-case
-	       :drakma
-	       :cl-who
-	       :ironclad
-	       :babel
-	       :closer-mop
-	       :group-by
-	       :chronicity
-	       :net-telent-date
-	       :md5
-	       :cl-annot
-	       :dynamic-mixins
-	       :cl-oauth
-	       #-abcl :trivial-shell)
+  :depends-on (:clack
+			   :lack-request
+			   :lack-response
+			   :lack-component
+			   :lack
+			   :hunchentoot
+               :alexandria
+               :log5
+               :cl-json
+               :cxml
+               :local-time
+               :split-sequence
+               :parse-number
+               :string-case
+               :drakma
+               :cl-who
+               :ironclad
+               :babel
+               :closer-mop
+               :group-by
+               :chronicity
+               :net-telent-date
+               :md5
+               :cl-annot
+               :dynamic-mixins
+               :cl-oauth
+               #-abcl :trivial-shell)
   :in-order-to ((asdf:test-op (asdf:test-op :rest-server-tests))))

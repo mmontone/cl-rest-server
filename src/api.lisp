@@ -3,6 +3,7 @@
 (defparameter *apis* (make-hash-table :test #'equalp)
   "Global hashtable containing the apis defined")
 (defparameter *api* nil "The current api")
+(defvar *app*)
 
 (defvar *rest-server-proxy* nil)
 
@@ -14,12 +15,42 @@
 
 (defparameter *text-content-types* (list :json :xml :lisp))
 
-(defun get-posted-content (&optional (request hunchentoot:*request*))
+(defvar *http-request*)
+(defvar *http-response*)
+
+(defun request-method* ()
+  (lack.request:request-method *http-request*))
+
+(defun request-uri* ()
+  (lack.request:request-uri *http-request*))
+
+(defun request-headers* ()
+  (lack.request:request-headers *http-request*))
+
+(defun request-header* (header)
+  (getf
+   (lack.request:request-headers *http-request*)
+   header))
+
+(defun (setf request-header*) (value header)
+  (setf (getf (lack.request:request-headers *http-request*)
+			  header)
+		value))
+
+(defun (setf response-header*) (value header)
+  (setf (getf (lack.response:response-headers *http-response*)
+			  header)
+		value))
+
+#+nil(defun get-posted-content (&optional (request hunchentoot:*request*))
   (hunchentoot:raw-post-data
    :force-text
    (text-content-type?
-	(parse-content-type
-	 (hunchentoot:header-in "content-type" request)))))
+    (parse-content-type
+     (hunchentoot:header-in "content-type" request)))))
+
+(defun get-posted-content (&optional (request *http-request*))
+  (lack.request:request-raw-body request))
 
 (defun text-content-type? (content-type)
   (member content-type *text-content-types*))
@@ -103,41 +134,49 @@
                  (if (symbolp api)
                      (find-api api)
                      api))))
-    (let ((api-acceptor (apply #'make-instance
-                               'api-acceptor
-                               :address address
-                               :port port
-                               :api api
-                               :allow-other-keys t
-                               args)))
-      (hunchentoot:start api-acceptor)
-      api-acceptor)))
+    (clack:clackup (make-instance 'api-app
+                                  :api api
+                                  :development-mode (getf args :development-mode)
+								  :address address
+								  :port port)
+                   :port port
+                   :debug (eql (getf args :development-mode) :development))))
 
-(defun stop-api (api-acceptor)
-  (hunchentoot:stop api-acceptor))
+(defun stop-api (api-handler)
+  (clack:stop api-handler))
 
-;; Hunchentoot api acceptor
-
-(defclass api-acceptor (hunchentoot:acceptor)
+(defclass api-app (lack.component:lack-component)
   ((api :initarg :api
+        :accessor app-api
         :initform (error "Provide the api"))
+   (address :initarg :address
+			:accessor app-address
+			:initform "localhost")
+   (port :initarg :port
+		 :accessor app-port
+		 :initform nil)
    (development-mode :initarg :development-mode
                      :accessor development-mode
                      :initform rs.error:*development-mode*))
-  (:documentation "Hunchentoot api acceptor"))
+  (:documentation "Clack api application"))
 
-(defmethod api ((acceptor api-acceptor))
-  (let ((api-or-name (slot-value acceptor 'api)))
+(defmethod api ((app api-app))
+  (let ((api-or-name (slot-value app 'api)))
     (if (symbolp api-or-name)
         (find-api api-or-name)
         api-or-name)))
 
-(defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
-  (or
-   (api-dispatch-request (api acceptor) request)
-   (rs.error::with-condition-handling
-     (error 'rs.error:http-not-found-error
-            :format-control "Resource not found"))))
+(defmethod lack.component:call :around ((app api-app) env)
+  (let* ((*http-request* (lack.request:make-request env))
+         (*http-response* (lack.response:make-response hunchentoot:+http-not-found+))
+         (*app* app)
+         (*api* (app-api app))
+         (result (call-next-method)))
+    (if (not result)
+        (lack.response:make-response hunchentoot:+http-not-found+)
+        (etypecase result
+          (string (setf (lack.response:response-body *http-response*) string))
+          (lack.response:response result)))))
 
 ;; The api class
 (defclass api-definition ()
@@ -173,64 +212,61 @@
 
 (defgeneric api-http-options (api)
   (:method api-http-options ((api api-definition))
-           (setf (hunchentoot:header-out "Server") "Hunchentoot")))
+           (setf (getf (lack.response:response-headers *http-response*) :server)
+				 "Hunchentoot")))
 
-(defgeneric api-dispatch-request (api request)
-  (:method :around ((api api-definition) request)
-           (let ((*api* api))
-             (call-next-method)))
-  (:method ((api api-definition) request)
-    (flet ((resource-operation-dispatch ()
-             (let ((rs.error:*development-mode* (development-mode hunchentoot:*acceptor*)))
-               (loop for resource in (list-api-resources api)
-                  when (resource-matches-request-p resource request)
-                  do
-                    (loop for resource-operation in (list-api-resource-functions resource)
-                       when (resource-operation-matches-request-p resource-operation request)
-                       do (return-from api-dispatch-request
-                            (if (equalp (hunchentoot:request-method request) :options)
-                                (progn
-                                  (resource-operation-http-options api resource-operation)
-                                  "")
+(defmethod lack.component:call ((app api-app) env)
+  (flet ((resource-operation-dispatch ()
+		   (let ((rs.error:*development-mode* (development-mode app)))
+			 (loop for resource in (list-api-resources (app-api app))
+				when (resource-matches-request-p resource *http-request*)
+				do
+				  (loop for resource-operation in (list-api-resource-functions resource)
+					 when (resource-operation-matches-request-p resource-operation *http-request*)
+					 do (return-from lack.component:call
+						  (if (equalp (lack.request:request-method *http-request*) :options)
+							  (progn
+								(resource-operation-http-options (app-api app) resource-operation)
+								"")
                                         ; else
-                                (let* ((*resource-operation* resource-operation)
-                                       (resource-operation-implementation
-                                        (find-resource-operation-implementation (name resource-operation)))
-                                       (result
-                                        (api-execute-function-implementation
-                                         api
-                                         resource-operation-implementation
-                                         resource
-                                         request)))
-                                  (if (stringp result)
-									  result
-									  (prin1-to-string result)))))))
-               ;; Return nil as the request could not be handled
-               nil)))
-      (if (equalp (hunchentoot:request-method request)
-                  :options)
-          (if (equalp (hunchentoot:request-uri request) "*")
-              ;; http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
-              ;; If the Request-URI is an asterisk ("*"), the OPTIONS request is intended
-              ;; to apply to the server in general rather than to a specific resource.
-              (progn
-                (api-http-options api)
-                "")
-              ;; If the Request-URI is not an asterisk, the OPTIONS request applies only to
-              ;; the options that are available when communicating with that resource.
-              (progn
-                (loop
-                   for resource in (list-api-resources api)
-                   when (equalp (hunchentoot:request-uri request)
-                                (resource-path resource))
-                   do (return-from api-dispatch-request
-                        (progn
-                          (resource-http-options resource api)
-                          "")))
-                ;; else, try to dispatch an resource operation
-                (resource-operation-dispatch)))
-          ;; else, dispatch to an resource operation
-          (resource-operation-dispatch)))))
+							  (let* ((*resource-operation* resource-operation)
+									 (resource-operation-implementation
+									  (find-resource-operation-implementation (name resource-operation)))
+									 (result
+									  (api-execute-function-implementation
+									   (app-api app)
+									   resource-operation-implementation
+									   resource
+									   *http-request*)))
+								(if (stringp result)
+									result
+									(prin1-to-string result)))))))
+			 ;; Return nil as the request could not be handled
+			 nil)))
+	(if (equalp (lack.request:request-method *http-request*)
+				:options)
+		(if (equalp (lack.request:request-uri *http-request*) "*")
+			;; http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+			;; If the Request-URI is an asterisk ("*"), the OPTIONS request is intended
+			;; to apply to the server in general rather than to a specific resource.
+			(progn
+			  (api-http-options (app-api app))
+			  "")
+			;; If the Request-URI is not an asterisk, the OPTIONS request applies only to
+			;; the options that are available when communicating with that resource.
+			(progn
+			  (loop
+				 for resource in (list-api-resources (app-api app))
+				 when (equalp (lack.request:request-uri *http-request*)
+							  (resource-path resource))
+				 do (return-from lack.component:call
+					  (progn
+						(resource-http-options resource (app-api app))
+						"")))
+			  ;; else, try to dispatch an resource operation
+			  (resource-operation-dispatch)))
+		;; else, dispatch to an resource operation
+		(resource-operation-dispatch))))
 
 (defmacro implement-api (api-name options &body resource-implementations)
   "Implement an api"
@@ -378,7 +414,7 @@
 (defun extract-function-arguments (resource-operation request)
   (let ((scanner (parse-resource-operation-path (path resource-operation))))
     (multiple-value-bind (replaced-uri args)
-        (ppcre:scan-to-strings scanner (hunchentoot:request-uri request))
+        (ppcre:scan-to-strings scanner (lack.request:request-uri request))
       (declare (ignore replaced-uri))
       (let ((args (loop for arg across args
                      when arg
@@ -390,7 +426,7 @@
                   collect (parse-argument-value arg (argument-type reqarg))))
               (optional-args
                (loop
-                  for (var . string) in (request-uri-parameters (hunchentoot:request-uri request))
+                  for (var . string) in (request-uri-parameters (lack.request:request-uri request))
                   for optarg = (find-optional-argument (make-keyword var) resource-operation)
                   appending
                     (list (make-keyword (string (argument-name optarg)))
@@ -492,16 +528,16 @@
                 (lambda (ct)
                   (cl-ppcre:scan ct content-type)))
      :sexp)
-	(t :raw
-	   #+nil(error 'rs.error:http-unsupported-media-type-error
-              :format-control "Content type not supported ~A"
-              :format-arguments (list content-type)))))
+    (t :raw
+       #+nil(error 'rs.error:http-unsupported-media-type-error
+                   :format-control "Content type not supported ~A"
+                   :format-arguments (list content-type)))))
 
 (defun parse-posted-content (posted-content &optional (method *parse-posted-content*))
   (ecase method
     (:use-request-content-type
      ;; Use the request content type to parse the posted content
-     (let ((format (parse-content-type  (hunchentoot:header-in* :content-type))))
+     (let ((format (parse-content-type  (lack.request:request-content-type *http-request*))))
        (parse-api-input format posted-content)))
     (:infer
      (error "Not implemented"))
@@ -546,7 +582,7 @@
 (defmethod execute :around ((decoration content-fetching-resource-operation-implementation-decoration)
                             &rest args)
   (let ((fargs
-         (extract-function-arguments-to-plist *resource-operation* hunchentoot:*request*)))
+         (extract-function-arguments-to-plist *resource-operation* *http-request*)))
     (with-content (content (funcall (content-fetching-function decoration)
                                     (getf (content-fetching-argument decoration) fargs)))
       (apply #'call-next-method (cons content args)))))

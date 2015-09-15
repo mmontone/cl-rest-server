@@ -3,7 +3,7 @@
 (defun extract-function-arguments-to-plist (resource-operation request)
   (let ((scanner (parse-resource-operation-path (path resource-operation))))
     (multiple-value-bind (replaced-uri args)
-        (ppcre:scan-to-strings scanner (hunchentoot:request-uri request))
+        (ppcre:scan-to-strings scanner (lack.request:request-uri request))
       (declare (ignore replaced-uri))
       (let ((args (loop for arg across args
                      when arg
@@ -17,7 +17,7 @@
                           (parse-argument-value arg (second reqarg)))))
               (optional-args
                (loop
-                  for (var . string) in (request-uri-parameters (hunchentoot:request-uri request))
+                  for (var . string) in (request-uri-parameters (lack.request:request-uri request))
                   for optarg = (find-optional-argument (make-keyword var) resource-operation)
                   appending
                     (list (make-keyword (symbol-name (first optarg)))
@@ -110,10 +110,10 @@ For instance, if the resource-operation fetches users, then it's the resource op
                  (setf (gethash id (etags decoration)) etag))
                                         ;else
                (setf (etag decoration) etag))))
-    (let ((client-etag (hunchentoot:header-in* "If-None-Match")))
+    (let ((client-etag (request-header* :if-none-match)))
       (if (and client-etag (equalp (get-etag) client-etag))
           ;; The etags match, content not modified
-          (setf (hunchentoot:return-code*)
+          (setf (lack.response:response-status *http-response*)
                 hunchentoot:+http-not-modified+)
           ;; else, calculate etag and return to client
           (let ((content (call-next-method)))
@@ -124,7 +124,7 @@ For instance, if the resource-operation fetches users, then it's the resource op
               ;; Save the current etag
               (set-etag content-etag)
               ;; Pass the etag to the client
-              (setf (hunchentoot:header-out "ETag")
+              (setf (response-header* :etag)
                     content-etag)
               ;; Output response
               content))))))

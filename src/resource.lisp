@@ -79,8 +79,8 @@
     (flet ((format-allowed-methods (methods)
 	   (format nil "~{~A~^, ~}"
 		   (mapcar #'string methods))))
-    (setf (hunchentoot:header-out "Allow")
-	  (format-allowed-methods (allowed-methods resource))))))
+    (setf (getf (lack.response:response-headers *http-response*) :allow)
+		  (format-allowed-methods (allowed-methods resource))))))
 
 (defmacro with-api-resource (resource &body body)
   "Execute body under resource scope.
@@ -193,7 +193,7 @@
 
 (defmethod resource-matches-request-p ((resource api-resource) request)
   (let ((scanner (parse-resource-path (resource-path resource))))
-    (cl-ppcre:scan scanner (hunchentoot:request-uri request))))
+    (cl-ppcre:scan scanner (lack.request:request-uri request))))
 
 (defgeneric process-api-resource-option (option-name resource &rest args)
   (:method (option-name resource &rest args)

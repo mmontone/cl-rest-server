@@ -24,10 +24,10 @@
              (format s "HTTP error ~A" (status-code c)))))
 
 (defun http-error (status-code datum &rest args)
-  (error 'http-error 
-	 :status-code status-code
-	 :format-control datum
-	 :format-arguments args))
+  (error 'http-error
+         :status-code status-code
+         :format-control datum
+         :format-arguments args))
 
 (define-condition http-not-found-error (http-error)
   ()
@@ -90,62 +90,62 @@
     (set-reply-content-type (rs.serialize::serializer-content-type serializer))
     (with-output-to-string (s)
       (rs.serialize:with-serializer-output s
-	(rs.serialize:with-serializer serializer
-	  (rs.serialize:serialize error))))))
+        (rs.serialize:with-serializer serializer
+          (rs.serialize:serialize error))))))
 
-(defmethod rs.serialize:serialize ((error error) &optional 
-						   (serializer rs.serialize::*serializer*)
-						   (stream rs.serialize::*serializer-output*) &rest args)
+(defmethod rs.serialize:serialize ((error error) &optional
+                                                   (serializer rs.serialize::*serializer*)
+                                                   (stream rs.serialize::*serializer-output*) &rest args)
   (declare (ignore args))
   (rs.serialize:with-element ("error" :serializer serializer
-				      :stream stream)
-    (rs.serialize:set-attribute 
-     "detail" 
+                                      :stream stream)
+    (rs.serialize:set-attribute
+     "detail"
      (ecase (or *server-development-mode*
-		*development-mode*)
+                *development-mode*)
        (:production
-	"Internal server error")
+        "Internal server error")
        (:testing
-	 (princ-to-string error))
+        (princ-to-string error))
        (:development "REST SERVER INTERNAL ERROR: this should not have happened"))
      :serializer serializer
      :stream stream)))
 
-(defmethod rs.serialize:serialize ((error http-error) &optional 
-							(serializer rs.serialize::*serializer*)
-							(stream rs.serialize::*serializer-output*) &rest args)
+(defmethod rs.serialize:serialize ((error http-error) &optional
+                                                        (serializer rs.serialize::*serializer*)
+                                                        (stream rs.serialize::*serializer-output*) &rest args)
   (declare (ignore args))
   (rs.serialize:with-element ("error" :serializer serializer
-				      :stream stream)
-    (rs.serialize:set-attribute 
-     "detail" 
+                                      :stream stream)
+    (rs.serialize:set-attribute
+     "detail"
      (apply #'format
-	    nil
-	    (simple-condition-format-control error)
-	    (simple-condition-format-arguments error))	 
+            nil
+            (simple-condition-format-control error)
+            (simple-condition-format-arguments error))
      :serializer serializer
      :stream stream)))
 
-;; http-return-code decides the HTTP status code to return for 
+;; http-return-code decides the HTTP status code to return for
 ;; the signaled condition. Implement this method for new conditions.
 ;; Example:
 
 (defmethod http-return-code ((error rs.schema:validation-error))
   hunchentoot:+http-bad-request+)
 
-(defmethod rs.serialize:serialize ((error rs.schema:validation-error) 
-				   &optional 
-				     (serializer rs.serialize::*serializer*)
-				     (stream rs.serialize::*serializer-output*) &rest args)
+(defmethod rs.serialize:serialize ((error rs.schema:validation-error)
+                                   &optional
+                                     (serializer rs.serialize::*serializer*)
+                                     (stream rs.serialize::*serializer-output*) &rest args)
   (declare (ignore args))
   (rs.serialize:with-element ("error" :serializer serializer
-				      :stream stream)
-    (rs.serialize:set-attribute 
-     "detail" 
+                                      :stream stream)
+    (rs.serialize:set-attribute
+     "detail"
      (apply #'format
-	    nil
-	    (simple-condition-format-control error)
-	    (simple-condition-format-arguments error))	 
+            nil
+            (simple-condition-format-control error)
+            (simple-condition-format-arguments error))
      :serializer serializer
      :stream stream)))
 
@@ -156,17 +156,17 @@
   (status-code condition))
 
 (defmethod setup-reply-from-error ((error error))
-  (setf (hunchentoot:return-code*)
-	(http-return-code error))
+  (setf (lack.response:response-status *http-response*)
+        (http-return-code error))
   (log5:log-for (rs::rest-server) "ERROR: ~A" error)
   (when *log-error-backtrace*
     (log5:log-for (rs::rest-server)
-		  (trivial-backtrace:backtrace-string)))
+                  (trivial-backtrace:backtrace-string)))
   (serialize-error error))
 
 (defmethod setup-reply-from-error ((error http-error))
-  (setf (hunchentoot:return-code*)
-	(http-return-code error))
+  (setf (lack.response:response-status *http-response*)
+        (http-return-code error))
   (serialize-error error))
 
 (defvar *retry-after-seconds* 5)
@@ -174,17 +174,17 @@
 (defmethod setup-reply-from-error ((error http-service-unavailable-error))
   "We add a retry-after header for the user to try again. The retry-after header value is in seconds"
   (call-next-method)
-  (setf (hunchentoot:header-out "Retry-After") *retry-after-seconds*))
+  (setf (response-header* :retry-after) *retry-after-seconds*))
 
 (defun call-with-condition-handling (function)
-  (if (not (eql 
-	    (or *server-development-mode*
-		*development-mode*)
-	    :development))
+  (if (not (eql
+            (or *server-development-mode*
+                *development-mode*)
+            :development))
       (handler-case (funcall function)
-	(error (e)
-	  (setup-reply-from-error e)))
-      (funcall function)))     
+        (error (e)
+          (setup-reply-from-error e)))
+      (funcall function)))
 
 ;; Plugging
 
@@ -192,7 +192,7 @@
     (rs::resource-operation-implementation-decoration)
   ()
   (:metaclass closer-mop:funcallable-standard-class))
-  
+
 (defmethod rs::process-resource-operation-implementation-option
     ((option (eql :error-handling))
      resource-operation-implementation
@@ -200,11 +200,11 @@
        #+abcl &allow-other-keys)
   (if enabled
       (make-instance 'error-handling-resource-operation-implementation-decoration
-		     :decorates resource-operation-implementation)
+                     :decorates resource-operation-implementation)
       resource-operation-implementation))
-  
+
 (defmethod execute :around ((decoration error-handling-resource-operation-implementation-decoration)
-			    &rest args)
+                            &rest args)
   (with-condition-handling
     (call-next-method)))
 
