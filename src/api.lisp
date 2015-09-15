@@ -36,9 +36,7 @@
 	 (lack.request:request-headers *http-request*))))
 
 (defun (setf request-header*) (value header)
-  (setf (getf (lack.request:request-headers *http-request*)
-			  header)
-		value))
+  (setf (gethash header (lack.request:request-headers *http-request*)) value))
 
 (defun (setf response-header*) (value header)
   (setf (getf (lack.response:response-headers *http-response*)
