@@ -28,9 +28,12 @@
   (lack.request:request-headers *http-request*))
 
 (defun request-header* (header)
-  (getf
-   (lack.request:request-headers *http-request*)
-   header))
+  (let ((header-str (if (stringp header)
+						header
+						(string-downcase (string header)))))
+	(gethash
+	 header-str
+	 (lack.request:request-headers *http-request*))))
 
 (defun (setf request-header*) (value header)
   (setf (getf (lack.request:request-headers *http-request*)
@@ -136,7 +139,9 @@
                      api))))
     (clack:clackup (make-instance 'api-app
                                   :api api
-                                  :development-mode (getf args :development-mode)
+                                  :development-mode (or
+													 (getf args :development-mode)
+													 :production)
 								  :address address
 								  :port port)
                    :port port
@@ -171,6 +176,7 @@
          (*http-response* (lack.response:make-response hunchentoot:+http-not-found+))
          (*app* app)
          (*api* (app-api app))
+		 (*development-mode* (development-mode app))
          (result (call-next-method)))
     (if (not result)
         (lack.response:finalize-response (lack.response:make-response hunchentoot:+http-not-found+))
