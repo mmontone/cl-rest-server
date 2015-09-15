@@ -110,7 +110,7 @@ For instance, if the resource-operation fetches users, then it's the resource op
                  (setf (gethash id (etags decoration)) etag))
                                         ;else
                (setf (etag decoration) etag))))
-    (let ((client-etag (request-header* :if-none-match)))
+    (let ((client-etag (rs::request-header* :if-none-match)))
       (if (and client-etag (equalp (get-etag) client-etag))
           ;; The etags match, content not modified
           (setf (lack.response:response-status *http-response*)

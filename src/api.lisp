@@ -173,10 +173,13 @@
          (*api* (app-api app))
          (result (call-next-method)))
     (if (not result)
-        (lack.response:make-response hunchentoot:+http-not-found+)
+        (lack.response:finalize-response (lack.response:make-response hunchentoot:+http-not-found+))
         (etypecase result
-          (string (setf (lack.response:response-body *http-response*) string))
-          (lack.response:response result)))))
+          (string
+		   (setf (lack.response:response-body *http-response*) result)
+		   (lack.response:finalize-response *http-response*))
+          (lack.response:response
+		   (lack.response:finalize-response result))))))
 
 ;; The api class
 (defclass api-definition ()

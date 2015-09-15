@@ -45,7 +45,7 @@
              (let ((*token* authenticated-token))
                (log5:log-for (rest-server) "OAuth2 authentication: ~A" authenticated-token)
                (funcall resource-operation)))))
-    (let* ((access-token (getf (lack.request:request-headers *http-request*) :authorization)))
+    (let* ((access-token (getf (lack.request:request-headers rs::*http-request*) :authorization)))
       ;; if there's no access token, error
       (if (not access-token)
           (auth-failed "Provide the token")

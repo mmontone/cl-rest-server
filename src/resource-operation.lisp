@@ -676,8 +676,8 @@
      :conditional-dispatch
      :predicate (lambda (&rest args)
                   (declare (ignore args))
-                  (and (request-header* :accept)
-                       (let ((accepts (split-sequence:split-sequence #\, (request-header* :accept))))
+                  (and (rs::request-header* :accept)
+                       (let ((accepts (split-sequence:split-sequence #\, (rs::request-header* :accept))))
                          (intersection (list ,accept-content-type)
                                        accepts :test #'equalp))))
      :when-true (lambda ,args

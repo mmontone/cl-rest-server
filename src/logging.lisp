@@ -70,10 +70,10 @@
 			    &rest args)
   (api-log-for decoration 
 	       "API: Handling ~A ~A by ~A"
-		(request-method*)
-		(request-uri*)
+		(rs::request-method*)
+		(rs::request-uri*)
 		(rs::name (rest-server::resource-operation decoration)))
-  (let ((posted-content (get-posted-content)))
+  (let ((posted-content (rs::get-posted-content)))
     (when posted-content 
       (api-log-for decoration "Posted content: ~A" posted-content)))
   (let ((result (call-next-method)))
@@ -111,8 +111,8 @@
 (defmethod rest-server::api-execute-function-implementation :around ((api logging-api) resource-operation-implementation resource request)
   (api-log-for rs::*api*
 			   "API: Handling ~A ~A by ~A"
-			   (request-method*)
-			   (request-uri*)
+			   (rs::request-method*)
+			   (rs::request-uri*)
 			   (rs::name (rs::resource-operation resource-operation-implementation)))
   (let ((posted-content (rs::get-posted-content)))
     (when posted-content 
@@ -129,4 +129,4 @@
 (defun disable-api-logging (api-name &optional (stop t))
   (dynamic-mixins:delete-from-mix (find-api api-name) 'logging-api)
   (when stop
-    (stop-api-logging)))
+    (stop-api-logging (find-api api-name))))

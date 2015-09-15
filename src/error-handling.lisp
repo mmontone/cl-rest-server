@@ -156,7 +156,7 @@
   (status-code condition))
 
 (defmethod setup-reply-from-error ((error error))
-  (setf (lack.response:response-status *http-response*)
+  (setf (lack.response:response-status rs::*http-response*)
         (http-return-code error))
   (log5:log-for (rs::rest-server) "ERROR: ~A" error)
   (when *log-error-backtrace*
@@ -165,7 +165,7 @@
   (serialize-error error))
 
 (defmethod setup-reply-from-error ((error http-error))
-  (setf (lack.response:response-status *http-response*)
+  (setf (lack.response:response-status rs::*http-response*)
         (http-return-code error))
   (serialize-error error))
 
@@ -174,7 +174,7 @@
 (defmethod setup-reply-from-error ((error http-service-unavailable-error))
   "We add a retry-after header for the user to try again. The retry-after header value is in seconds"
   (call-next-method)
-  (setf (response-header* :retry-after) *retry-after-seconds*))
+  (setf (rs::response-header* :retry-after) *retry-after-seconds*))
 
 (defun call-with-condition-handling (function)
   (if (not (eql

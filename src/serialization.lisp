@@ -406,14 +406,14 @@
     (serialize value serializer stream)))
 
 (defun accept-serializer ()
-  (or (and (request-header* :accept)
+  (or (and (rs::request-header* :accept)
            (let ((accepts (mimeparse:best-match
                            (list "text/lisp"
                                  "text/xml"
                                  "application/xml"
                                  "text/html"
                                  "application/json")
-                           (request-header* :accept))))
+                           (rs::request-header* :accept))))
              (string-case:string-case (accepts :default *default-serializer*)
                ("text/xml" :xml)
                ("application/xml" :xml)
