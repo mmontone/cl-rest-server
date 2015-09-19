@@ -35,7 +35,7 @@
 	   #:start-api-documentation
 	   #:self-reference
 	   #:with-pagination
-	   #:with-content
+	   #:with-resource
 	   #:with-permission-checking
 	   #:clear-cache
 	   ;; Decorations

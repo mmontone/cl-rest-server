@@ -510,52 +510,52 @@
     ;; methods until success
     (:raw posted-content)))
 
-;; Content fetching decoration
+;; Resource fetching decoration
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro with-content ((var content) &body body)
-    `(let ((,var ,content))
+  (defmacro with-resource ((var resource) &body body)
+    `(let ((,var ,resource))
        (if (not ,var)
            (error 'rs.error:http-not-found-error)
            (progn ,@body)))))
 
-(defclass content-fetching-resource-operation-implementation-decoration
+(defclass resource-fetching-resource-operation-implementation-decoration
     (resource-operation-implementation-decoration)
   ((function :initarg :function
-             :accessor content-fetching-function
-             :initform (error "Provide the content fetching function")
-             :documentation "Function for content fetching")
+             :accessor resource-fetching-function
+             :initform (error "Provide the resource fetching function")
+             :documentation "Function for resource fetching")
    (argument :initarg :argument
-             :accessor content-fetching-argument
+             :accessor resource-fetching-argument
              :initform (error "Provide the argument to use for fetching")
-             :documentation "Argument to pass to content-fetching-function")
+             :documentation "Argument to pass to resource-fetching-function")
    (bind :initarg :bind
-         :accessor content-fetching-bind
+         :accessor resource-fetching-bind
          :initform '(:append :first)
-         :documentation "Content binding spec"))
+         :documentation "Resource binding spec"))
   (:metaclass closer-mop:funcallable-standard-class))
 
 (defmethod process-resource-operation-implementation-option
-    ((option (eql :fetch-content))
+    ((option (eql :fetch-resource))
      resource-operation-implementation
      &rest args &key enabled #+abcl &allow-other-keys)
   (if enabled
-      (apply #'make-instance 'content-fetching-resource-operation-implementation-decoration
+      (apply #'make-instance 'resource-fetching-resource-operation-implementation-decoration
              `(:decorates ,resource-operation-implementation ,@args :allow-other-keys t))
       resource-operation-implementation))
 
-(defmethod execute :around ((decoration content-fetching-resource-operation-implementation-decoration)
+(defmethod execute :around ((decoration resource-fetching-resource-operation-implementation-decoration)
                             &rest args)
   (let ((fargs
          (extract-function-arguments-to-plist *resource-operation* hunchentoot:*request*)))
-    (with-content (content (funcall (content-fetching-function decoration)
-                                    (getf (content-fetching-argument decoration) fargs)))
-      (apply #'call-next-method (cons content args)))))
+    (with-resource (resource (funcall (resource-fetching-function decoration)
+                                    (getf (resource-fetching-argument decoration) fargs)))
+      (apply #'call-next-method (cons resource args)))))
 
-(cl-annot:defannotation fetch-content (args resource-operation-implementation)
+(cl-annot:defannotation fetch-resource (args resource-operation-implementation)
     (:arity 2)
   `(configure-resource-operation-implementation
     (name (resource-operation ,resource-operation-implementation))
-    (list :fetch-content ,@args)))
+    (list :fetch-resource ,@args)))
 
 ;; Generic permission checking
 
