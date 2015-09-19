@@ -73,7 +73,7 @@
 		(hunchentoot:request-method*)
 		(hunchentoot:request-uri*)
 		(rs::name (rest-server::resource-operation decoration)))
-  (let ((posted-content (get-posted-content)))
+  (let ((posted-content (rs::get-posted-content)))
     (when posted-content 
       (api-log-for decoration "Posted content: ~A" posted-content)))
   (let ((result (call-next-method)))
