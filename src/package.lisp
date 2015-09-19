@@ -12,6 +12,7 @@
 	   #:with-json-reply
 	   #:with-xml-reply
 	   #:with-posted-content
+	   #:with-content
 	   #:find-api
 	   #:find-resource-operation
 	   #:with-api
