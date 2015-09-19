@@ -268,7 +268,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
     (multiple-value-bind (required optional rest keyword)
         (alexandria:parse-ordinary-lambda-list args)
       (declare (ignore optional rest))
-      (if (member (request-method resource-operation) (list :put :post))
+      (if (member (request-method resource-operation) (list :put :post :patch))
           (progn
             (ensure (equalp (symbol-name (first args)) "POSTED-CONTENT")
                     "POSTED-CONTENT argument was not provided as first parameter of the resource operation implementation")
