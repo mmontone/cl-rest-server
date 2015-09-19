@@ -369,7 +369,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
       (let ((args (extract-function-arguments resource-operation request)))
         (apply function-implementation
                (append
-                (when (member (request-method resource-operation) (list :put :post))
+                (when (member (request-method resource-operation) (list :put :post :patch))
                   (let ((posted-content (get-posted-content request)))
                     (log5:log-for (rest-server) "Posted content: ~A" posted-content)
                     (list (parse-posted-content posted-content))))
@@ -486,7 +486,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
       `(progn
          (defun ,client-stub-name
              ,(append
-               (when (member (request-method resource-operation) '(:post :put))
+               (when (member (request-method resource-operation) '(:post :put :patch))
                  (list 'posted-content))
                (loop for arg in required-args collect
                     (intern (symbol-name (argument-name arg)) package))
@@ -506,7 +506,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                                    (intern (format nil "~A-PROVIDED-P"
                                                    (symbol-name (argument-name arg)))
                                            package))))
-                      (when (member (request-method resource-operation) '(:post :put))
+                      (when (member (request-method resource-operation) '(:post :put :patch))
                         (list '(content-type "application/json"))))))
            ,@(when (api-documentation resource-operation)
                (list (api-documentation resource-operation)))
@@ -527,7 +527,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                                                            ,(intern (symbol-name (argument-name arg)) package))))))))
              (log5:log-for (rest-server)  "Request: ~A ~A" ,(request-method resource-operation) ,request-url)
              ,(when (member (request-method resource-operation)
-                            '(:post :put))
+                            '(:post :put :patch))
                 `(log5:log-for (rest-server) "Posted content: ~A"
                                posted-content))
              (multiple-value-bind (,response ,status-code)
@@ -537,11 +537,11 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                     :method ,(request-method resource-operation)
                     :proxy *rest-server-proxy*
                     :content ,(when (member (request-method resource-operation)
-                                            '(:post :put))
+                                            '(:post :put :patch))
                                 `(encode-posted-content posted-content
                                                         (parse-content-type content-type)))
                     :content-type ,(when (member (request-method resource-operation)
-                                                 '(:post :put))
+                                                 '(:post :put :patch))
                                      'content-type)
                     :parameters (append
                                  ,@(loop for arg in optional-args

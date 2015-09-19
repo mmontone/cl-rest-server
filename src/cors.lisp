@@ -9,7 +9,7 @@
 	"X-Requested-With"))
 
 (defparameter +cors-default-allow-methods+
-  (list :get :put :post :delete))
+  (list :get :put :post :delete :patch))
 
 (defclass cors-mixin ()
   ((cors-enabled :initarg :cors-enabled

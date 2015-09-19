@@ -115,7 +115,7 @@
 	     do
 	       (json:as-array-member ()
 		 (encode-parameter parameter nil)))
-	  (when (member (request-method operation) (list :post :put))
+	  (when (member (request-method operation) (list :post :put :patch))
 	    (json:as-array-member ()
 	      (json:with-object ()
 		(json:encode-object-member :name "body")
