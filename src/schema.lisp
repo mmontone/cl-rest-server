@@ -68,6 +68,10 @@
                                     schema serializer input stream)
   (serialize-value serializer input stream))
 
+(defmethod %%serialize-with-schema ((schema-type (eql :keyword))
+                                    schema serializer input stream)
+  (serialize-value serializer (string-downcase (string input)) stream))
+
 (defun serialize-schema-element (schema-element serializer input stream)
   (destructuring-bind (_ element-name attributes &rest options) schema-element
     (declare (ignore _))
@@ -285,6 +289,12 @@ Args:
                       (attribute-name attribute)
                       data)))
 
+(defmethod %schema-validate ((schema-type (eql :keyword)) schema data &optional attribute)
+  (when (not (stringp data))
+    (validation-error "~A: ~A is not a keyword"
+                      (attribute-name attribute)
+                      data)))
+
 (defgeneric parse-with-schema (schema string-or-data &optional format)
   (:documentation "Parses the string to an association list using the schema"))
 
@@ -366,6 +376,9 @@ Args:
 
 (defmethod parse-schema-attribute-value ((type (eql :date)) data)
   (chronicity:parse data))
+
+(defmethod parse-schema-attribute-value ((type (eql :keyword)) data)
+  (intern (string-upcase data) :keyword))
 
 (defmethod parse-schema-attribute-value ((type symbol) data)
   (let ((schema (find-schema type)))
