@@ -197,7 +197,7 @@
     ((option (eql :error-handling))
      resource-operation-implementation
      &key (enabled t)
-       #+abcl &allow-other-keys)
+       #+(or abcl ecl) &allow-other-keys)
   (if enabled
       (make-instance 'error-handling-resource-operation-implementation-decoration
 		     :decorates resource-operation-implementation)
