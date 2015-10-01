@@ -23,11 +23,14 @@
 (defmacro with-posted-content (args posted-content &body body)
   "Bind ARGS to POSTED-CONTENT. POSTED-CONTENT is supposed to be an alist.
 Also, argx-P is T iff argx is present in POSTED-CONTENT"
-  `(let ,(loop for arg in args
-            collect `(,arg (cdr (assoc ,(make-keyword arg) ,posted-content)))
-			collect `(,(intern (format nil "~A-P" arg))
-					   (assoc ,(make-keyword arg) ,posted-content)))
-     ,@body))
+  (flet ((predicate-name (arg)
+		   (intern (format nil "~A-P" arg))))
+	`(let ,(loop for arg in args
+			  collect `(,arg (cdr (assoc ,(make-keyword arg) ,posted-content)))
+			  collect `(,(predicate-name arg)
+						 (assoc ,(make-keyword arg) ,posted-content)))
+	   (declare (ignorable ,@(mapcar #'predicate-name args)))
+	   ,@body)))
 
 (defmacro with-text-content-types (&body body)
   `(call-with-text-content-types (lambda () ,@body)))
