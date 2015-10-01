@@ -18,8 +18,8 @@
   (hunchentoot:raw-post-data
    :force-text
    (text-content-type?
-	(parse-content-type
-	 (hunchentoot:header-in "content-type" request)))))
+    (parse-content-type
+     (hunchentoot:header-in "content-type" request)))))
 
 (defun text-content-type? (content-type)
   (member content-type *text-content-types*))
@@ -73,20 +73,20 @@
      (with-api ,name
        ,@(let ((client-package (or (find-package (getf options :client-package))
                                    *package*)))
-           (loop for resource in resources
-              collect (destructuring-bind (name resource-options &body operations)
-                          resource
-                        (let ((resource-options
-                               (list* :client-package
-                                      (package-name
-                                       (or (getf options :client-package)
-                                           client-package))
-                                      :export-client-functions
-                                      (or (getf resource-options :export-client-functions)
-                                          (getf options :export-client-functions))
-                                      resource-options)))
+              (loop for resource in resources
+                 collect (destructuring-bind (name resource-options &body operations)
+                             resource
+                           (let ((resource-options
+                                  (list* :client-package
+                                         (package-name
+                                          (or (getf options :client-package)
+                                              client-package))
+                                         :export-client-functions
+                                         (or (getf resource-options :export-client-functions)
+                                             (getf options :export-client-functions))
+                                         resource-options)))
 
-                          `(define-api-resource ,name ,resource-options ,@operations))))))))
+                             `(define-api-resource ,name ,resource-options ,@operations))))))))
 
 (defun start-api (api address port &rest args)
   "Start an api at address and port.
@@ -203,8 +203,8 @@
                                          resource
                                          request)))
                                   (if (stringp result)
-									  result
-									  (prin1-to-string result)))))))
+                                      result
+                                      (prin1-to-string result)))))))
                ;; Return nil as the request could not be handled
                nil)))
       (if (equalp (hunchentoot:request-method request)
@@ -492,10 +492,10 @@
                 (lambda (ct)
                   (cl-ppcre:scan ct content-type)))
      :sexp)
-	(t :raw
-	   #+nil(error 'rs.error:http-unsupported-media-type-error
-              :format-control "Content type not supported ~A"
-              :format-arguments (list content-type)))))
+    (t :raw
+       #+nil(error 'rs.error:http-unsupported-media-type-error
+                   :format-control "Content type not supported ~A"
+                   :format-arguments (list content-type)))))
 
 (defun parse-posted-content (posted-content &optional (method *parse-posted-content*))
   (ecase method
@@ -512,11 +512,26 @@
 
 ;; Resource fetching decoration
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro with-resource ((var resource) &body body)
+  (defmacro with-resource ((var resource &optional message &rest args) &body body)
     `(let ((,var ,resource))
        (if (not ,var)
-           (error 'rs.error:http-not-found-error)
-           (progn ,@body)))))
+           (error 'rs.error:http-not-found-error
+                  ,@(when message
+                          (list :format-control message
+                                :format-arguments `(list ,@args))))
+
+           (progn ,@body))))
+
+  (defmacro let-resource (bindings &body body)
+    `(let ,(loop for binding in bindings
+              collect
+                (destructuring-bind (var resource &optional message &rest args) binding
+                  `(,var (or ,resource
+                             (error 'rs.error:http-not-found-error
+                                    ,@(when message
+                                            (list :format-control message
+                                                  :format-arguments `(list ,@args))))))))
+	   ,@body)))
 
 (defclass resource-fetching-resource-operation-implementation-decoration
     (resource-operation-implementation-decoration)
@@ -537,7 +552,7 @@
 (defmethod process-resource-operation-implementation-option
     ((option (eql :fetch-resource))
      resource-operation-implementation
-     &rest args &key enabled #+abcl &allow-other-keys)
+     &rest args &key enabled #+(or abcl ecl)&allow-other-keys)
   (if enabled
       (apply #'make-instance 'resource-fetching-resource-operation-implementation-decoration
              `(:decorates ,resource-operation-implementation ,@args :allow-other-keys t))
@@ -548,7 +563,7 @@
   (let ((fargs
          (extract-function-arguments-to-plist *resource-operation* hunchentoot:*request*)))
     (with-resource (resource (funcall (resource-fetching-function decoration)
-                                    (getf (resource-fetching-argument decoration) fargs)))
+                                      (getf (resource-fetching-argument decoration) fargs)))
       (apply #'call-next-method (cons resource args)))))
 
 (cl-annot:defannotation fetch-resource (args resource-operation-implementation)
@@ -579,7 +594,7 @@
 (defmethod process-resource-operation-implementation-option
     ((option (eql :permission-checking))
      resource-operation-implementation
-     &rest args &key enabled #+abcl &allow-other-keys)
+     &rest args &key enabled #+(or abcl ecl)&allow-other-keys)
   (if enabled
       (apply #'make-instance 'permission-checking-resource-operation-implementation-decoration
              `(:decorates ,resource-operation-implementation ,@args :allow-other-keys t))
