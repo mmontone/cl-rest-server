@@ -531,7 +531,17 @@
                                     ,@(when message
                                             (list :format-control message
                                                   :format-arguments `(list ,@args))))))))
-	   ,@body)))
+       ,@body))
+  (defmacro let-resource* (bindings &body body)
+    `(let* ,(loop for binding in bindings
+               collect
+                 (destructuring-bind (var resource &optional message &rest args) binding
+                   `(,var (or ,resource
+                              (error 'rs.error:http-not-found-error
+                                     ,@(when message
+                                             (list :format-control message
+                                                   :format-arguments `(list ,@args))))))))
+       ,@body)))
 
 (defclass resource-fetching-resource-operation-implementation-decoration
     (resource-operation-implementation-decoration)

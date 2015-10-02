@@ -37,6 +37,7 @@
 	   #:with-pagination
 	   #:with-resource
 	   #:let-resource
+	   #:let-resource*
 	   #:with-permission-checking
 	   #:clear-cache
 	   ;; Decorations
