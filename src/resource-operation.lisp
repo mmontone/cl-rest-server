@@ -24,13 +24,13 @@
   "Bind ARGS to POSTED-CONTENT. POSTED-CONTENT is supposed to be an alist.
 Also, argx-P is T iff argx is present in POSTED-CONTENT"
   (flet ((predicate-name (arg)
-		   (intern (format nil "~A-P" arg))))
-	`(let ,(loop for arg in args
-			  collect `(,arg (cdr (assoc ,(make-keyword arg) ,posted-content)))
-			  collect `(,(predicate-name arg)
-						 (assoc ,(make-keyword arg) ,posted-content)))
-	   (declare (ignorable ,@(mapcar #'predicate-name args)))
-	   ,@body)))
+           (intern (format nil "~A-P" arg))))
+    `(let ,(loop for arg in args
+              collect `(,arg (cdr (assoc ,(make-keyword arg) ,posted-content)))
+              collect `(,(predicate-name arg)
+                         (assoc ,(make-keyword arg) ,posted-content)))
+       (declare (ignorable ,@(mapcar #'predicate-name args)))
+       ,@body)))
 
 (defmacro with-text-content-types (&body body)
   `(call-with-text-content-types (lambda () ,@body)))
@@ -44,7 +44,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
 
 (defgeneric encode-posted-content (content content-type)
   (:method ((content cons) (content-type (eql :json)))
-	(babel:string-to-octets (json:encode-json-to-string content)))
+    (babel:string-to-octets (json:encode-json-to-string content)))
   (:method (content content-type)
     content))
 
@@ -239,6 +239,26 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
    (lambda ()
      (apply (primary resource-operation-implementation) args))))
 
+(defun resop-impl-args (args resop-impl)
+  (multiple-value-bind (lambda-list special-args)
+      (extract-special-arguments args)
+    (loop :for special-arg :in special-args
+       :do
+       (case (car special-arg)
+         (:&posted-content (setf lambda-list
+                                (add-keyword-argument
+                                 (list (list :_posted-content (cdr special-arg)))
+                                 lambda-list)))
+         (:&resource-operation (setf lambda-list (add-keyword-argument
+                                                 (list (list :_resource-operation (cdr special-arg)))
+                                                 lambda-list)))
+         (t (error "Invalid argument: ~A in resource operation implementation: ~A"
+                   (car special-arg)
+                   resop-impl))))
+	(when (not (find '&key lambda-list))
+	  (setf lambda-list (append lambda-list (list '&key))))
+	lambda-list))
+
 (defmacro implement-resource-operation (api-name name-and-options args &body body)
   "Define an resource operation implementation"
   (multiple-value-bind (name options)
@@ -249,20 +269,22 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
     (let* ((api (find-api api-name))
            (resource-operation (find-resource-operation api name nil)))
       (when resource-operation
-        (validate-resource-operation-implementation-arguments args resource-operation)))
-    `(let* ((api (find-api ',api-name))
-            (resource-operation (find-resource-operation api ',name))
-            (resource-operation-implementation
-             (make-instance 'resource-operation-implementation
-                            :resource-operation resource-operation
-                            :primary (lambda ,args
-                                       ,@body)
-                            :options ',options)))
-       (let ((decorated-function
-              (process-resource-operation-implementation-options
-               resource-operation-implementation)))
-         (setf (get ',name :resource-operation-implementation)
-               decorated-function)))))
+        (validate-resource-operation-implementation-arguments
+         (resop-impl-args args resource-operation)
+         resource-operation))
+      `(let* ((api (find-api ',api-name))
+              (resource-operation (find-resource-operation api ',name))
+              (resource-operation-implementation
+               (make-instance 'resource-operation-implementation
+                              :resource-operation resource-operation
+                              :primary (lambda ,(resop-impl-args args resource-operation)
+                                         ,@body)
+                              :options ',options)))
+         (let ((decorated-function
+                (process-resource-operation-implementation-options
+                 resource-operation-implementation)))
+           (setf (get ',name :resource-operation-implementation)
+                 decorated-function))))))
 
 (defun validate-resource-operation-implementation-arguments (args resource-operation)
   (flet ((ensure (thing message &rest args)
@@ -271,42 +293,43 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
     (multiple-value-bind (required optional rest keyword)
         (alexandria:parse-ordinary-lambda-list args)
       (declare (ignore optional rest))
-      (if (member (request-method resource-operation) (list :put :post :patch))
-          (progn
-            (ensure (equalp (symbol-name (first args)) "POSTED-CONTENT")
-                    "POSTED-CONTENT argument was not provided as first parameter of the resource operation implementation")
-            (loop for arg0 in (cdr (required-arguments resource-operation))
-               for arg1 in required
-               do
-                 (let ((arg0-name (argument-name arg0))
-                       (arg1-name arg1))
-                   (ensure (equalp (symbol-name arg0-name)
-                                   (symbol-name arg1-name))
-                           "Invalid resource operation implementation args list: ~A <> ~A"
-                           arg0-name arg1-name))))
-          ;; else
-          (loop for arg0 in (required-arguments resource-operation)
-             for arg1 in required
-             do
-               (let ((arg0-name (argument-name arg0))
-                     (arg1-name arg1))
-                 (ensure (equalp (symbol-name arg0-name)
-                                 (symbol-name arg1-name))
-                         "Invalid resource operation implementation args list: ~A <> ~A"
-                         arg0-name arg1-name))))
+      (loop for arg0 in (required-arguments resource-operation)
+         for arg1 in required
+         do
+           (let ((arg0-name (argument-name arg0))
+                 (arg1-name arg1))
+             (ensure (equalp (symbol-name arg0-name)
+                             (symbol-name arg1-name))
+                     "Invalid resource operation implementation args list: ~A <> ~A"
+                     arg0-name arg1-name)))
       (let ((optional-args-names
-             (mapcar (alexandria:compose #'string #'cadar)
+             (mapcar (alexandria:compose #'string #'caar)
                      keyword))
             (resource-operation-optional-args
              (mapcar (alexandria:compose #'string #'argument-name)
                      (optional-arguments resource-operation))))
-        (loop for optional-arg in optional-args-names
-           do
-             (ensure (member optional-arg
-                             resource-operation-optional-args
-                             :test #'equalp)
-                     "Optional argument ~A not found in resource operation implementation args"
-                     optional-arg))))))
+        (let ((invalid-optional-args
+               (set-difference (set-difference optional-args-names
+                                               (list "_POSTED-CONTENT" "_RESOURCE_OPERATION")
+                                               :test #'equalp)
+                               resource-operation-optional-args
+                               :test #'equalp)))
+          (ensure (not invalid-optional-args)
+                  "Invalid ~A implementation args: ~A"
+                  resource-operation
+                  invalid-optional-args))
+        (let ((missing-optional-args
+               (set-difference resource-operation-optional-args
+                               optional-args-names
+                               :test #'equalp)))
+          (ensure (not missing-optional-args)
+                  "Missing args in ~A implementation: ~A"
+                  resource-operation
+                  missing-optional-args))
+        (when (member (request-method resource-operation) (list :put :post :patch))
+          (ensure (member :_posted-content (mapcar #'caar keyword))
+                  "&POSTED-CONTENT not found in ~A implementation lambda-list" resource-operation)
+          )))))
 
 (defun configure-resource-operation-implementation
     (name &rest options)
@@ -372,11 +395,13 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
       (let ((args (extract-function-arguments resource-operation request)))
         (apply function-implementation
                (append
+                args
                 (when (member (request-method resource-operation) (list :put :post :patch))
                   (let ((posted-content (get-posted-content request)))
                     (log5:log-for (rest-server) "Posted content: ~A" posted-content)
-                    (list (parse-posted-content posted-content))))
-                args))))))
+                    (list :_posted-content (parse-posted-content posted-content))))
+                (list :_resource-operation resource-operation)
+				(list :allow-other-keys t)))))))
 
 (defun find-optional-argument (name resource-operation)
   (or

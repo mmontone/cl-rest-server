@@ -4,9 +4,6 @@
 
 (log5:defcategory rest-server)
 
-(defun make-keyword (string)
-  (intern (string-upcase string) :keyword))
-
 (defmacro with-content ((&key (setter ':=)) &body body)
   "Macro to build HTTP content to pass in client functions.
 

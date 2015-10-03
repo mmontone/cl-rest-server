@@ -40,6 +40,8 @@
 	   #:let-resource*
 	   #:with-permission-checking
 	   #:clear-cache
+	   #:&posted-content
+	   #:&resource-operation
 	   ;; Decorations
 	   #:caching
 	   #:fetch-content
