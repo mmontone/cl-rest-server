@@ -524,7 +524,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                       (list '(additional-headers ()))
                       (list '(parse-response t))
                       (list '(encode-request-arguments t))
-                      (list '(error-p nil))
+                      (list '(error-p *signal-client-function-errors*))
                       (when (authorizations resource-operation)
                         (list '(authorization (error "Provide an authorization value"))))
                       (when optional-args

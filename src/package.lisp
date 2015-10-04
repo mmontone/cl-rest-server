@@ -42,6 +42,8 @@
 	   #:clear-cache
 	   #:&posted-content
 	   #:&resource-operation
+	   #:*signal-client-function-errors*
+	   #:with-signal-client-function-errors
 	   ;; Decorations
 	   #:caching
 	   #:fetch-content
