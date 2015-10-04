@@ -121,5 +121,6 @@
 	   #:http-forbidden-error
 	   #:http-not-acceptable-error
 	   #:http-unsupported-media-type-error
+	   #:http-bad-request
 	   #:error-handling
 	   #:with-condition-handling))

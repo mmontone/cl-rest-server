@@ -434,7 +434,12 @@
   (:documentation "Parses content depending on its format"))
 
 (defmethod parse-api-input ((format (eql :json)) string)
-  (json:decode-json-from-string string))
+  (handler-case
+	  (json:decode-json-from-string string)
+	(json:json-syntax-error (e)
+	  (error 'rs.error:http-bad-request
+			 :format-control (simple-condition-format-control e)
+			 :format-arguments (simple-condition-format-arguments e)))))
 
 (defun fold-tree (f g tree)
   (if (listp tree)
