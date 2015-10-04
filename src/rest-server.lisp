@@ -10,7 +10,7 @@
   (let ((*signal-client-function-errors* signal-p))
 	(funcall function)))
 
-(defmacro with-signal-client-function-errors ((signal-p *signal-client-function-errors*)
+(defmacro with-signal-client-function-errors ((&optional signal-p '*signal-client-function-errors*)
 											  &body body)
   `(call-with-signal-client-function-errors ,signal-p (lambda () ,@body)))
 
