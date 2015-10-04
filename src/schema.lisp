@@ -227,7 +227,10 @@ Args:
   )
 
 (defmethod schema-validate (schema data &optional attribute)
-  (%schema-validate (schema-type schema) schema data attribute))
+  (let ((schema (or (and (symbolp schema) (not (keywordp schema))
+						 (find-schema schema))
+					schema)))
+	(%schema-validate (schema-type schema) schema data attribute)))
 
 (defmethod schema-validate :after (schema data &optional attribute)
   (when (and attribute (attribute-validator attribute))
@@ -256,8 +259,8 @@ Args:
                       schema-attribute)))
 
 (defmethod %schema-validate ((schema-type (eql :list)) schema data &optional attribute)
-  (let ((list-type (or (and (listp schema-type)
-                            (second schema-type))
+  (let ((list-type (or (and (listp schema)
+                            (second schema))
                        :any)))
     (when (not (listp data))
       (validation-error "~A: ~A is not of type ~A"
@@ -265,7 +268,7 @@ Args:
                         attribute
                         (attribute-type attribute)))
     (every (lambda (val)
-             (schema-validate (second schema-type) val))
+             (schema-validate (second schema) val))
            data)))
 
 (defmethod %schema-validate ((schema-type (eql :string)) schema data &optional attribute)
