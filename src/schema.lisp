@@ -199,9 +199,7 @@ Args:
   - format (keyword): The data format
   - collect-errors (boolean): If true, collect all the validation errors. If false, return the first validation error found. Default: true.
   - error-p (boolean): If true, when validation errors are found, a validation error is signaled. If false, the validation errors are returned as the function result and no error is signaled."
-  (let ((schema (or (and (symbolp schema) (find-schema schema))
-                    schema))
-        (data (if (stringp string-or-data)
+  (let ((data (if (stringp string-or-data)
                   (rs::parse-api-input format string-or-data)
                   string-or-data))
         (*collect-validation-errors* collect-errors)
@@ -228,17 +226,17 @@ Args:
 
 (defmethod schema-validate (schema data &optional attribute)
   (let ((schema (or (and (symbolp schema) (not (keywordp schema))
-						 (find-schema schema))
-					schema)))
-	(%schema-validate (schema-type schema) schema data attribute)))
+                         (find-schema schema))
+                    schema)))
+    (%schema-validate (schema-type schema) schema data attribute)))
 
 (defmethod schema-validate :after (schema data &optional attribute)
   (when (and attribute (attribute-validator attribute))
-	(multiple-value-bind (valid-p error-message) (funcall (attribute-validator attribute) data)
-	  (when (not valid-p)
-		(validation-error (or error-message
-							  (format nil "~A: is invalid"
-									  (attribute-name attribute))))))))
+    (multiple-value-bind (valid-p error-message) (funcall (attribute-validator attribute) data)
+      (when (not valid-p)
+        (validation-error (or error-message
+                              (format nil "~A: is invalid"
+                                      (attribute-name attribute))))))))
 
 (defmethod %schema-validate ((schema-type (eql :element)) schema data &optional attribute)
   "Validate data using schema element. "
@@ -392,8 +390,8 @@ Args:
 
 (defun schema-type (schema)
   (if (listp schema)
-	  (first schema)
-	  schema))
+      (first schema)
+      schema))
 
 (defun parse-xml-with-schema (schema-or-name input)
   (let ((schema (if (symbolp schema-or-name)
