@@ -26,7 +26,7 @@
             nil)
         schema)))
 
-(defvar *collect-validation-errors* t)
+(defvar *collect-validation-errors* nil)
 (defvar *signal-validation-errors* t)
 (defvar *validation-errors-collection*)
 
@@ -252,9 +252,11 @@ Args:
        (validation-error "Attribute ~a not found in ~a"
                          (attribute-name schema-attribute)
                          data))
-     (schema-validate (attribute-type schema-attribute)
-                      (cdr data-attribute)
-                      schema-attribute)))
+	 (when (not (and (attribute-optional-p schema-attribute)
+					 (null (cdr data-attribute))))
+	   (schema-validate (attribute-type schema-attribute)
+						(cdr data-attribute)
+						schema-attribute))))
 
 (defmethod %schema-validate ((schema-type (eql :list)) schema data &optional attribute)
   (let ((list-type (or (and (listp schema)
