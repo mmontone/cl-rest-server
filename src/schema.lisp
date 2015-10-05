@@ -253,7 +253,7 @@ Args:
                          (attribute-name schema-attribute)
                          data))
 	 (when (not (and (attribute-optional-p schema-attribute)
-					 (null (cdr data-attribute))))
+					 (null data-attribute)))
 	   (schema-validate (attribute-type schema-attribute)
 						(cdr data-attribute)
 						schema-attribute))))
