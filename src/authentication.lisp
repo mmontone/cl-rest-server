@@ -99,23 +99,23 @@
   (ignore-errors (read-from-string (decode-string token))))
 
 #+nil(defun authentication-token-user (token)
-  (let ((username-and-pass (decode-token token)))
-    (when username-and-pass
-      (destructuring-bind (username password) username-and-pass
-        (login username password)))))
+       (let ((username-and-pass (decode-token token)))
+         (when username-and-pass
+           (destructuring-bind (username password) username-and-pass
+             (login username password)))))
 
 #+nil(defmacro with-authenticated-user ((token &optional (user (gensym))) &body body)
-  `(let ((,user (or (and ,token
-                         (authentication-token-user ,token))
-                    (authentication-error))))
-     (let ((b2-model::*user* ,user))
-       ,@body)))
+       `(let ((,user (or (and ,token
+                              (authentication-token-user ,token))
+                         (authentication-error))))
+          (let ((b2-model::*user* ,user))
+            ,@body)))
 
 ;; Plugging
 
 (defun parse-authentications (auths)
   (loop for auth-spec in auths
-       collect
+     collect
        (make-authentication auth-spec)))
 
 (defun make-authentication (auth-spec)
@@ -123,19 +123,19 @@
   (cond
     ((keywordp auth-spec)
      (make-instance (intern
-		     (format nil "~A-AUTHENTICATION" (symbol-name auth-spec))
-		     :rest-server)))
+                     (format nil "~A-AUTHENTICATION" (symbol-name auth-spec))
+                     :rest-server)))
     ((symbolp auth-spec)
      (make-instance auth-spec))
     ((listp auth-spec)
      (destructuring-bind (auth-type &rest args) auth-spec
        (let ((class-name (ecase (type-of auth-type)
-			   (keyword
-			    (intern
-			     (format nil "~A-AUTHENTICATION" (symbol-name auth-type))
-			     :rest-server))
-			   (symbol auth-type))))
-	 (apply #'make-instance class-name args))))
+                           (keyword
+                            (intern
+                             (format nil "~A-AUTHENTICATION" (symbol-name auth-type))
+                             :rest-server))
+                           (symbol auth-type))))
+         (apply #'make-instance class-name args))))
     (t (error "Invalid authentication spec ~A" auth-spec))))
 
 (defvar *token*)
@@ -145,77 +145,87 @@
     :initarg :authentication-function
     :accessor authentication-function
     :initform (lambda (token)
-		(error "Don't know how to authenticate ~A" token)))))
+                (error "Don't know how to authenticate ~A" token)))))
 
 (defmethod authenticate-token ((authentication token-authentication)
-			       token)
+                               token)
   (let ((authenticated-token
-	 (funcall (authentication-function authentication) token)))
+         (funcall (authentication-function authentication) token)))
     (when authenticated-token
       (list :authentication authentication
-	    :token authenticated-token))))
+            :token authenticated-token))))
 
 (defmethod authenticate
     ((authentication token-authentication) resource-operation)
   (flet ((auth-failed (message)
-	   (log5:log-for (rest-server) "Token authentication failed: ~A" message)
-	   (return-from authenticate message))
-	 (auth-succeeded (authenticated-token)
-	   (return-from authenticate 
-	     (let ((*token* authenticated-token))
-	       (log5:log-for (rest-server) "Token authentication: ~A" authenticated-token)
-	       (funcall resource-operation)))))
+           (log5:log-for (rest-server) "Token authentication failed: ~A" message)
+           (return-from authenticate message))
+         (auth-succeeded (authenticated-token)
+           (return-from authenticate
+             (let ((*token* authenticated-token))
+               (log5:log-for (rest-server) "Token authentication: ~A" authenticated-token)
+               (funcall resource-operation)))))
     (let* ((token (hunchentoot:header-in* "Authorization")))
       (if (not token)
-	  (auth-failed "Provide the token")
-					; else
-	  (let ((authenticated-token (authenticate-token authentication token)))
-	    (if (not authenticated-token)
-		(auth-failed "Invalid token")
-		(auth-succeeded authenticated-token)))))))
+          (auth-failed "Provide the token")
+                                        ; else
+          (let ((authenticated-token (authenticate-token authentication token)))
+            (if (not authenticated-token)
+                (auth-failed "Invalid token")
+                (auth-succeeded authenticated-token)))))))
+
+(defclass no-auth-authentication ()
+  ()
+  (:documentation "Authentication for no authentication. That is, it always passes. Useful for building an optionally authenticated end-point."))
+
+(defmethod authenticate
+    ((authentication no-auth-authentication) resource-operation)
+  (flet ((auth-succeeded ()
+           (return-from authenticate
+             (funcall resource-operation))))
+    (auth-succeeded)))
 
 (defun resource-operation-authorizations (resource-operation)
   "Authorizations that apply to an resource-operation. Merges resources authorizations and
    resource-operation authorizations, giving priority to resource-operation authorizations (overwrites)"
   (let ((authorizations (copy-list (authorizations resource-operation))))
     (flet ((authorization-exists-p (auth)
-	     (cond
-	       ((symbolp auth)
-		(member auth authorizations :test #'equalp))
-	       ((listp auth)
-		(member (first auth) (remove-if-not #'listp authorizations)
-			:key #'first
-			:test #'equalp))
-	       (t (error "Invalid authorization ~A" auth)))))
+             (cond
+               ((symbolp auth)
+                (member auth authorizations :test #'equalp))
+               ((listp auth)
+                (member (first auth) (remove-if-not #'listp authorizations)
+                        :key #'first
+                        :test #'equalp))
+               (t (error "Invalid authorization ~A" auth)))))
       (loop for resource-authorization in (resource-authorizations (resource resource-operation))
-	 do (when (not (authorization-exists-p resource-authorization))
-	      (push resource-authorization authorizations))))
+         do (when (not (authorization-exists-p resource-authorization))
+              (push resource-authorization authorizations))))
     (parse-authentications authorizations)))
 
 (defun call-verifying-authentication (resource-operation function)
   (if (not (and *authorization-enabled-p*
-		(authorization-enabled *api*)))
+                (authorization-enabled *api*)))
       (funcall function)
       ;; else
-      (let ((authentications 
-	     (resource-operation-authorizations resource-operation)))
-	(if (not (plusp (length authentications)))
-	    (funcall function)
-	    ;; else
-	    (progn
-	      (log5:log-for (rest-server) "API: Authorizing request...")
-	      (log5:log-for (rest-server) "Authorizations: ~A" authentications)
-	      (loop for auth in authentications
-		   do (authenticate auth 
-				    (lambda ()
-				      (log5:log-for (rest-server) "Request authorization successful.")
-				      (return-from call-verifying-authentication
-					(funcall function)))))
-		   
-	      (log5:log-for (rest-server) "Request authorization failed.")
-	      (signal 'rs.error:http-authorization-required-error))))))
+      (let ((authentications
+             (resource-operation-authorizations resource-operation)))
+        (if (not (plusp (length authentications)))
+            (funcall function)
+            ;; else
+            (progn
+              (log5:log-for (rest-server) "API: Authorizing request...")
+              (log5:log-for (rest-server) "Authorizations: ~A" authentications)
+              (loop for auth in authentications
+                 do (authenticate auth
+                                  (lambda ()
+                                    (log5:log-for (rest-server) "Request authorization successful.")
+                                    (return-from call-verifying-authentication
+                                      (funcall function)))))
+
+              (log5:log-for (rest-server) "Request authorization failed.")
+              (signal 'rs.error:http-authorization-required-error))))))
 
 (defmethod process-api-option ((option (eql :authorization)) api
-			       &key (enabled t))			 
+                               &key (enabled t))
   (setf (authorization-enabled api) enabled))
-
