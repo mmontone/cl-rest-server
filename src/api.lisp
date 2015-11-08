@@ -91,7 +91,7 @@
 (defun start-api (api address port &rest args)
   "Start an api at address and port.
 
-   In production mode, we bind the api directly. In development mode, we only bind the API name in order to be able to make modifications to the api"
+   In production mode, we bind the api directly. In development mode, we only bind the API name in order to be able to make modifications to the api (definition) in development time"
   (when (getf args :config)
     (configure-api api (getf args :config)))
   (let ((api (if (and (getf args :development-mode)

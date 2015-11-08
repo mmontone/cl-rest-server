@@ -293,6 +293,11 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
     (multiple-value-bind (required optional rest keyword)
         (alexandria:parse-ordinary-lambda-list args)
       (declare (ignore optional rest))
+	  (ensure (eql (length (required-arguments resource-operation))
+				   (length required))
+			  "Required arguments lists don't match: ~A ~A"
+			  (mapcar #'argument-name (required-arguments resource-operation))
+			  required)
       (loop for arg0 in (required-arguments resource-operation)
          for arg1 in required
          do
