@@ -249,23 +249,45 @@
   (model-test::delete-user id))
 
 ;; Conditional dispatch
+;; (implement-resource-operation api-test::api-test
+;;     api-test::conditional-dispatch ()
+;;   (error 'http-not-acceptable-error))
+
+;; (implement-resource-operation-case
+;;     api-test::conditional-dispatch "text/html"
+;;     ()
+;;   "<p>Hello</p>")
+
+;; (implement-resource-operation-case
+;;     api-test::conditional-dispatch "application/json"
+;;     ()
+;;   "\"hello\"")
+
+;; (implement-resource-operation-case
+;;     api-test::conditional-dispatch "application/xml"
+;;     ()
+;;   "<p>Hello</p>")
+
 (implement-resource-operation api-test::api-test
-    api-test::conditional-dispatch ()
+	api-test::conditional-dispatch ()
   (error 'http-not-acceptable-error))
 
-(implement-resource-operation-case
-    api-test::conditional-dispatch "text/html"
-    ()
+(implement-resource-operation api-test::api-test
+	(api-test::conditional-dispatch
+	 (:produces :content-types (list :html)))
+	()
   "<p>Hello</p>")
 
-(implement-resource-operation-case
-    api-test::conditional-dispatch "application/json"
-    ()
+(implement-resource-operation api-test::api-test
+	(api-test::conditional-dispatch
+	 (:produces :content-types (list :json)))
+	()
   "\"hello\"")
 
-(implement-resource-operation-case
-    api-test::conditional-dispatch "application/xml"
-    ()
+(implement-resource-operation api-test::api-test
+	(api-test::conditional-dispatch
+	 (:produces :content-types (list :xml)))
+	()
   "<p>Hello</p>")
 
 ;; Decorations
@@ -633,7 +655,8 @@
       (drakma:http-request
        (format nil "http://localhost:8181/conditional-dispatch")
        :method :get
-       :additional-headers `(("Accept" . "text/html")))
+       :additional-headers `(("Accept" . "text/html"))
+	   :accept "text/html")
     (declare (ignorable result))
     (is (equalp status 200))
     (is (ppcre:scan "text/html" (cdr (assoc :content-type headers)))))
@@ -643,7 +666,8 @@
       (drakma:http-request
        (format nil "http://localhost:8181/conditional-dispatch")
        :method :get
-       :additional-headers `(("Accept" . "application/json")))
+       :additional-headers `(("Accept" . "application/json"))
+	   :accept "application/json")
     (declare (ignorable result))
     (is (equalp status 200))
     (is (ppcre:scan "application/json" (cdr (assoc :content-type headers)))))
@@ -652,7 +676,8 @@
       (drakma:http-request
        (format nil "http://localhost:8181/conditional-dispatch")
        :method :get
-       :additional-headers `(("Accept" . "application/xml")))
+       :additional-headers `(("Accept" . "application/xml"))
+	   :accept "application/xml")
     (declare (ignorable result))
     (is (equalp status 200))
     (is (ppcre:scan "application/xml" (cdr (assoc :content-type headers))))))

@@ -195,7 +195,10 @@
                                         ; else
                                 (let* ((*resource-operation* resource-operation)
                                        (resource-operation-implementation
-                                        (find-resource-operation-implementation (name resource-operation)))
+                                        (find-resource-operation-implementation
+										 (name resource-operation)
+										 :accept (parse-content-type (hunchentoot:header-in* "accept"))
+										 :content-type (parse-content-type (hunchentoot:header-in* "content-type"))))
                                        (result
                                         (api-execute-function-implementation
                                          api
@@ -493,6 +496,10 @@
                 (lambda (ct)
                   (cl-ppcre:scan ct content-type)))
      :json)
+	((some-test (list "application/lisp" "text/html")
+                (lambda (ct)
+                  (cl-ppcre:scan ct content-type)))
+     :html)
     ((some-test (list "application/lisp" "text/lisp")
                 (lambda (ct)
                   (cl-ppcre:scan ct content-type)))
