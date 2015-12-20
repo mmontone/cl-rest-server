@@ -385,7 +385,7 @@
       (declare (ignore replaced-uri))
       (let ((args (loop for arg across args
                      when arg
-                     collect arg)))
+                     collect (hunchentoot:url-decode arg))))
         (let ((required-args
                (loop
                   for reqarg in (required-arguments resource-operation)
@@ -397,7 +397,8 @@
                   for optarg = (find-optional-argument (make-keyword var) resource-operation)
                   appending
                     (list (make-keyword (string (argument-name optarg)))
-                          (parse-argument-value string (argument-type optarg))))))
+                          (parse-argument-value (hunchentoot:url-decode string)
+                                                (argument-type optarg))))))
           (append required-args optional-args))))))
 
 ;; Implementation
