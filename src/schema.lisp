@@ -40,6 +40,9 @@
 (defmethod %serialize-with-schema (schema serializer input stream)
   (%%serialize-with-schema (schema-type schema) schema serializer input stream))
 
+(defmethod %%serialize-with-schema (schema-type schema serializer input stream)
+  (serialize-value serializer input stream))
+
 (defmethod %%serialize-with-schema ((schema-type (eql :list))
                                     schema serializer input stream)
   (serialize-schema-list schema serializer input stream))
