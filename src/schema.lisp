@@ -286,6 +286,12 @@ Args:
                       (attribute-name attribute)
                       data)))
 
+(defmethod %schema-validate ((schema-type (eql :float)) schema data &optional attribute)
+  (when (not (floatp data))
+    (validation-error "~A: ~A is not a float"
+                      (attribute-name attribute)
+                      data)))
+
 (defmethod %schema-validate ((schema-type (eql :timestamp)) schema data &optional attribute)
   (when (not
          (or (typep data 'local-time:timestamp)
@@ -373,6 +379,14 @@ Args:
     ((stringp data)
      (parse-integer data))
     (t (validation-error "~A is not an integer" data))))
+
+(defmethod parse-schema-attribute-value ((type (eql :float)) data)
+  (cond
+    ((floatp data)
+     data)
+    ((stringp data)
+     (read-from-string data))
+    (t (validation-error "~A is not a float" data))))
 
 (defmethod parse-schema-attribute-value ((type (eql :timestamp)) data)
   (chronicity:parse data))

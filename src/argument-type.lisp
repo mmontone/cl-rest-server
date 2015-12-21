@@ -83,6 +83,21 @@
   (:format-spec (argument-type)
                 :integer))
 
+(def-argument-type float-argument-type ()
+  ()
+  (:parse (spec)
+          (make-instance 'float-argument-type))
+  (:parse-value (string)
+                (let ((thing (read-from-string string)))
+                  (or (and (floatp thing)
+                           thing)
+                      (parse-error "~A is not a float" string))))
+  (:format-value (value)
+                 (check-type value float)
+                 (princ-to-string value))
+  (:format-spec (argument-type)
+                :float))
+
 (def-argument-type string-argument-type ()
   ((max-length :initarg :max-length
                :accessor max-length
