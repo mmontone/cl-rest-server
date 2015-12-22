@@ -210,7 +210,7 @@
   (:parse (spec)
           (when (and (listp spec)
                      (member (first spec) (list :option :choice)))
-            (make-instance 'choice-argument-type :values (rest spec))))
+            (make-instance 'choice-argument-type :choices (rest spec))))
   (:parse-value (string)
                 (let ((elem (parse-argument-value string (elems-type-spec argument-type))))
                   (or (member elem (choices argument-type)

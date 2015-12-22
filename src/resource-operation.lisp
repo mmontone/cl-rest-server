@@ -589,7 +589,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                                               collect `(if encode-request-arguments
                                                            (format-argument-value
                                                             ,(intern (symbol-name (argument-name arg)) package)
-                                                            (parse-argument-type ,(argument-type-spec (argument-type arg))))
+                                                            (parse-argument-type ',(argument-type-spec (argument-type arg))))
                                                            ,(intern (symbol-name (argument-name arg)) package))))))))
              (log5:log-for (rest-server)  "Request: ~A ~A" ,(request-method resource-operation) ,request-url)
              ,(when (member (request-method resource-operation)
@@ -619,7 +619,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                                                       (format-argument-value
                                                        ,(intern (symbol-name
                                                                  (argument-name arg)) package)
-                                                       (parse-argument-type ,(argument-type-spec (argument-type arg))))
+                                                       (parse-argument-type ',(argument-type-spec (argument-type arg))))
                                                       ,(intern (symbol-name
                                                                 (argument-name arg)) package)))))))
                     :additional-headers (append
