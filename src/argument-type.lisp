@@ -213,8 +213,9 @@
             (make-instance 'choice-argument-type :choices (rest spec))))
   (:parse-value (string)
                 (let ((elem (parse-argument-value string (elems-type-spec argument-type))))
-                  (or (member elem (choices argument-type)
-                              :test #'equalp)
+                  (or (and (member elem (choices argument-type)
+                                   :test #'equalp)
+                           elem)
                       (parse-error "Could not parse choice ~A: ~A"
                                    argument-type elem))))
   (:format-value (value)
