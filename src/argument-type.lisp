@@ -206,7 +206,7 @@
             :initform (error "Provide the choices"))
    (elems-type-spec :initarg :type
                     :accessor elems-type-spec
-                    :initform :string))
+                    :initform (make-instance 'string-argument-type)))
   (:parse (spec)
           (when (and (listp spec)
                      (member (first spec) (list :option :choice)))
