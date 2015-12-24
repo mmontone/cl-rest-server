@@ -228,14 +228,24 @@ Args:
   )
 
 (defmethod schema-validate (schema data &optional attribute)
-  (let ((schema (or (and (symbolp schema) (not (keywordp schema))
-                         (find-schema schema))
-                    schema)))
-    (%schema-validate (schema-type schema) schema data attribute)))
+  ;; If present, the attribute-validator replaces completely the default schema validation. To avoid replacing it, but adding more validation use :add-validator
+  (flet ((schema-validator ()
+           (let ((schema (or (and (symbolp schema) (not (keywordp schema))
+                                  (find-schema schema))
+                             schema)))
+             (%schema-validate (schema-type schema) schema data attribute))))
+  (if (and attribute (attribute-validator attribute))
+      
+      ;; The validator function receives the data to validate and an "schema validator" function
+      ;; it can use to validate the schema
+      (funcall (attribute-validator attribute) data #'schema-validator)
+      ;; else
+      (schema-validator))))
 
 (defmethod schema-validate :after (schema data &optional attribute)
-  (when (and attribute (attribute-validator attribute))
-    (multiple-value-bind (valid-p error-message) (funcall (attribute-validator attribute) data)
+  ;; After normal validation, :add-validator is evaluated if found
+  (when (and attribute (attribute-add-validator attribute))
+    (multiple-value-bind (valid-p error-message) (funcall (attribute-add-validator attribute) data)
       (when (not valid-p)
         (validation-error (or error-message
                               (format nil "~A: is invalid"
@@ -255,11 +265,11 @@ Args:
        (validation-error "Attribute ~a not found in ~a"
                          (attribute-name schema-attribute)
                          data))
-	 (when (not (and (attribute-optional-p schema-attribute)
-					 (null data-attribute)))
-	   (schema-validate (attribute-type schema-attribute)
-						(cdr data-attribute)
-						schema-attribute))))
+     (when (not (and (attribute-optional-p schema-attribute)
+                     (null data-attribute)))
+       (schema-validate (attribute-type schema-attribute)
+                        (cdr data-attribute)
+                        schema-attribute))))
 
 (defmethod %schema-validate ((schema-type (eql :list)) schema data &optional attribute)
   (let ((list-type (or (and (listp schema)
@@ -504,6 +514,9 @@ Args:
 
 (defun attribute-validator (attribute)
   (attribute-option :validator attribute))
+
+(defun attribute-add-validator (attribute)
+  (attribute-option :add-validator attribute))
 
 (defun attribute-writer (attribute)
   (or (attribute-option :writer attribute)
