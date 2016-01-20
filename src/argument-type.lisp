@@ -114,8 +114,11 @@
                          string)
                     (parse-error "Not a string: ~A" string)))
   (:format-value (value)
-                 (assert (stringp value))
-                 value)
+                 ;; The following comment allows non string values to pass.
+                 ;; This is less strict
+                 ;;(assert (stringp value))
+                 ;;value
+                 (princ-to-string value))
   (:format-spec (argument-type)
                 :string))
 
