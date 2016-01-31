@@ -15,8 +15,8 @@
   (setup-reply-from-error error))
 
 (defun log-api-error (error)
-  (log5:log-for (rs::rest-server log5:error) "ERROR: ~A" error)
-  (log5:log-for (rs::rest-server log5:debug)
+  (log5:log-for (rs::rest-server log5:error+) "ERROR: ~A" error)
+  (log5:log-for (rs::rest-server log5:error+)
                 (with-output-to-string (s)
                   (trivial-backtrace:print-backtrace error :output s))))
 
