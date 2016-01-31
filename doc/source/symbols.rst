@@ -153,7 +153,7 @@ Rest Server external symbols documentation
 
 
 
-.. cl:variable:: *development-mode*
+.. cl:variable:: *catch-errors*
 
 .. cl:macro:: caching
 
@@ -173,7 +173,7 @@ Rest Server external symbols documentation
 
 
 
-.. cl:variable:: *server-development-mode*
+.. cl:variable:: *server-catch-errors*
 
 .. cl:macro:: with-reply-content-type
 

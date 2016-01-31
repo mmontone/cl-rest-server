@@ -2,14 +2,31 @@
 
 ;; Error handling configuration
 
-(defvar *development-mode* :production)
+(defvar *catch-errors* t)
 
-(defvar *server-development-mode* nil)
+(defvar *server-catch-errors*)
 
 (defvar *log-error-backtrace* t "Log the errors backtrace if T")
 
-(defmacro with-condition-handling (&body body)
-  `(call-with-condition-handling (lambda () (progn ,@body))))
+(defvar *error-handler* 'log-api-error)
+
+(defvar *default-error-handler* 'default-error-handler)
+                                  
+(defun default-error-handler (error)
+  (log-api-error error)
+  (setup-reply-from-error error))
+
+(defun log-api-error (error)
+  (log5:log-for (rs::rest-server) "ERROR: ~A" error)
+  (when *log-error-backtrace*
+    (log5:log-for (rs::rest-server)
+                  (with-output-to-string (s)
+                    (trivial-backtrace:print-backtrace error :output s)))))
+
+(defmacro with-error-handler ((&optional (error-handler '*default-error-handler*))
+                              &body body)
+  `(call-with-error-handler ,error-handler
+                            (lambda () (progn ,@body))))
 
 ;; We have to disable hunchentoot handler and enable ours
 (setf hunchentoot:*catch-errors-p* nil)
@@ -101,13 +118,16 @@
                                       :stream stream)
     (rs.serialize:set-attribute
      "detail"
-     (ecase (or *server-development-mode*
-                *development-mode*)
-       (:production
-        "Internal server error")
-       (:testing
-        (princ-to-string error))
-       (:development "REST SERVER INTERNAL ERROR: this should not have happened"))
+     (let ((debug-mode (if (boundp 'rs:*server-debug-mode*)
+                           rs:*server-debug-mode*
+                           rs:*debug-mode*)))
+       (if (not debug-mode)
+           "Internal server error"
+           ;; else, debug mode
+           (with-output-to-string (s)
+             (princ error s)
+             (terpri s)
+             (trivial-backtrace:print-backtrace error :output s))))
      :serializer serializer
      :stream stream)))
 
@@ -157,11 +177,7 @@
 
 (defmethod setup-reply-from-error ((error error))
   (setf (hunchentoot:return-code*)
-        (http-return-code error))
-  (log5:log-for (rs::rest-server) "ERROR: ~A" error)
-  (when *log-error-backtrace*
-    (log5:log-for (rs::rest-server)
-                  (trivial-backtrace:backtrace-string)))
+        (http-return-code error))  
   (serialize-error error))
 
 (defmethod setup-reply-from-error ((error http-error))
@@ -176,21 +192,26 @@
   (call-next-method)
   (setf (hunchentoot:header-out "Retry-After") *retry-after-seconds*))
 
-(defun call-with-condition-handling (function)
-  (if (not (eql
-            (or *server-development-mode*
-                *development-mode*)
-            :development))
-      (handler-case (funcall function)
-        (error (e)
-          (setup-reply-from-error e)))
-      (funcall function)))
+(defun call-with-error-handler (error-handler function)
+  (let ((catch-errors (if (boundp '*server-catch-errors*)
+                          *server-catch-errors*
+                          *catch-errors*))
+        (error-handler (or (and (symbolp error-handler)
+                                (symbol-function error-handler))
+                           error-handler)))
+    (if catch-errors
+        (handler-case
+            (funcall function)
+          (error (e)
+            (funcall error-handler e)))
+      (funcall function))))
 
 ;; Plugging
 
 (defclass error-handling-resource-operation-implementation-decoration
     (rs::resource-operation-implementation-decoration)
-  ()
+  ((error-handler :initarg :error-handler
+                  :accessor error-handler))
   (:metaclass closer-mop:funcallable-standard-class))
 
 (defmethod rs::process-resource-operation-implementation-option
@@ -205,7 +226,7 @@
 
 (defmethod execute :around ((decoration error-handling-resource-operation-implementation-decoration)
                             &rest args)
-  (with-condition-handling
+  (with-error-handler ((error-handler decoration))
     (call-next-method)))
 
 (cl-annot:defannotation error-handling (args resource-operation-implementation)

@@ -1,19 +1,5 @@
 (in-package :rest-server)
 
-(defparameter *apis* (make-hash-table :test #'equalp)
-  "Global hashtable containing the apis defined")
-(defparameter *api* nil "The current api")
-
-(defvar *rest-server-proxy* nil)
-
-(defparameter *register-api-resource* t "Wether to register the created resource in the current API")
-(defparameter *api-resource* nil "The current api resource")
-
-(defvar *register-resource-operation* t
-  "Whether to try to register the resource operation on creation. Bind to nil to prevent that")
-
-(defparameter *text-content-types* (list :json :xml :lisp))
-
 (defun get-posted-content (&optional (request hunchentoot:*request*))
   (hunchentoot:raw-post-data
    :force-text
@@ -73,29 +59,28 @@
      (with-api ,name
        ,@(let ((client-package (or (find-package (getf options :client-package))
                                    *package*)))
-              (loop for resource in resources
-                 collect (destructuring-bind (name resource-options &body operations)
-                             resource
-                           (let ((resource-options
-                                  (list* :client-package
-                                         (package-name
-                                          (or (getf options :client-package)
-                                              client-package))
-                                         :export-client-functions
-                                         (or (getf resource-options :export-client-functions)
-                                             (getf options :export-client-functions))
-                                         resource-options)))
+           (loop for resource in resources
+              collect (destructuring-bind (name resource-options &body operations)
+                          resource
+                        (let ((resource-options
+                               (list* :client-package
+                                      (package-name
+                                       (or (getf options :client-package)
+                                           client-package))
+                                      :export-client-functions
+                                      (or (getf resource-options :export-client-functions)
+                                          (getf options :export-client-functions))
+                                      resource-options)))
 
-                             `(define-api-resource ,name ,resource-options ,@operations))))))))
+                          `(define-api-resource ,name ,resource-options ,@operations))))))))
 
 (defun start-api (api address port &rest args)
   "Start an api at address and port.
 
-   In production mode, we bind the api directly. In development mode, we only bind the API name in order to be able to make modifications to the api (definition) in development time"
+   In production mode, we bind the api directly. In debug mode, we only bind the API name in order to be able to make modifications to the api (definition) in development time"
   (when (getf args :config)
     (configure-api api (getf args :config)))
-  (let ((api (if (and (getf args :development-mode)
-                      (eql (getf args :development-mode) :development))
+  (let ((api (if (getf args :debug-mode)
                  (if (symbolp api)
                      api
                      (name api))
@@ -121,9 +106,17 @@
 (defclass api-acceptor (hunchentoot:acceptor)
   ((api :initarg :api
         :initform (error "Provide the api"))
-   (development-mode :initarg :development-mode
-                     :accessor development-mode
-                     :initform rs.error:*development-mode*))
+   (catch-errors :initarg :catch-errors
+                 :accessor catch-errors
+                 :initform rs.error:*catch-errors*
+                 :documentation "If T, then errors are catched and handled. Default: NIL")
+   (error-handler :initarg :error-handler
+                  :accessor error-handler
+                  :initform nil
+                  :documentation "Custom API error handler")
+   (debug-mode :initarg :debug-mode
+               :accessor debug-mode
+               :initform *debug-mode*))
   (:documentation "Hunchentoot api acceptor"))
 
 (defmethod api ((acceptor api-acceptor))
@@ -135,9 +128,9 @@
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
   (or
    (api-dispatch-request (api acceptor) request)
-   (rs.error::with-condition-handling
-     (error 'rs.error:http-not-found-error
-            :format-control "Resource not found"))))
+   (rs.error::with-error-handler ()
+       (error 'rs.error:http-not-found-error
+              :format-control "Resource not found"))))
 
 ;; The api class
 (defclass api-definition ()
@@ -181,7 +174,8 @@
              (call-next-method)))
   (:method ((api api-definition) request)
     (flet ((resource-operation-dispatch ()
-             (let ((rs.error:*development-mode* (development-mode hunchentoot:*acceptor*)))
+             (let ((rs.error:*catch-errors* (catch-errors hunchentoot:*acceptor*))
+                   (*debug-mode* (debug-mode hunchentoot:*acceptor*)))
                (loop for resource in (list-api-resources api)
                   when (resource-matches-request-p resource request)
                   do
@@ -196,9 +190,9 @@
                                 (let* ((*resource-operation* resource-operation)
                                        (resource-operation-implementation
                                         (find-resource-operation-implementation
-										 (name resource-operation)
-										 :accept (parse-content-type (hunchentoot:header-in* "accept"))
-										 :content-type (parse-content-type (hunchentoot:header-in* "content-type"))))
+                                         (name resource-operation)
+                                         :accept (parse-content-type (hunchentoot:header-in* "accept"))
+                                         :content-type (parse-content-type (hunchentoot:header-in* "content-type"))))
                                        (result
                                         (api-execute-function-implementation
                                          api
@@ -439,11 +433,11 @@
 
 (defmethod parse-api-input ((format (eql :json)) string)
   (handler-case
-	  (json:decode-json-from-string string)
-	(json:json-syntax-error (e)
-	  (error 'rs.error:http-bad-request
-			 :format-control (simple-condition-format-control e)
-			 :format-arguments (simple-condition-format-arguments e)))))
+      (json:decode-json-from-string string)
+    (json:json-syntax-error (e)
+      (error 'rs.error:http-bad-request
+             :format-control (simple-condition-format-control e)
+             :format-arguments (simple-condition-format-arguments e)))))
 
 (defun fold-tree (f g tree)
   (if (listp tree)
@@ -497,7 +491,7 @@
                 (lambda (ct)
                   (cl-ppcre:scan ct content-type)))
      :json)
-	((some-test (list "application/lisp" "text/html")
+    ((some-test (list "application/lisp" "text/html")
                 (lambda (ct)
                   (cl-ppcre:scan ct content-type)))
      :html)
@@ -530,8 +524,8 @@
        (if (not ,var)
            (error 'rs.error:http-not-found-error
                   ,@(when message
-                          (list :format-control message
-                                :format-arguments `(list ,@args))))
+                      (list :format-control message
+                            :format-arguments `(list ,@args))))
 
            (progn ,@body))))
 
@@ -542,8 +536,8 @@
                   `(,var (or ,resource
                              (error 'rs.error:http-not-found-error
                                     ,@(when message
-                                            (list :format-control message
-                                                  :format-arguments `(list ,@args))))))))
+                                        (list :format-control message
+                                              :format-arguments `(list ,@args))))))))
        ,@body))
   (defmacro let-resource* (bindings &body body)
     `(let* ,(loop for binding in bindings
@@ -552,8 +546,8 @@
                    `(,var (or ,resource
                               (error 'rs.error:http-not-found-error
                                      ,@(when message
-                                             (list :format-control message
-                                                   :format-arguments `(list ,@args))))))))
+                                         (list :format-control message
+                                               :format-arguments `(list ,@args))))))))
        ,@body)))
 
 (defclass resource-fetching-resource-operation-implementation-decoration

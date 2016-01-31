@@ -15,6 +15,7 @@ Features
   - Different serialization types (JSON, XML, S-expressions)
 
 * Error handling
+  - HTTP error codes
   - Development and production modes
 
 * Validation via schemas

@@ -34,7 +34,7 @@
 
 (defparameter *acceptor*
   (start-api 'oauth-test::oauth-api "localhost" 8187 
-	     :development-mode :production
+	     :catch-errors t
 	     :access-log-destination nil
 	     :config
 	     '(:logging :enabled nil)))

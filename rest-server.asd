@@ -39,6 +39,7 @@ OTHER DEALINGS IN THE SOFTWARE."
   ((:module :src
             :components
             ((:file "package")
+             (:file "specials")
              (:file "util")
              (:file "rest-server")
              (:file "mimeparse")

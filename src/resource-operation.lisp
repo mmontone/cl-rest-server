@@ -429,7 +429,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
 
 (defun execute-resource-operation-implementation (function-implementation request)
   (let ((resource-operation (resource-operation function-implementation)))
-    (rs.error:with-condition-handling
+    (rs.error:with-error-handler ()
       (let ((args (extract-function-arguments resource-operation request)))
         (apply function-implementation
                (append

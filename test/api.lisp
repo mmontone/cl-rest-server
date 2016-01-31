@@ -353,7 +353,7 @@
          (is (equalp (read-from-string result) (list "user1" "user2" "user3")))))
 
 #+nil(deftest boolean-parameters-test
-       (setf *development-mode* :production)
+       (setf *catch-errors* t)
        (multiple-value-bind (result status-code)
            (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
          (declare (ignore result))
@@ -364,17 +364,17 @@
          (is (equalp (read-from-string result) (list "user1" "user2" "user3" t)))))
 
 (deftest error-handling-test
-  (let ((development-mode (rest-server::development-mode *api-acceptor*)))
-    (setf (rest-server::development-mode *api-acceptor*) :production)
+  (let ((catch-errors (rest-server::catch-errors *api-acceptor*)))
+    (setf (rest-server::catch-errors *api-acceptor*) t)
     (multiple-value-bind (result status-code)
         (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get)
       (declare (ignore result))
       (is (equalp status-code 500)))
     ;; We can not test development mode like this. We are in a different thread.
-    #+nil(setf *development-mode* :development)
+    #+nil(setf *catch-errors* nil)
     #+nil(signals simple-error
            (drakma:http-request "http://localhost:8181/users?expand-groups=foo" :method :get))
-    (setf (rest-server::development-mode *api-acceptor*) development-mode)))
+    (setf (rest-server::catch-errors *api-acceptor*) catch-errors)))
 
 (deftest accept-content-test
   (multiple-value-bind (result status headers)
@@ -442,7 +442,7 @@
 
 #+fails(deftest content-type-test
          "Specify the content type we are sending explicitly"
-         (setf *development-mode* :production)
+         (setf *catch-errors* t)
          (multiple-value-bind (result status-code)
              (drakma:http-request "http://localhost:8181/users" :method :post
                                   :content "<user><realname>Mariano</realname></user>"
