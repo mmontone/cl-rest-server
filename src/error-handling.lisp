@@ -208,7 +208,8 @@
 (defclass error-handling-resource-operation-implementation-decoration
     (rs::resource-operation-implementation-decoration)
   ((error-handler :initarg :error-handler
-                  :accessor error-handler))
+                  :accessor error-handler
+                  :initform *default-error-handler*))
   (:metaclass closer-mop:funcallable-standard-class))
 
 (defmethod rs::process-resource-operation-implementation-option
