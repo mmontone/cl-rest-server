@@ -6,8 +6,6 @@
 
 (defvar *server-catch-errors*)
 
-(defvar *log-error-backtrace* t "Log the errors backtrace if T")
-
 (defvar *error-handler* 'log-api-error)
 
 (defvar *default-error-handler* 'default-error-handler)
@@ -17,11 +15,10 @@
   (setup-reply-from-error error))
 
 (defun log-api-error (error)
-  (log5:log-for (rs::rest-server) "ERROR: ~A" error)
-  (when *log-error-backtrace*
-    (log5:log-for (rs::rest-server)
-                  (with-output-to-string (s)
-                    (trivial-backtrace:print-backtrace error :output s)))))
+  (log5:log-for (rs::rest-server log5:error) "ERROR: ~A" error)
+  (log5:log-for (rs::rest-server log5:debug)
+                (with-output-to-string (s)
+                  (trivial-backtrace:print-backtrace error :output s))))
 
 (defmacro with-error-handler ((&optional (error-handler '*default-error-handler*))
                               &body body)
