@@ -126,11 +126,11 @@
         api-or-name)))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
-  (or
-   (api-dispatch-request (api acceptor) request)
-   (rs.error::with-error-handler ()
-       (error 'rs.error:http-not-found-error
-              :format-control "Resource not found"))))
+  (rs.error::with-error-handler ()
+    (or
+     (api-dispatch-request (api acceptor) request)
+     (error 'rs.error:http-not-found-error
+            :format-control "Resource not found"))))
 
 ;; The api class
 (defclass api-definition ()
