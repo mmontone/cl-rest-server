@@ -17,8 +17,7 @@
 (defun log-api-error (error)
   (log5:log-for (rs::rest-server log5:error+) "ERROR: ~A" error)
   (log5:log-for (rs::rest-server log5:error+)
-                (with-output-to-string (s)
-                  (trivial-backtrace:print-backtrace error :output s))))
+                (trivial-backtrace:print-backtrace error :output nil)))
 
 (defmacro with-error-handler ((&optional (error-handler '*default-error-handler*))
                               &body body)
@@ -124,7 +123,7 @@
            (with-output-to-string (s)
              (princ error s)
              (terpri s)
-             (trivial-backtrace:print-backtrace error :output s))))
+             (trivial-backtrace:print-backtrace-to-stream s))))
      :serializer serializer
      :stream stream)))
 
