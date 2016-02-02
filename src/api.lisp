@@ -126,7 +126,7 @@
         api-or-name)))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-acceptor) request)
-  (rs.error::with-error-handler ((error-handler acceptor))
+  (rs.error::with-error-handler ((or (error-handler acceptor) rs.error::*default-error-handler*))
     (or
      (api-dispatch-request (api acceptor) request)
      (error 'rs.error:http-not-found-error
