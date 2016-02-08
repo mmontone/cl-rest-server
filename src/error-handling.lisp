@@ -90,6 +90,12 @@
    :status-code hunchentoot:+http-not-acceptable+
     :format-control "Not acceptable"))
 
+(define-condition http-method-not-allowed-error (http-error)
+  ()
+  (:default-initargs
+   :status-code hunchentoot:+http-method-not-allowed+
+    :format-control "Method not allowed"))
+
 (defparameter *http-status-codes-conditions*
   '((404 . http-not-found-error)
     (400 . http-bad-request)

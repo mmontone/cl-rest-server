@@ -125,5 +125,6 @@
    #:http-not-acceptable-error
    #:http-unsupported-media-type-error
    #:http-bad-request
+   #:http-method-not-allowed-error
    #:error-handling
    #:with-error-handler))
