@@ -26,9 +26,6 @@
             nil)
         schema)))
 
-(defun list-all-schemas ()
-  (alexandria:hash-table-values *schemas*))
-
 (defvar *collect-validation-errors* nil)
 (defvar *signal-validation-errors* t)
 (defvar *validation-errors-collection*)
