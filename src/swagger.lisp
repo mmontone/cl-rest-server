@@ -132,7 +132,10 @@
       (json:as-object-member ((string-downcase (princ-to-string (request-method operation))))
                              (json:with-object ()
                                (json:encode-object-member :method (string-upcase (symbol-name (request-method operation))))
-                               (json:encode-object-member :summary (api-summary operation))
+                               (json:encode-object-member :summary (or
+                                                                    (api-summary operation)
+                                                                    (and (api-documentation operation)
+                                                                         (subseq (api-documentation operation) 0 (min 30 (length (api-documentation operation)))))))
                                (json:encode-object-member :description (api-documentation operation))
                                (json:encode-object-member :operation-id (string-downcase (symbol-name (name operation))))
                                #+nil(json:encode-object-member :type (resource-operation-type operation))
