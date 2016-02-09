@@ -91,6 +91,16 @@
                      :test #'equalp
                      :value #'identity))
 
+(defgeneric encode-argument-type (argument-type &optional stream)
+  (:method ((argument-type argument-type) &optional (stream json:*json-output*))
+    (json:encode-object-member :type (string-downcase (princ-to-string (argument-type-spec argument-type)))) stream)
+  (:method ((argument-type string-argument-type) &optional (stream json:*json-output*))
+    (json:encode-object-member :type "string" stream))
+  (:method ((argument-type integer-argument-type) &optional (stream json:*json-output*))
+    (json:encode-object-member :type "integer" stream))
+  (:method ((argument-type boolean-argument-type) &optional (stream json:*json-output*))
+    (json:encode-object-member :type "boolean" stream)))  
+
 (defun encode-swagger-operation (operation &optional (stream json:*json-output*))
   (let ((json:*json-output* stream))
     (flet ((encode-parameter (parameter required-p)
@@ -103,7 +113,7 @@
                    (declare (ignore default-value))
                    (json:with-object ()
                      (json:encode-object-member :name name)
-                     (json:encode-object-member :type type)
+                     (encode-argument-type type stream)
                      (json:encode-object-member :in "query")
                      (json:encode-object-member :description documentation)
                      (json:encode-object-member :required :false)
@@ -114,7 +124,7 @@
                      parameter
                    (json:with-object ()
                      (json:encode-object-member :name name)
-                     (json:encode-object-member :type type)
+                     (encode-argument-type type stream)
                      (json:encode-object-member :in "path")
                      (json:encode-object-member :description documentation)
                      (json:encode-object-member :required t)
