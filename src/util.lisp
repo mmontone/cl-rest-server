@@ -55,7 +55,6 @@ Returns a lambda list with the special arguments removed, and the removed specia
          (alexandria:read-file-into-byte-vector filename))
         (file-mime
          (mimes:mime filename)))
-    (format nil "~A;~A" file-mime 
+    (format nil "~A;base64,~A" file-mime 
             (base64:usb8-array-to-base64-string
-             file-contents
-             :uri t))))
+             file-contents))))
