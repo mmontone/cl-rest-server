@@ -21,6 +21,7 @@
            #:resource-name
            #:resource-documentation
            #:resource-path
+           #:body-schema
            #:define-api-resource
            #:with-api-resource
            #:list-api-resource-functions

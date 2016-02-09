@@ -44,42 +44,41 @@
   (setf (hunchentoot:header-out "Access-Control-Allow-Origin") "*")
   (with-output-to-string (json:*json-output*)
     (encode-swagger-api api json:*json-output*)))
-  
+
 (defun encode-swagger-api (api stream)
   (let ((json:*json-output* stream))
     (json:with-object ()
       (json:encode-object-member :api-version (or (version api) "0.1"))
       (json:encode-object-member :swagger "2.0")
       (json:as-object-member (:paths)
-        (json:with-array ()
-          (loop for resource in (list-api-resources api)
-             when (not (equalp (resource-name resource) 'api-docs))
-             do
-               (json:as-array-member ()
-                 (json:with-object ()
-                   (json:encode-object-member :path (resource-path resource))
-                   (json:encode-object-member :description (resource-documentation resource)))))))
+                             (json:with-array ()
+                               (loop for resource in (list-api-resources api)
+                                  when (not (equalp (resource-name resource) 'api-docs))
+                                  do
+                                    (json:as-array-member ()
+                                      (json:with-object ()
+                                        (json:encode-object-member :path (resource-path resource))
+                                        (json:encode-object-member :description (resource-documentation resource)))))))
       (json:as-object-member (:info)
-        (json:with-object ()
-          (json:encode-object-member :title (or (title api)
-                                                (name api)))
-          (json:encode-object-member :description (api-documentation api))))
+                             (json:with-object ()
+                               (json:encode-object-member :title (or (title api)
+                                                                     (name api)))
+                               (json:encode-object-member :description (api-documentation api))))
       (json:as-object-member (:paths)
                              (json:with-object ()
                                (loop for path in (list-api-paths api)
                                   do
                                     (encode-swagger-path path stream))))
-      #+nil(json:as-object-member (:definitions)
-        (loop for resource in (list-api-resources api)
-           do
-             (encode-swagger-models (mapcar #'rs.schema:find-schema (resource-models resource)))))
+      (json:as-object-member (:definitions)
+                             (encode-swagger-definitions
+                              rs.schema::*schemas*))
       )))
 
 (defun list-api-paths (api)
   (let ((api-operations (alexandria:flatten
                          (loop for resource in (list-api-resources api)
-                           collect (alexandria:hash-table-values
-                                      (resource-operations resource))))))
+                            collect (alexandria:hash-table-values
+                                     (resource-operations resource))))))
     (group-by:group-by api-operations
                        :key #'rest-server::path
                        :test #'equalp
@@ -145,28 +144,33 @@
                                                           (json:as-array-member ()
                                                             (json:with-object ()
                                                               (json:encode-object-member :name "body")
-                                                              (json:encode-object-member :type (string-downcase (princ-to-string (body-type operation))))
+                                                              (json:encode-object-member :type (string-downcase (princ-to-string (body-schema operation))))
                                                               (json:encode-object-member :param-type "body")
                                                               (json:encode-object-member :description "The content")
                                                               (json:encode-object-member :required t)
                                                               (json:encode-object-member :allow-multiple :false))))))
                                #+nil(json:as-object-member (:security)
-                                                      (encode-swagger-authorizations (authorizations operation)))
+                                                           (encode-swagger-authorizations (authorizations operation)))
                                )))))
+
+(defun encode-schema-ref (schema &optional (stream json:*json-output*))
+  (let ((json:*json-output* stream))
+    (json:with-object ()
+      (json:encode-object-member "$ref" (format nil "#/definitions/~A" schema)))))
 
 (defun encode-swagger-path (path stream)
   (let ((json:*json-output* stream))
     (json:as-object-member ((first path))
-      (json:with-object ()
-        (loop for operation in (cdr path)
-           do (encode-swagger-operation operation stream))))))
-  
+                           (json:with-object ()
+                             (loop for operation in (cdr path)
+                                do (encode-swagger-operation operation stream))))))
+
 (defun encode-swagger-resource (resource stream)
   (let ((json:*json-output* stream))
     (json:as-object-member ((resource-path resource))
-      (json:with-object ()
-        (loop for operation in (alexandria:hash-table-values (resource-operations resource))
-           do (encode-swagger-operation operation stream))))))
+                           (json:with-object ()
+                             (loop for operation in (alexandria:hash-table-values (resource-operations resource))
+                                do (encode-swagger-operation operation stream))))))
 
 (defun swagger-resource-spec (api resource base-url)
   (setf (hunchentoot:header-out "Content-Type") "application/json")
@@ -188,55 +192,68 @@
        (:raw "application/octets")))
     (t (error "Invalid mime type ~S" mime-type))))
 
-(defun encode-swagger-model (schema-element)
-  (flet ((encode-model-property (attribute)
-           (json:as-object-member ((rs.schema::attribute-name attribute))
-             (json:with-object ()
-               (let ((attribute-type (rs.schema::attribute-type attribute)))
-                 (cond
-                   ((keywordp attribute-type) ;; A primitive type
-                    (json:encode-object-member
-                     :type
-                     (string-downcase (princ-to-string attribute-type))))
-                   ((symbolp attribute-type) ;; A schema reference
-                    (json:encode-object-member
-                     "$ref" (string-downcase (princ-to-string attribute-type))))
-                   ((listp attribute-type) ;; A composite type
-                    (ecase (first attribute-type)
-                      (:list (json:encode-object-member
-                              :type "array")
-                             (json:as-object-member (:items)
-                               (json:with-object ()
-                                 (cond
-                                   ((keywordp (second attribute-type))
-                                    (json:encode-object-member :type
-                                                               (string-downcase
-                                                                (princ-to-string (second attribute-type)))))
-                                   ((symbolp (second attribute-type))
-                                    (json:encode-object-member "$ref"
-                                                               (string-downcase (princ-to-string (second attribute-type)))))
-                                   (t (error "Don't know how to encode this"))))))
-                      (:option (json:encode-object-member :enum
-                                                          (rest attribute-type)))
-                      (:element (error "Not implemented yet"))))))
-               (let ((desc (or (rs.schema::attribute-option :description attribute)
-                               (rs.schema::attribute-option :documentation attribute))))
-                 (when desc
-                   (json:encode-object-member :description desc)))))))
-    (json:with-object ()
-      (json:encode-object-member :id (rs.schema::element-name schema-element))
-      (json:as-object-member (:properties)
-        (json:with-object ()
-          (loop for attribute in (rs.schema::element-attributes schema-element)
-             do
-               (encode-model-property attribute)))))))
-
-(defun encode-swagger-models (schemas)
-  (json:with-object ()
-    (loop for schema in schemas
+(defun encode-swagger-definitions (schemas &optional (stream json:*json-output*))
+  (json:with-object (stream)
+    (loop for schema-name being the hash-keys of schemas
+       using (hash-value schema)
        do
-         (json:as-object-member ((rs.schema::element-name schema))
-           (encode-swagger-model schema)))))
+         (json:as-object-member ((princ-to-string schema-name) stream)
+                                (encode-swagger-definition schema stream)))))
+
+(defun encode-swagger-definition (schema-element &optional (stream json:*json-output*))
+  (let ((json:*json-output* stream))
+    (flet ((encode-definition-property (attribute)
+             (json:as-object-member ((rs.schema::attribute-name attribute))
+                                    (json:with-object ()
+                                      (let ((attribute-type (rs.schema::attribute-type attribute)))
+                                        (cond
+                                          ((keywordp attribute-type) ;; A primitive type
+                                           (json:encode-object-member
+                                            :type
+                                            (string-downcase (princ-to-string attribute-type))))
+                                          ((symbolp attribute-type) ;; A schema reference
+                                           (json:encode-object-member
+                                            "$ref" (format nil "#/definitions/~A" (string-downcase (princ-to-string attribute-type)))))
+                                          ((listp attribute-type) ;; A composite type
+                                           (ecase (first attribute-type)
+                                             (:list (json:encode-object-member
+                                                     :type "array")
+                                                    (json:as-object-member (:items)
+                                                                           (json:with-object ()
+                                                                             (cond
+                                                                               ((keywordp (second attribute-type))
+                                                                                (json:encode-object-member :type
+                                                                                                           (string-downcase
+                                                                                                            (princ-to-string (second attribute-type)))))
+                                                                               ((symbolp (second attribute-type))
+                                                                                (json:encode-object-member "$ref"
+                                                                                                           (format nil "#/definitions/~A"
+                                                                                                                   (string-downcase (princ-to-string (second attribute-type))))))
+                                                                               (t (json:encode-object-member :type "object")
+                                                                                ;(error "Don't know how to encode this")
+                                                                                  )))))
+                                             (:option (json:encode-object-member :enum
+                                                                                 (rest attribute-type)))
+                                             (:element
+                                              (json:encode-object-member :type "object")
+                                        ;(error "Not implemented yet")
+                                              )))))
+                                      (let ((desc (or (rs.schema::attribute-option :description attribute)
+                                                      (rs.schema::attribute-option :documentation attribute))))
+                                        (when desc
+                                          (json:encode-object-member :description desc)))))))
+      (json:with-object ()
+        (json:encode-object-member :type "object")
+        (json:encode-object-member :required
+                                   (mapcar #'rs.schema::attribute-name
+                                           (remove-if
+                                            #'rs.schema::attribute-optional-p
+                                            (rs.schema::element-attributes schema-element))))
+        (json:as-object-member (:properties)
+                               (json:with-object ()
+                                 (loop for attribute in (rs.schema::element-attributes schema-element)
+                                    do
+                                      (encode-definition-property attribute))))))))
 
 (defun encode-swagger-authorization (authorization)
   (json:with-object ()
@@ -254,7 +271,7 @@
   (json:with-object ()
     (loop for authorization in authorizations
        do (json:as-object-member ((class-name (class-of authorization)))
-            (encode-swagger-authorization authorization)))))
+                                 (encode-swagger-authorization authorization)))))
 
 (defclass swagger-resource (api-resource)
   ())
