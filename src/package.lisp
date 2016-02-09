@@ -47,6 +47,7 @@
            #:&resource-operation
            #:*signal-client-function-errors*
            #:with-signal-client-function-errors
+           #:encode-file-data-uri-scheme
            ;; Decorations
            #:caching
            #:fetch-content

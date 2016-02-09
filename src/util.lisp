@@ -48,3 +48,14 @@ Returns a lambda list with the special arguments removed, and the removed specia
 				  (list '&key arg))
 			(setf lambda-list (list '&key arg))))
 	lambda-list))
+
+(defun encode-file-data-uri-scheme (filename &optional charset)
+  "Encode file data as URI Data scheme: https://en.wikipedia.org/wiki/Data_URI_scheme"
+  (let ((file-contents 
+         (alexandria:read-file-into-byte-vector filename))
+        (file-mime
+         (mimes:mime filename)))
+    (format nil "~A;~A" file-mime 
+            (base64:usb8-array-to-base64-string
+             file-contents
+             :uri t))))
