@@ -546,7 +546,9 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
     ((stringp token)
      token)
     ((listp token)
-     (format nil "~A ~A" (getf token :token-type) (getf token :access-token)))))
+     (format nil "~A ~A"
+             (access:access token :token-type)
+             (access:access token :access-token)))))
 
 (defun client-stub (resource-operation &key (package *package*)
                                          export-p)

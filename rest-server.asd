@@ -86,5 +86,6 @@ OTHER DEALINGS IN THE SOFTWARE."
                :dynamic-mixins
                :cl-oauth
                :trivial-mimes
+               :access
                #-abcl :trivial-shell)
   :in-order-to ((asdf:test-op (asdf:test-op :rest-server-tests))))

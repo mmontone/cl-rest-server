@@ -77,13 +77,11 @@ Authorization: Basic <Base64 encoded key:secret >
 Accept: application/json"
 
                                         ;(break "verify access token: ~A" access-token)
-  (with-lisp-json
-
-    (let ((uri (puri:merge-uris (format nil "/v1/tokeninfo?access_token=~A" access-token) *oauth2-server-url*))
-          (authorization (base64:string-to-base64-string
-                          (format nil "~A:~A"
-                                  *resource-server-id*
-                                  *resource-server-secret*))))
+  (let ((uri (puri:merge-uris (format nil "/v1/tokeninfo?access_token=~A" access-token) *oauth2-server-url*))
+        (authorization (base64:string-to-base64-string
+                        (format nil "~A:~A"
+                                *resource-server-id*
+                                *resource-server-secret*))))
       (multiple-value-bind (result status)
           (drakma:http-request
            uri
@@ -92,8 +90,9 @@ Accept: application/json"
            :additional-headers `(("Authorization" . ,(format nil "Basic ~A" authorization)))
            :parameters nil)
         (values (alexandria:alist-plist
-                 (json:decode-json-from-string result))
-                status)))))
+                   (with-lisp-json
+                     (json:decode-json-from-string result)))
+                status))))
 
 (defun exchange-authorization-code (code redirect-uri client-id client-secret &optional (grant-type "authorization_code"))
   (with-lisp-json
