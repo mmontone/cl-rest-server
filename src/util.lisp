@@ -57,4 +57,4 @@ Returns a lambda list with the special arguments removed, and the removed specia
          (mimes:mime filename)))
     (format nil "~A;base64,~A" file-mime 
             (base64:usb8-array-to-base64-string
-             file-contents))))
+             file-contents :uri t))))
