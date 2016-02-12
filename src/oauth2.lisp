@@ -45,7 +45,7 @@
              (let ((*token* authenticated-token))
                (log5:log-for (rest-server) "OAuth2 authentication: ~A" authenticated-token)
                (funcall resource-operation)))))
-    (let* ((access-token (hunchentoot:header-in* "Authentication")))
+    (let* ((access-token (hunchentoot:header-in* "Authorization")))
       ;; if there's no access token, error
       (if (not access-token)
           (auth-failed "Provide the token")

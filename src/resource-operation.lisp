@@ -541,6 +541,13 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
 
 ;; Client implementation
 
+(defun authorization-string (token)
+  (cond
+    ((stringp token)
+     token)
+    ((listp token)
+     (format nil "~A ~A" (getf token :token-type) (getf token :access-token)))))
+
 (defun client-stub (resource-operation &key (package *package*)
                                          export-p)
   (let ((request-url (gensym "REQUEST-URL-"))
@@ -625,7 +632,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                     :additional-headers (append
                                          (list (cons "Accept" accept)
                                                ,@(when (authorizations resource-operation)
-                                                   '((cons "Authorization" authorization))))
+                                                   '((cons "Authorization" (authorization-string authorization)))))
                                          additional-headers)))
                (log5:log-for (rest-server) "Response: ~A" ,response)
                (log5:log-for (rest-server) "Status: ~A" ,status-code)
