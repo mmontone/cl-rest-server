@@ -322,7 +322,8 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                      (optional-arguments resource-operation))))
         (let ((invalid-optional-args
                (set-difference (set-difference optional-args-names
-                                               (list "_POSTED-CONTENT" "_RESOURCE_OPERATION")
+                                        (list "_POSTED-CONTENT" "_RESOURCE-OPERATION")
+                                               
                                                :test #'equalp)
                                resource-operation-optional-args
                                :test #'equalp)))
