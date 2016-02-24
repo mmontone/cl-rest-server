@@ -352,8 +352,14 @@ Args:
              (when (or (equalp (attribute-type schema-attribute) :boolean)
                        (not (null (cdr data-attribute))))
                (list (cons (intern (string (attribute-name schema-attribute)) :keyword)
-                           (parse-schema-attribute-value (attribute-type schema-attribute)
-                                                         (cdr data-attribute)))))))))
+                           (parse-schema-attribute schema-attribute (cdr data-attribute)))))))))
+
+(defun parse-schema-attribute (schema-attribute value)
+  (let ((parsed-value (parse-schema-attribute-value (attribute-type schema-attribute) value)))
+    (if (attribute-parser schema-attribute)
+        (funcall (attribute-parser schema-attribute)
+                 parsed-value)
+        parsed-value)))
 
 (defmethod %parse-with-schema ((schema-type (eql :list))
                                schema data)
@@ -529,6 +535,12 @@ Args:
   (or
    (attribute-option :reader attribute)
    (attribute-accessor attribute)))
+
+(defun attribute-parser (attribute)
+  (attribute-option :parser attribute))
+
+(defun attribute-formatter (attribute)
+  (attribute-option :formatter attribute))
 
 ;; Unserialization
 
