@@ -18,3 +18,7 @@
   "Whether to try to register the resource operation on creation. Bind to nil to prevent that")
 
 (defparameter *text-content-types* (list :json :xml :lisp))
+
+(defparameter *default-reply-content-type* "application/json")
+
+(defparameter *extract-reply-content-type-from-url* nil "If true, extracts the request content-type from the url when available. For example: GET /users/1.json")

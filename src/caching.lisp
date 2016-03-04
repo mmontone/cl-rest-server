@@ -3,7 +3,7 @@
 (defun extract-function-arguments-to-plist (resource-operation request)
   (let ((scanner (parse-resource-operation-path (path resource-operation))))
     (multiple-value-bind (replaced-uri args)
-        (ppcre:scan-to-strings scanner (hunchentoot:request-uri request))
+        (ppcre:scan-to-strings scanner (request-uri request))
       (declare (ignore replaced-uri))
       (let ((args (loop for arg across args
                      when arg

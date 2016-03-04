@@ -191,7 +191,7 @@
                                        (resource-operation-implementation
                                         (find-resource-operation-implementation
                                          (name resource-operation)
-                                         :accept (parse-content-type (hunchentoot:header-in* "accept"))
+                                         :accept (parse-content-type (request-reply-content-type request))
                                          :content-type (parse-content-type (hunchentoot:header-in* "content-type"))))
                                        (result
                                         (api-execute-function-implementation
@@ -206,7 +206,7 @@
                nil)))
       (if (equalp (hunchentoot:request-method request)
                   :options)
-          (if (equalp (hunchentoot:request-uri request) "*")
+          (if (equalp (request-uri request) "*")
               ;; http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
               ;; If the Request-URI is an asterisk ("*"), the OPTIONS request is intended
               ;; to apply to the server in general rather than to a specific resource.
@@ -218,7 +218,7 @@
               (progn
                 (loop
                    for resource in (list-api-resources api)
-                   when (equalp (hunchentoot:request-uri request)
+                   when (equalp (request-uri request)
                                 (resource-path resource))
                    do (return-from api-dispatch-request
                         (progn
@@ -373,9 +373,10 @@
     (values scanner vars)))
 
 (defun extract-function-arguments (resource-operation request)
-  (let ((scanner (parse-resource-operation-path (path resource-operation))))
+  (let* ((request-uri (request-uri request))
+         (scanner (parse-resource-operation-path (path resource-operation))))
     (multiple-value-bind (replaced-uri args)
-        (ppcre:scan-to-strings scanner (hunchentoot:request-uri request))
+        (ppcre:scan-to-strings scanner request-uri)
       (declare (ignore replaced-uri))
       (let ((args (loop for arg across args
                      when arg
@@ -387,7 +388,7 @@
                   collect (parse-argument-value arg (argument-type reqarg))))
               (optional-args
                (loop
-                  for (var . string) in (request-uri-parameters (hunchentoot:request-uri request))
+                  for (var . string) in (request-uri-parameters request-uri)
                   for optarg = (find-optional-argument (make-keyword var) resource-operation)
                   appending
                     (list (make-keyword (string (argument-name optarg)))
@@ -427,6 +428,45 @@
        while (not res)
        do (setf res (funcall test elem)))
     res))
+
+(defun extract-url-content-type (url)
+  "Extracts the expected content-type from url, when present. Example: 
+(extract-url-accepted-content-type \"http://localhost/users/1.json\")"
+  (flet ((extension-mime (extension)
+           (string-case:string-case (extension :default (error "Invalid content-type extension: ~A" extension))
+             ("json" "application/json")
+             ("lisp" "text/lisp")
+             ("xml" "application/xml")
+             ("html" "text/html"))))           
+    (let* ((splitted-url
+            (split-sequence:split-sequence #\? url))
+           (uri-path (first splitted-url))
+           (uri-query (second splitted-url))
+           (regex (ppcre:create-scanner '(:sequence (:register (:greedy-repetition 1 nil :everything))
+                                          #\.
+                                          (:register (:greedy-repetition 1 nil (:inverted-char-class #\/)) (:alternation #\? :end-anchor))))))
+      (ppcre:register-groups-bind (path extension)
+          (regex uri-path)
+        (values (concatenate 'string path (if uri-query
+                                              (format nil "?~A" uri-query)
+                                              ""))
+                (extension-mime extension))))))
+
+(defun request-uri (request)
+  (if *extract-reply-content-type-from-url*
+      (multiple-value-bind (uri content-type)
+          (extract-url-content-type (hunchentoot:request-uri request))
+        (or uri (hunchentoot:request-uri request)))
+      (hunchentoot:request-uri request)))
+
+(defun request-reply-content-type (request)
+  (or
+   (if *extract-reply-content-type-from-url*
+       (multiple-value-bind (uri content-type)
+           (extract-url-content-type (hunchentoot:request-uri request))
+         (or content-type (hunchentoot:header-in "accept" request)))
+       (hunchentoot:header-in "accept" request))
+   *default-reply-content-type*))
 
 (defgeneric parse-api-input (format string)
   (:documentation "Parses content depending on its format"))

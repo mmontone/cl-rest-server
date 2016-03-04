@@ -9,6 +9,8 @@
            #:implement-resource-operation-case
            #:set-reply-content-type
            #:with-reply-content-type
+           #:*extract-reply-content-type-from-url*
+           #:*default-reply-content-type*
            #:with-json-reply
            #:with-xml-reply
            #:with-posted-content

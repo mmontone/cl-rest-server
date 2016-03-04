@@ -50,13 +50,13 @@
                                        :consumes (:json)
                                        :path "/users"
                                        :documentation "Create a user"
-                                       :body-type user)
+                                       :body-schema user)
                       ())
          (update-user (:request-method :put
                                        :consumes (:json)
                                        :path "/users/{id}"
                                        :documentation "Update a user"
-                                       :body-type user)
+                                       :body-schema user)
                       ((id :integer "The user id")))
          (delete-user (:request-method :delete
                                        :consumes (:json)

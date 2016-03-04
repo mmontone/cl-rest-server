@@ -453,7 +453,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
 
 (defun resource-operation-matches-request-p (resource-operation request)
   (let ((scanner (parse-resource-operation-path (path resource-operation))))
-    (and (cl-ppcre:scan scanner (hunchentoot:request-uri request))
+    (and (cl-ppcre:scan scanner (request-uri request))
          (or (equalp (hunchentoot:request-method request) :options)
              (equalp (request-method resource-operation)
                      (hunchentoot:request-method request))))))
@@ -745,8 +745,8 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
      :conditional-dispatch
      :predicate (lambda (&rest args)
                   (declare (ignore args))
-                  (and (hunchentoot:header-in* "accept")
-                       (let ((accepts (split-sequence:split-sequence #\, (hunchentoot:header-in* "accept"))))
+                  (and (rs::request-reply-content-type hunchentoot:*request*)
+                       (let ((accepts (split-sequence:split-sequence #\, (rs::request-reply-content-type hunchentoot:*request*))))
                          (intersection (list ,accept-content-type)
                                        accepts :test #'equalp))))
      :when-true (lambda ,args

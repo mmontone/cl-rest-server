@@ -193,7 +193,7 @@
 
 (defmethod resource-matches-request-p ((resource api-resource) request)
   (let ((scanner (parse-resource-path (resource-path resource))))
-    (cl-ppcre:scan scanner (hunchentoot:request-uri request))))
+    (cl-ppcre:scan scanner (request-uri request))))
 
 (defgeneric process-api-resource-option (option-name resource &rest args)
   (:method (option-name resource &rest args)
