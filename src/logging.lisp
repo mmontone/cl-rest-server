@@ -46,7 +46,7 @@
                                 log5::message))
    (log-sender-type :initarg :sender-type
                     :accessor log-sender-type
-                    :initform `(log5:stream-sender :location ,*default-logging-output*)))
+                    :initform `(log5:stream-sender :location *default-logging-output*)))
   (:metaclass closer-mop:funcallable-standard-class))
 
 (defmethod rs::process-resource-operation-implementation-option
