@@ -43,7 +43,9 @@
    (log-output-spec :initarg :output-spec
                     :accessor log-output-spec
                     :initform '(log5::time
-                                log5::message))
+                                log5::category
+                                log5::message
+                                log5::context))
    (log-sender-type :initarg :sender-type
                     :accessor log-sender-type
                     :initform `(log5:stream-sender :location *default-logging-output*)))
@@ -104,9 +106,18 @@
                     :initform `(log5:stream-sender :location ,*default-logging-output*))))
 
 (defmethod rest-server::process-api-option ((option (eql :logging)) api
-                                            &key (enabled t))
+                                            &key (enabled t)
+                                              category-spec
+                                              output-spec
+                                              sender-type)
   (dynamic-mixins:ensure-mix api 'logging-api)
-  (setf (logging-enabled api) enabled))
+  (setf (logging-enabled api) enabled)
+  (when category-spec
+    (setf (log-category-spec api) category-spec))
+  (when output-spec
+    (setf (log-output-spec api) output-spec))
+  (when sender-type
+    (setf (log-sender-type api) sender-type)))
 
 (defmethod rest-server::api-execute-function-implementation :around ((api logging-api) resource-operation-implementation resource request)
   (api-log-for rs::*api*
