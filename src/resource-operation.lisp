@@ -430,17 +430,21 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
 
 (defun execute-resource-operation-implementation (function-implementation request)
   (let ((resource-operation (resource-operation function-implementation)))
-    (rs.error:with-error-handler ()
-      (let ((args (extract-function-arguments resource-operation request)))
-        (apply function-implementation
-               (append
-                args
-                (when (member (request-method resource-operation) (list :put :post :patch))
-                  (let ((posted-content (get-posted-content request)))
-                    (log5:log-for (rest-server) "Posted content: ~A" posted-content)
-                    (list :_posted-content (parse-posted-content posted-content))))
-                (list :_resource-operation resource-operation)
-				(list :allow-other-keys t)))))))
+    (log5:with-context (cons :resource
+                             (list :name (name resource-operation)
+                                   :path (path resource-operation)
+                                   :method (request-method resource-operation)))
+      (rs.error:with-error-handler ()
+        (let ((args (extract-function-arguments resource-operation request)))
+          (apply function-implementation
+                 (append
+                  args
+                  (when (member (request-method resource-operation) (list :put :post :patch))
+                    (let ((posted-content (get-posted-content request)))
+                      (log5:log-for (rest-server) "Posted content: ~A" posted-content)
+                      (list :_posted-content (parse-posted-content posted-content))))
+                  (list :_resource-operation resource-operation)
+                  (list :allow-other-keys t))))))))
 
 (defun find-optional-argument (name resource-operation)
   (or
