@@ -37,9 +37,17 @@
 (define-condition http-error (simple-error)
   ((status-code :initarg :status-code
                 :initform (error "Provide the status code")
-                :accessor status-code))
+                :accessor status-code)
+   (info :initarg :info
+         :initform nil
+         :accessor http-error-info
+         :documentation "A plist of extra error info to be serialized back"))
   (:report (lambda (c s)
-             (format s "HTTP error ~A" (status-code c)))))
+             (format s "HTTP error ~A: ~A ~A"
+                     (status-code c)
+                     (apply #'format nil (simple-condition-format-control c)
+                            (simple-condition-format-arguments c))
+                     (http-error-info c)))))
 
 (defun http-error (status-code datum &rest args)
   (error 'http-error
@@ -151,7 +159,11 @@
             (simple-condition-format-control error)
             (simple-condition-format-arguments error))
      :serializer serializer
-     :stream stream)))
+     :stream stream)
+    (alexandria:doplist (key val (http-error-info error))
+        (rs.serialize:set-attribute
+         (princ-to-string key)
+         val))))
 
 ;; http-return-code decides the HTTP status code to return for
 ;; the signaled condition. Implement this method for new conditions.
