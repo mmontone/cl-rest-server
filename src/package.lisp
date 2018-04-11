@@ -132,3 +132,17 @@
    #:http-method-not-allowed-error
    #:error-handling
    #:with-error-handler))
+
+(defpackage #:rest-server.auth
+  (:nicknames #:rs.auth)
+  (:use #:cl #:rest-server)
+  (:export
+   #:authorization
+   #:oauth2-authorization
+   #:token-authorization
+   #:*auth*
+   #:authorize
+   #:auth-result
+   #:auth-success
+   #:auth-not-present
+   #:auth-fail))

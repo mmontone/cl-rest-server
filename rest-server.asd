@@ -49,7 +49,7 @@ OTHER DEALINGS IN THE SOFTWARE."
              (:file "xml")
              (:file "schema")
              (:file "error-handling")
-             (:file "authentication")
+             (:file "auth")
              (:file "oauth")
              (:file "oauth2")
              (:file "api")
@@ -88,5 +88,6 @@ OTHER DEALINGS IN THE SOFTWARE."
                :trivial-mimes
                :access
                :string-case
+               :cl-algebraic-data-type
                #-abcl :trivial-shell)
   :in-order-to ((asdf:test-op (asdf:test-op :rest-server-tests))))

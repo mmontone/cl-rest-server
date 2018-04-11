@@ -1,4 +1,4 @@
-(in-package :rest-server)
+(in-package :rest-server.auth)
 
 (defun lisp-to-underscores (string)
   (format nil "~{~A~^_~}"
@@ -24,31 +24,32 @@
 (defparameter *resource-server-secret* "443c188d-60ce-40e2-b268-69c0c78ad055")
 (defparameter *oauth2-server-url* "http://localhost:8080")
 
-(defclass oauth2-authentication ()
+(defclass oauth2-authorization ()
   ((scopes :initarg :scopes
            :initform nil
            :documentation "Auth scopes")))
 
-(defmethod scopes ((authentication oauth2-authentication))
+(defmethod scopes ((authorization oauth2-authorization))
   (mapcar (lambda (symbol-or-string)
             (if (stringp symbol-or-string)
                 symbol-or-string
                 (string-downcase (symbol-name symbol-or-string))))
-          (slot-value authentication 'scopes)))
+          (slot-value authorization 'scopes)))
 
-(defmethod authenticate ((authentication oauth2-authentication) resource-operation)
+(defmethod authorize ((authorization oauth2-authorization) resource-operation)
   (flet ((auth-failed (message)
-           (log5:log-for (rest-server) "OAuth2 authentication failed: ~A" message)
-           (return-from authenticate message))
-         (auth-succeeded (authenticated-token)
-           (return-from authenticate
-             (let ((*token* authenticated-token))
-               (log5:log-for (rest-server) "OAuth2 authentication: ~A" authenticated-token)
-               (funcall resource-operation)))))
+           (log5:log-for (rs::rest-server) "OAuth2 authorization failed: ~A" message)
+           (return-from authorize (auth-fail message)))
+         (auth-succeeded (authorized-token)
+           (log5:log-for (rs::rest-server) "OAuth2 authorization: ~A" authorized-token)
+           (return-from authorize
+             (auth-success authorized-token))))
     (let* ((access-token (hunchentoot:header-in* "Authorization")))
       ;; if there's no access token, error
       (if (not access-token)
-          (auth-failed "Provide the token")
+          (progn
+            (log5:log-for (rs::rest-server) "Access token not provided")
+            (auth-not-present "Provide the token"))
           ;; else, verify the access token
           (let* ((token-type-and-value (split-sequence:split-sequence #\space  access-token))
                  (token-type (first token-type-and-value))
@@ -65,7 +66,7 @@
                       (let ((token-scopes (getf result :scopes)))
                         (if (not (every (lambda (scope)
                                           (member scope token-scopes :test #'equalp))
-                                        (scopes authentication)))
+                                        (scopes authorization)))
                             (auth-failed "Scope not sufficient")
                             ;; else, success
                             (auth-succeeded result)))))))))))
