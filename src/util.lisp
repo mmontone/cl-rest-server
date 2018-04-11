@@ -58,3 +58,23 @@ Returns a lambda list with the special arguments removed, and the removed specia
     (format nil "~A;base64,~A" file-mime 
             (base64:usb8-array-to-base64-string
              file-contents :uri t))))
+
+(defun lisp-to-underscores (string)
+  (format nil "~{~A~^_~}"
+          (mapcar #'string-downcase
+                  (split-sequence:split-sequence #\- string))))
+
+(defun underscores-to-lisp (string)
+  (format nil "~{~A~^-~}"
+          (mapcar #'string-upcase
+                  (split-sequence:split-sequence #\_ string))))
+
+(defun call-with-lisp-json (function)
+  (let ((cl-json:*lisp-identifier-name-to-json*
+         #'lisp-to-underscores)
+        (cl-json:*json-identifier-name-to-lisp*
+         #'underscores-to-lisp))
+    (funcall function)))
+
+(defmacro with-lisp-json (&body body)
+  `(call-with-lisp-json (lambda () ,@body)))

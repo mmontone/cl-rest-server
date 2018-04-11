@@ -242,7 +242,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
      (apply #'execute resource-operation-implementation args))))
 
 (defmethod execute ((resource-operation-implementation resource-operation-implementation) &rest args)
-  (call-verifying-authentication
+  (rs.auth::call-verifying-authorization
    (resource-operation resource-operation-implementation)
    (lambda ()
      (apply (primary resource-operation-implementation) args))))

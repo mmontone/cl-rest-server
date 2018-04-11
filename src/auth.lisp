@@ -221,7 +221,7 @@ Implementations are expected to return an AUTH-RESULT value."))
       (funcall function)
       ;; else
       (let ((authorizations
-             (rs::resource-operation-authorizations resource-operation)))
+             (resource-operation-authorizations resource-operation)))
         (if (not (plusp (length authorizations)))
             (funcall function)
             ;; else

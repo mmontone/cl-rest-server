@@ -1,25 +1,5 @@
 (in-package :rest-server.auth)
 
-(defun lisp-to-underscores (string)
-  (format nil "~{~A~^_~}"
-          (mapcar #'string-downcase
-                  (split-sequence:split-sequence #\- string))))
-
-(defun underscores-to-lisp (string)
-  (format nil "~{~A~^-~}"
-          (mapcar #'string-upcase
-                  (split-sequence:split-sequence #\_ string))))
-
-(defun call-with-lisp-json (function)
-  (let ((cl-json:*lisp-identifier-name-to-json*
-         #'lisp-to-underscores)
-        (cl-json:*json-identifier-name-to-lisp*
-         #'underscores-to-lisp))
-    (funcall function)))
-
-(defmacro with-lisp-json (&body body)
-  `(call-with-lisp-json (lambda () ,@body)))
-
 (defparameter *resource-server-id* "a7c87ae0-dabe-4b8a-8a45-ee9708696794")
 (defparameter *resource-server-secret* "443c188d-60ce-40e2-b268-69c0c78ad055")
 (defparameter *oauth2-server-url* "http://localhost:8080")
