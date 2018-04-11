@@ -151,7 +151,7 @@ Implementations are expected to return an AUTH-RESULT value."))
                       ;; the parameters for this authorization were present (the user tried to authorize via this auth)
                       (log5:log-for (rs::rest-server) "Authorization failed")
                       (error 'rs.error:http-forbidden-error
-                             :format-arguments error))
+                             :format-control error))
                      ((auth-not-present _)
                       
                       ;; otherwise, try with the rest of authorizations
