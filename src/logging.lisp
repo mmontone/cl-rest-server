@@ -79,7 +79,8 @@
     (when posted-content
       (api-log-for decoration "Posted content: ~A" posted-content)))
   (let ((result (call-next-method)))
-    (api-log-for decoration "Response: ~A" result)
+    (api-log-for decoration "Response: (HTTP STATUS: ~A) ~A"
+                 (hunchentoot:return-code*) result)
     result))
 
 (cl-annot:defannotation logging (args resource-operation-implementation)
@@ -129,7 +130,7 @@
     (when posted-content
       (api-log-for rs::*api* "Posted content: ~A" posted-content)))
   (let ((result (call-next-method)))
-    (api-log-for rs::*api* "Response: ~A" result)
+    (api-log-for rs::*api* "Response: (HTTP STATUS ~A) ~A" (hunchentoot:return-code*) result)
     result))
 
 (defun enable-api-logging (api-name &optional (start t))

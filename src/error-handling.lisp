@@ -14,10 +14,15 @@
   (log-api-error error)
   (setup-reply-from-error error))
 
-(defun log-api-error (error)
+(defmethod log-api-error ((error error))
   (log5:log-for (rs::rest-server log5:error+) "ERROR: ~A" error)
   (log5:log-for (rs::rest-server log5:error+)
                 (trivial-backtrace:print-backtrace error :output nil)))
+
+(defmethod log-api-error ((error http-error))
+  ;; We don't want to log HTTP "error" signals like
+  ;; an application error
+  )
 
 (defmacro with-error-handler ((&optional (error-handler '*default-error-handler*))
                               &body body)
