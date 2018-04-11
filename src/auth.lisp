@@ -142,7 +142,7 @@ Implementations are expected to return an AUTH-RESULT value."))
                    (log5:log-for (rs::rest-server) "Trying with: ~A" auth)
                    (adt:match auth-result (authorize auth resource-operation)
                      ((auth-success auth-data)
-                      (log5:log-for (rs::rest-server) "Request authorization successful.")
+                      (log5:log-for (rs::rest-server) "Request authorization successful: ~A" auth)
                       (return-from call-verifying-authorization
                         (let ((*auth* (cons auth auth-data)))
                           (funcall function))))
