@@ -121,6 +121,11 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                  nil
                  "Argument ~a not declared in ~a" arg resource-operation)))
 
+  ;; Check the body-schema, if defined (only warn if not defined)
+  (when (body-schema resource-operation)
+    (when (not (rs.schema:find-schema (body-schema resource-operation) nil))
+      (warn "Schema not defined: ~A" (body-schema resource-operation))))
+
   ;; Install the resource operation
   (when *register-resource-operation*
     (let ((resource (or *api-resource* (error "Specify the api resource"))))
