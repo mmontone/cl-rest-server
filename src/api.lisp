@@ -356,7 +356,7 @@
                                     ((string= x "{")
                                      (error "Parse error"))
                                     (t
-                                     (push (intern (string-upcase x))
+                                     (push (intern x)
                                            vars)
                                      `(:register (:non-greedy-repetition 1 nil (:inverted-char-class #\/ #\?))))))))))
          (scanner
