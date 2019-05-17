@@ -1,4 +1,8 @@
-(in-package :rest-server)
+(defpackage rs.swagger
+  (:use :cl :rest-server)
+  (:export :define-swagger-resource))
+
+(in-package :rs.swagger)
 
 (defmacro define-swagger-resource (api-name)
   (let ((api (find-api api-name)))
@@ -92,13 +96,13 @@
                      :value #'identity))
 
 (defgeneric encode-argument-type (argument-type &optional stream)
-  (:method ((argument-type argument-type) &optional (stream json:*json-output*))
-    (json:encode-object-member :type (string-downcase (princ-to-string (argument-type-spec argument-type)))) stream)
-  (:method ((argument-type string-argument-type) &optional (stream json:*json-output*))
+  (:method ((argument-type rs::argument-type) &optional (stream json:*json-output*))
+    (json:encode-object-member :type (string-downcase (princ-to-string (rs::argument-type-spec argument-type)))) stream)
+  (:method ((argument-type rs::string-argument-type) &optional (stream json:*json-output*))
     (json:encode-object-member :type "string" stream))
-  (:method ((argument-type integer-argument-type) &optional (stream json:*json-output*))
+  (:method ((argument-type rs::integer-argument-type) &optional (stream json:*json-output*))
     (json:encode-object-member :type "integer" stream))
-  (:method ((argument-type boolean-argument-type) &optional (stream json:*json-output*))
+  (:method ((argument-type rs::boolean-argument-type) &optional (stream json:*json-output*))
     (json:encode-object-member :type "boolean" stream)))  
 
 (defun encode-swagger-operation (operation &optional (stream json:*json-output*))

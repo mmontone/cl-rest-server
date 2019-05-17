@@ -27,7 +27,6 @@
            #:define-api-resource
            #:with-api-resource
            #:list-api-resource-functions
-           #:define-swagger-resource
            #:define-resource-operation
            #:make-resource-operation
            #:format-resource-operation-url
