@@ -65,8 +65,24 @@
             api-resource))))
 
 (defmethod list-api-resource-functions ((api-resource api-resource))
-  (loop for resource-operation being the hash-values of (resource-operations api-resource)
-     collect resource-operation))
+  "TODO: cache this list in the api resource. This is very expensive to do for each incoming request."
+  (flet ((opvars (op)
+           (multiple-value-bind (scanner vars)
+               (parse-resource-operation-path (path op))
+             (declare (ignore scanner))
+             vars)))
+  (sort 
+   (loop for resource-operation being the hash-values of (resource-operations api-resource)
+      collect resource-operation)
+   (lambda (op1 op2)
+     (let ((op1vars (opvars op1))
+           (op2vars (opvars op2)))
+       (or (< (length op1vars)
+              (length op2vars))
+           (and (= (length op1vars)
+                   (length op2vars))
+                (> (length (path op1))
+                   (length (path op2))))))))))
 
 (defmethod allowed-methods ((api-resource api-resource))
   (let ((methods nil))
