@@ -61,7 +61,8 @@ OTHER DEALINGS IN THE SOFTWARE."
              (:file "jwt")
              (:file "cors")
              (:file "swagger")
-             (:file "api-documentation"))
+             (:file "api-documentation")
+             (:file "openapi"))
             :serial t))
   :serial t
   :depends-on (:hunchentoot

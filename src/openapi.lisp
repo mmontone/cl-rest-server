@@ -1,5 +1,6 @@
 (defpackage rs.openapi
-  (:use :rest-server :cl))
+  (:use :rest-server :cl)
+  (:export :define-api-from-spec))
 
 (in-package :rs.openapi)
 
@@ -89,14 +90,5 @@
                        (push (cons (car path) operation) (gethash tag-symbol resources)))))))
     (alexandria:hash-table-alist resources)))
                          
-
-(%define-api-from-spec 'petstore
-    (asdf:system-relative-pathname :rest-server
-                                   "test/petstore.v3.json"))
-
 (defmacro define-api-from-spec (name filepath)
   (%define-api-from-spec name (eval filepath)))
-
-(define-api-from-spec petstore
-    (asdf:system-relative-pathname :rest-server
-                                   "test/petstore.v3.json"))

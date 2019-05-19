@@ -117,7 +117,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                        vars)))
     (loop for arg in args-in-uri
        do
-         (assert (member arg (mapcar #'argument-name (required-arguments resource-operation)))
+         (assert (member (string arg) (mapcar #'argument-name (required-arguments resource-operation)) :test 'equalp :key 'string)
                  nil
                  "Argument ~a not declared in ~a" arg resource-operation)))
 
