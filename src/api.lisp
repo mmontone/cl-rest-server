@@ -177,11 +177,16 @@
              (let ((rs.error:*catch-errors* (catch-errors hunchentoot:*acceptor*))
                    (*debug-mode* (debug-mode hunchentoot:*acceptor*)))
                (loop for resource in (list-api-resources api)
+                    do (log5:log-for (and rest-server log5:dribble) "Matching resource: ~A" resource)
                   when (resource-matches-request-p resource request)
                   do
+                    (rs.log::api-log-for api "Resource matched: ~A" resource)
                     (loop for resource-operation in (list-api-resource-functions resource)
+                         do (log5:log-for (and rest-server log5:dribble) "Matching resource operation: ~A" resource-operation)
                        when (resource-operation-matches-request-p resource-operation request)
-                       do (return-from api-dispatch-request
+                       do
+                         (log5:log-for (and rest-server log5:dribble) "Resource operation matched: ~A" resource-operation)
+                         (return-from api-dispatch-request
                             (if (equalp (hunchentoot:request-method request) :options)
                                 (progn
                                   (resource-operation-http-options api resource-operation)
@@ -204,6 +209,7 @@
                                       (prin1-to-string result)))))))
                ;; Return nil as the request could not be handled
                nil)))
+      (log5:log-for (and rest-server log5:dribble) "Handling request: ~A" request)
       (if (equalp (hunchentoot:request-method request)
                   :options)
           (if (equalp (request-uri request) "*")

@@ -63,6 +63,7 @@
            #:stop-api-logging
            #:enable-api-logging
            #:disable-api-logging
+           #:api-log-for
            #:logging-api
            #:logging
            #:logging-enabled))
