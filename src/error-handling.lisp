@@ -9,7 +9,7 @@
 (defvar *error-handler* 'log-api-error)
 
 (defvar *default-error-handler* 'default-error-handler)
-                                  
+
 (defun default-error-handler (error)
   (log-api-error error)
   (setup-reply-from-error error))
@@ -130,7 +130,7 @@
                                                    (stream rs.serialize::*serializer-output*) &rest args)
   (declare (ignore args))
   (rs.serialize:with-object ("error" :serializer serializer
-                                      :stream stream)
+                                     :stream stream)
     (rs.serialize:set-attribute
      "detail"
      (let ((debug-mode (if (boundp 'rs:*server-debug-mode*)
@@ -151,7 +151,7 @@
                                                         (stream rs.serialize::*serializer-output*) &rest args)
   (declare (ignore args))
   (rs.serialize:with-object ("error" :serializer serializer
-                                      :stream stream)
+                                     :stream stream)
     (rs.serialize:set-attribute
      "detail"
      (apply #'format
@@ -178,9 +178,9 @@
                                      (stream rs.serialize::*serializer-output*) &rest args)
   (declare (ignore args))
   (rs.serialize:with-object ("error" :serializer serializer
-                                      :stream stream)
+                                     :stream stream)
     (rs.serialize:set-attribute
-     "detail"
+     "message"
      (apply #'format
             nil
             (simple-condition-format-control error)
@@ -196,7 +196,7 @@
 
 (defmethod setup-reply-from-error ((error error))
   (setf (hunchentoot:return-code*)
-        (http-return-code error))  
+        (http-return-code error))
   (serialize-error error))
 
 (defmethod setup-reply-from-error ((error http-error))
@@ -223,7 +223,7 @@
             (funcall function)
           (error (e)
             (funcall error-handler e)))
-      (funcall function))))
+        (funcall function))))
 
 ;; Plugging
 
