@@ -28,7 +28,7 @@
                            api))))
 
 (defmethod hunchentoot:acceptor-dispatch-request ((acceptor api-documentation-acceptor) request)
-  (loop for resource-operation being the hash-value of (resource-operations (api acceptor))
+  (loop for resource-operation in (resource-operations (api acceptor))
      when (equalp (format nil "/~A" (name resource-operation)) (hunchentoot:request-uri*))
      return (with-documentation-toplevel (api acceptor)
               (document-resource-operation acceptor resource-operation))
@@ -41,7 +41,7 @@
       (:div :class "api-documentation"
             (cl-who:str (api-documentation api)))
       (:div :class "resource-operations"
-            (loop for resource-operation being the hash-value of (resource-operations api)
+            (loop for resource-operation in (resource-operations api)
                do
                  (document-resource-operation acceptor resource-operation))))))
 
@@ -66,12 +66,12 @@
                   (loop for arg in (required-arguments resource-operation)
                      do
                        (cl-who:htm
-                        (:li (cl-who:fmt "~a : ~a. ~a." (first arg) (second arg) (third arg)))))
-                  (loop for arg in (optional-arguments resource-operation)
-                     do
-                       (cl-who:htm
-                        (:li (cl-who:fmt "~a : ~a. ~A. Default: ~a"
-                                         (first arg)
-                                         (second arg)
-                                         (third arg)
-                                         (nth 3 arg)))))))))))
+                        (:li (cl-who:fmt "~a : ~a. ~a" (rs::argument-name arg) (rs::argument-type arg) (argument-documentation arg))))
+                       (loop for arg in (optional-arguments resource-operation)
+                          do
+                            (cl-who:htm
+                             (:li (cl-who:fmt "~a : ~a. ~A. Default: ~a"
+                                              (rs::argument-name arg)
+                                              (rs::argument-type arg)
+                                              (rs::argument-documentation arg)
+                                              (rs::argument-default arg))))))))))))
