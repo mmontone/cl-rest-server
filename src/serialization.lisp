@@ -314,7 +314,7 @@
 
 (defmethod call-with-object ((serializer (eql :xml)) name body stream)
   (declare (ignore stream))
-  (cxml:with-element name
+  (cxml:with-element (coerce name 'runes:simple-rod)
     (funcall body)))
 
 (defmethod call-with-object ((serializer (eql :html)) name body stream)
@@ -335,7 +335,7 @@
 
 (defmethod call-with-attribute ((serializer (eql :xml)) name body stream)
   (declare (ignore stream))
-  (cxml:with-element name
+  (cxml:with-element (coerce (string name) 'runes:simple-rod)
     (funcall body)))
 
 (defmethod call-with-attribute ((serializer (eql :html)) name body stream)

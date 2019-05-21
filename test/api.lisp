@@ -6,6 +6,12 @@
 
 (in-package :api-test)
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (define-schema user
+      (:object user
+               ((:id :integer :documentation "The user id")
+                (:realname :string :documentation "The user realname")))))
+
 (define-api api-test
     (:title "Api test"
             :documentation "This is an api test")
@@ -91,11 +97,6 @@
                                                 :documentation "Multiple decorations test"
                                                 :path "/decorations/multiple")
                                      ())))
-
-(define-schema user
-    (:object user
-              ((:id :integer :documentation "The user id")
-               (:realname :string :documentation "The user realname"))))
 
 ;; Add Swagger resource
 ;;(rs.swagger::define-swagger-resource api-test)
