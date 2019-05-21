@@ -98,7 +98,7 @@
                (:realname :string :documentation "The user realname"))))
 
 ;; Add Swagger resource
-(rs.swagger::define-swagger-resource api-test)
+;;(rs.swagger::define-swagger-resource api-test)
 
 (defpackage :model-test
   (:use :cl)
