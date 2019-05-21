@@ -136,9 +136,9 @@
 (defun enable-api-logging (api-name &optional (start t))
   (dynamic-mixins:ensure-mix (find-api api-name) 'logging-api)
   (when start
-    (start-api-logging)))
+    (start-api-logging api-name)))
 
 (defun disable-api-logging (api-name &optional (stop t))
   (dynamic-mixins:delete-from-mix (find-api api-name) 'logging-api)
   (when stop
-    (stop-api-logging)))
+    (stop-api-logging api-name)))
