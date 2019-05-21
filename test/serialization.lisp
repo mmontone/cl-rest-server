@@ -4,19 +4,19 @@
 
 ;; Serialization tests
 
-(defparameter *element*
-  (element "user"
+(defparameter *object*
+  (object "user"
 	   (attribute "id" 22)
 	   (attribute "realname" "Mike")
 	   (attribute "groups"
-		      (elements "groups"
-				(element "group"
+		      (objects "groups"
+				(object "group"
 					 (attribute "id" 33)
 					 (attribute "title" "My group"))))))
 
 (deftest intermediate-representation-test
-  (is (equalp (name *element*) "user"))
-  (is (equalp (value (find "realname" (attributes *element*)  :key #'name :test #'equalp))
+  (is (equalp (name *object*) "user"))
+  (is (equalp (value (find "realname" (attributes *object*)  :key #'name :test #'equalp))
 	      "Mike")))
 
 (deftest json-serialization-test
@@ -24,7 +24,7 @@
 	 (with-output-to-string (s)
 	   (with-serializer-output s
 	     (with-serializer :json
-	       (serialize *element*))))))
+	       (serialize *object*))))))
     (finishes (json:decode-json-from-string json-output))
     (let ((json (json:decode-json-from-string json-output)))
       (is (equalp (cdr (assoc :id json)) 22))
@@ -38,18 +38,18 @@
 	   (cxml:with-xml-output (cxml:make-character-stream-sink s :indentation nil :omit-xml-declaration-p t)
 	     (with-serializer-output s
 	       (with-serializer :xml
-		 (serialize *element*)))))))
+		 (serialize *object*)))))))
     (finishes (cxml:parse xml-output (cxml-xmls:make-xmls-builder)))
     (let ((xml (cxml:parse xml-output (cxml-xmls:make-xmls-builder))))
-      (destructuring-bind (element attributes &rest children)
+      (destructuring-bind (object attributes &rest children)
 	  xml
-	(is (equalp element "user"))
+	(is (equalp object "user"))
 	(is (null attributes))
 	(let ((groups (find "groups" children :test #'equalp :key #'first)))
-	  (destructuring-bind (element attributes &rest children)
+	  (destructuring-bind (object attributes &rest children)
 	      groups
 	    (declare (ignore attributes))
-	    (is (equalp element "groups"))
+	    (is (equalp object "groups"))
 	    (let ((title (find "title" children :test #'equalp :key #'first)))
 	      (is (equalp (third title) "My group")))))))))
 
@@ -59,24 +59,24 @@
 ;;   (with-serializer-output s
 ;;     (with-serializer :xml
 ;;       (cxml:with-xml-output (cxml:make-character-stream-sink s :indentation nil :omit-xml-declaration-p t)
-;;         (serialize *element*)))))
+;;         (serialize *object*)))))
 
 ;; (with-serializer-output t
 ;;   (with-serializer :sexp
-;;     (serialize *element*)))
+;;     (serialize *object*)))
 
 ;; Streaming api test
 
-(defparameter *streamed-element*
+(defparameter *streamed-object*
   (lambda ()
-    (with-element ("user")
+    (with-object ("user")
       (set-attribute "id" 22)
       (with-attribute ("realname")
 	(serialize "Mike"))
       (with-attribute ("groups")
 	(with-list ("groups")
 	  (with-list-member ("group")
-	    (with-element ("group")
+	    (with-object ("group")
 	      (set-attribute "id" 33)
 	      (set-attribute "title" "My group"))))))))
 
@@ -85,7 +85,7 @@
 	 (with-output-to-string (s)
 	   (with-serializer-output s
 	     (with-serializer :json
-	       (funcall *streamed-element*))))))
+	       (funcall *streamed-object*))))))
     (finishes (json:decode-json-from-string json-output))
     (let ((json (json:decode-json-from-string json-output)))
       (is (equalp (cdr (assoc :id json)) 22))
@@ -99,18 +99,18 @@
 	   (with-serializer-output s
 	     (with-serializer :xml
 	       (cxml:with-xml-output (cxml:make-character-stream-sink s :indentation nil :omit-xml-declaration-p t)
-		 (funcall *streamed-element*)))))))
+		 (funcall *streamed-object*)))))))
     (finishes (cxml:parse xml-output (cxml-xmls:make-xmls-builder)))
     (let ((xml (cxml:parse xml-output (cxml-xmls:make-xmls-builder))))
-      (destructuring-bind (element attributes &rest children)
+      (destructuring-bind (object attributes &rest children)
 	  xml
-	(is (equalp element "user"))
+	(is (equalp object "user"))
 	(is (null attributes))
 	(let ((groups (find "groups" children :test #'equalp :key #'first)))
-	  (destructuring-bind (element attributes &rest children)
+	  (destructuring-bind (object attributes &rest children)
 	      groups
 	    (declare (ignore attributes))
-	    (is (equalp element "groups"))
+	    (is (equalp object "groups"))
 	    (let ((title (find "title" children :test #'equalp :key #'first)))
 	      (is (equalp (third title) "My group")))))))))
 
@@ -120,7 +120,7 @@
 	     (with-output-to-string (s)
 	       (with-serializer-output s
 		 (with-serializer :html
-		   (with-element ("user")
+		   (with-object ("user")
 		     (set-attribute "realname" "Hola")))))))
 	(html5-parser:parse-html5 html))
     (is (and doc (not errors))))
@@ -129,7 +129,7 @@
 	     (with-output-to-string (s)
 	       (with-serializer-output s
 		 (with-serializer :html
-		   (serialize *element*))))))
+		   (serialize *object*))))))
 	(html5-parser:parse-html5 html))
     (is (and doc (not errors)))))
 
@@ -138,7 +138,7 @@
 	 (with-output-to-string (s)
 	   (with-serializer-output s
 	     (with-serializer :sexp
-	       (with-element ("user")
+	       (with-object ("user")
 		 (set-attribute "realname" "Hola")
 		 (set-attribute "age" 33)))))))
     (finishes
@@ -146,12 +146,12 @@
   (let ((str (with-output-to-string (s)
 	       (with-serializer-output s
 		 (with-serializer :sexp
-		   (serialize *element*))))))
+		   (serialize *object*))))))
     (finishes
       (read-from-string str))))
 
-(defparameter *typed-element*
-  (element "user"
+(defparameter *typed-object*
+  (object "user"
 	   (attribute "false" nil :boolean)
 	   (attribute "true" t :boolean)
 	   (attribute "empty" nil :list)
@@ -161,7 +161,7 @@
   (let ((result (with-output-to-string (s)
 		  (with-serializer-output s
 		    (with-serializer :json
-		      (serialize *typed-element*))))))
+		      (serialize *typed-object*))))))
     (is
      (equalp result
 	     "{\"false\":false,\"true\":true,\"empty\":[],\"not-empty\":[1,2,3]}")))
@@ -170,7 +170,7 @@
 	 (with-output-to-string (s)
 	   (with-serializer-output s
 	     (with-serializer :json
-	       (with-element ("my-element")
+	       (with-object ("my-object")
 		 (with-attribute ("false")
 		   (boolean-value nil))
 		 (with-attribute ("true")
@@ -186,7 +186,7 @@
 	 (with-output-to-string (s)
 	   (with-serializer-output s
 	     (with-serializer :json
-	       (with-element ("my-element")
+	       (with-object ("my-object")
 		 (set-attribute "false" nil :type :boolean)
 		 (set-attribute "true" t :type :boolean)
 		 (set-attribute "empty" nil :type :list)

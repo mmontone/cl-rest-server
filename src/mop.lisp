@@ -206,7 +206,7 @@
 	 (or (and (serialization-name serializable-class)
 		  (first (serialization-name serializable-class)))
 	     (class-name serializable-class))))
-    (list :element serialization-name
+    (list :object serialization-name
 	  (loop for slot in (closer-mop:class-slots serializable-class)
 	     when (and (typep slot 'serializable-effective-slot-definition)
 		       (serializable-slot-p slot))

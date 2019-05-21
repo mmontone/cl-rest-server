@@ -93,7 +93,7 @@
                                      ())))
 
 (define-schema user
-    (:element user
+    (:object user
               ((:id :integer :documentation "The user id")
                (:realname :string :documentation "The user realname"))))
 
@@ -186,7 +186,7 @@
               (loop for user in (model-test:all-users (* 10 (1- page)) 10)
                  do
                    (with-list-member ("user")
-                     (with-element ("user")
+                     (with-object ("user")
                        (set-attribute "id" (cdr (assoc :id user)))
                        (set-attribute "realname" (cdr (assoc :realname user)))))))))))))
 
@@ -200,7 +200,7 @@
     (if (not user)
         (error 'http-not-found-error)
                                         ; else
-        (element "user"
+        (object "user"
                  (attribute "href"
                             (format-absolute-resource-operation-url rest-server::*resource-operation* :id id))
                  (attribute "id" id)
@@ -218,7 +218,7 @@
     (if (not user)
         (error 'http-not-found-error)
                                         ; else
-        (element "user"
+        (object "user"
                  (attribute "href"
                             (format-absolute-resource-operation-url rest-server::*resource-operation* :id id))
                  (attribute "id" id)

@@ -2,29 +2,29 @@
 
 (defmacro with-pagination ((&rest args
 				  &key (page (error "Provide the page"))
-				  (element-name "pagination")
+				  (object-name "pagination")
 				  &allow-other-keys)
 			   &body body)
   (let* ((fargs (copy-list args)))
     (remf fargs :page)
-    (remf fargs :element-name)
-    `(rs.serialize:with-element (,element-name)
+    (remf fargs :object-name)
+    `(rs.serialize:with-object (,object-name)
        (rs.serialize:set-attribute :page ,page)
        (rs.serialize:set-attribute :next (format-absolute-resource-operation-url *resource-operation* :page (1+ ,page) ,@fargs))
        (rs.serialize:set-attribute :previous (format-absolute-resource-operation-url *resource-operation* :page (1- ,page),@fargs))
        (rs.serialize:with-attribute (:results)
 	 ,@body))))
 
-(defun make-pagination-element (&rest args
+(defun make-pagination-object (&rest args
 				&key (page (error "Provide the page"))
-				  (element-name "pagination")
+				  (object-name "pagination")
 				  (results (error "Provide the results"))
 				  &allow-other-keys)
   (let* ((fargs (copy-list args)))
     (remf fargs :page)
-    (remf fargs :element-name)
+    (remf fargs :object-name)
     (remf fargs :results)
-    (rs.serialize:element element-name
+    (rs.serialize:object object-name
 	     (rs.serialize:attribute :page page)
 	     (rs.serialize:attribute :next
 			(format-absolute-resource-operation-url *resource-operation*

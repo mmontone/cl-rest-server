@@ -4,21 +4,21 @@
 
 (defparameter *schema* 
   (schema
-   (:element user
+   (:object user
     ((id :integer)
      (realname :string)
      (age :integer :optional t)
      (sex (:option :male :female))
-     (best-friend (:element user 
+     (best-friend (:object user 
 			    ((id :integer)
 			     (realname :string))))
-     (groups (:list (:element group
+     (groups (:list (:object group
 		     ((id :integer)
 		      (name :string))))
 	     :optional t)))))
 
 (define-schema user-schema
-    (:element user
+    (:object user
 	      ((id :integer :accessor id)
 	       (realname :string)
 	       (age :integer :optional t)
@@ -30,12 +30,12 @@
 	      (:class user)))
 
 (define-schema minimal-user-schema
-    (:element user
+    (:object user
      ((id :integer)
       (realname :string))))
 
 (define-schema group-schema
-    (:element group
+    (:object group
 	      ((id :integer)
 	       (name :string)
 	       (users (:list user-schema) 

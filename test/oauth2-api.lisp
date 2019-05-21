@@ -76,7 +76,7 @@
           (loop for user in (model-test:all-users)
              do
                (with-list-member ("user")
-                 (with-element ("user")
+                 (with-object ("user")
                    (set-attribute "id" (cdr (assoc :id user)))
                    (set-attribute "realname" (cdr (assoc :realname user)))))))))))
 
@@ -90,7 +90,7 @@
     (if (not user)
         (error 'http-not-found-error)
                                         ; else
-        (element "user"
+        (object "user"
                  (attribute "id" (cdr (assoc :id user)))
                  (attribute "realname" (cdr (assoc :realname user)))))))
 

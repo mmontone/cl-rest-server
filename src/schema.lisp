@@ -51,9 +51,9 @@
                                     schema serializer input stream)
   (serialize-value serializer input stream))
 
-(defmethod %%serialize-with-schema ((schema-type (eql :element))
+(defmethod %%serialize-with-schema ((schema-type (eql :object))
                                     schema serializer input stream)
-  (serialize-schema-element schema serializer input stream))
+  (serialize-schema-object schema serializer input stream))
 
 (defmethod %%serialize-with-schema ((schema-type (eql :integer))
                                     schema serializer input stream)
@@ -75,12 +75,12 @@
                                     schema serializer input stream)
   (serialize-value serializer (string-downcase (string input)) stream))
 
-(defun serialize-schema-element (schema-element serializer input stream)
-  (destructuring-bind (_ element-name attributes &rest options) schema-element
+(defun serialize-schema-object (schema-object serializer input stream)
+  (destructuring-bind (_ object-name attributes &rest options) schema-object
     (declare (ignore _))
-    (with-element ((or (and (stringp element-name)
-                            element-name)
-                       (symbol-name element-name))
+    (with-object ((or (and (stringp object-name)
+                            object-name)
+                       (symbol-name object-name))
                    :serializer serializer
                    :stream stream)
       (loop for attribute in attributes
@@ -157,7 +157,7 @@
                                           :stream stream)
                   (%serialize-with-schema schema serializer elem stream)))))
         ((listp list-type)
-         ;; It is some compound type, like :element, :list, or :option
+         ;; It is some compound type, like :object, :list, or :option
          (let ((schema list-type))
            (loop for elem in input
               do
@@ -251,10 +251,10 @@ Args:
                               (format nil "~A: is invalid"
                                       (attribute-name attribute))))))))
 
-(defmethod %schema-validate ((schema-type (eql :element)) schema data &optional attribute)
-  "Validate data using schema element. "
+(defmethod %schema-validate ((schema-type (eql :object)) schema data &optional attribute)
+  "Validate data using schema object. "
   (loop
-     :for schema-attribute :in (element-attributes schema)
+     :for schema-attribute :in (object-attributes schema)
      :for data-attribute := (assoc (string (attribute-name schema-attribute))
                                    data
                                    :test #'equalp
@@ -332,12 +332,12 @@ Args:
                         schema
                         data)))
 
-(defmethod %parse-with-schema ((schema-type (eql :element))
+(defmethod %parse-with-schema ((schema-type (eql :object))
                                schema data)
   (if (null data)
       data
       (loop
-         for schema-attribute in (element-attributes schema)
+         for schema-attribute in (object-attributes schema)
          for data-attribute = (assoc (string (attribute-name schema-attribute))
                                      data
                                      :test #'equalp
@@ -441,11 +441,11 @@ Args:
               (parse-xml-with-schema
                (second schema) ;; the list type
                item))))
-      (:element
-       (assert (equalp (make-keyword (element-name schema))
+      (:object
+       (assert (equalp (make-keyword (object-name schema))
                        (make-keyword (first input))) nil
-                       "~A is not a ~A" input (element-name schema))
-       (loop for attribute in (element-attributes schema)
+                       "~A is not a ~A" input (object-name schema))
+       (loop for attribute in (object-attributes schema)
           appending (let ((input-attribute
                            (find (symbol-name (attribute-name attribute))
                                  (cddr input)
@@ -456,9 +456,9 @@ Args:
                           (list (cons (make-keyword (first input-attribute))
                                       (cond
                                         ((listp (attribute-type attribute))
-                                         ;; It is a compound type (:list, :element, etc)
+                                         ;; It is a compound type (:list, :object, etc)
                                          (parse-xml-with-schema
-                                          (second (attribute-type attribute)) ;; The compound element type
+                                          (second (attribute-type attribute)) ;; The compound object type
                                           (third input-attribute) ;; The attribute value
                                           ))
                                         ((keywordp (attribute-type attribute))
@@ -474,25 +474,25 @@ Args:
                                             (third input-attribute) ;; The attribute value
                                             )))))))))))))
 
-(defun element-name (element)
-  (second element))
+(defun object-name (object)
+  (second object))
 
-(defun element-attributes (element)
-  (third element))
+(defun object-attributes (object)
+  (third object))
 
-(defun find-element-attribute (element attribute-name &key (error-p t))
-  (loop for attribute in (element-attributes element)
+(defun find-object-attribute (object attribute-name &key (error-p t))
+  (loop for attribute in (object-attributes object)
      when (equalp (string (attribute-name attribute))
                   (string attribute-name))
-     do (return-from find-element-attribute attribute))
+     do (return-from find-object-attribute attribute))
   (when error-p
-    (error "Attribute ~A not found in ~A" attribute-name element)))
+    (error "Attribute ~A not found in ~A" attribute-name object)))
 
-(defun element-options (element)
-  (cdddr element))
+(defun object-options (object)
+  (cdddr object))
 
-(defun element-option (option element)
-  (find option (element-options element) :key #'car))
+(defun object-option (option object)
+  (find option (object-options object) :key #'car))
 
 (defun attribute-name (attribute)
   (first attribute))
@@ -544,43 +544,43 @@ Args:
 
 ;; Unserialization
 
-(defun element-class (element)
-  "Returns the CLOS class associated with an element. May be null."
-  (let ((element-class (element-option :class element)))
-    (second element-class)))
+(defun object-class (object)
+  "Returns the CLOS class associated with an object. May be null."
+  (let ((object-class (object-option :class object)))
+    (second object-class)))
 
-(defun element-unserializer (element)
-  "Returns the unserializer of the element if any"
-  (let ((unserializer (element-option :unserializer element)))
+(defun object-unserializer (object)
+  "Returns the unserializer of the object if any"
+  (let ((unserializer (object-option :unserializer object)))
     (second unserializer)))
 
-;; (element-unserializer '(:element user () (:unserializer unserialize-user)))
+;; (object-unserializer '(:object user () (:unserializer unserialize-user)))
 
 (defun unserialize-with-schema (schema string-or-data &optional (format :json))
   (let ((data (if (stringp string-or-data)
                   (rs::parse-api-input format string-or-data)
                   string-or-data)))
-    (unserialize-schema-element schema data)))
+    (unserialize-schema-object schema data)))
 
-(defun unserialize-schema-element (element input)
-  "Unserializes an schema element
+(defun unserialize-schema-object (object input)
+  "Unserializes an schema object
 
-Args: - element (list) : An schema element
+Args: - object (list) : An schema object
       - input (assoc-list) : An association list with values.
                              Probably obtained from parse-api-input.
 
 See: parse-api-input (function)"
 
-  (let ((unserializer (element-unserializer element))
-        (element-class (element-class element)))
+  (let ((unserializer (object-unserializer object))
+        (object-class (object-class object)))
     (cond
       (unserializer (funcall unserializer input))
-      (element-class (unserialize-schema-element-to-class element input element-class))
+      (object-class (unserialize-schema-object-to-class object input object-class))
       (t input))))
 
-(defun unserialize-schema-element-to-class (element input class)
+(defun unserialize-schema-object-to-class (object input class)
   (let ((instance (allocate-instance (find-class class))))
-    (loop for attribute in (element-attributes element)
+    (loop for attribute in (object-attributes object)
        do (let ((attribute-input (assoc (string (attribute-name attribute))
                                         input
                                         :test #'equalp
@@ -630,8 +630,8 @@ See: parse-api-input (function)"
                   nil "Invalid boolean ~A" input)
           (member input true-strings :test #'equalp))
         (not (null input))))
-  (:method ((type-name (eql :element)) type input)
-    (unserialize-schema-element type input))
+  (:method ((type-name (eql :object)) type input)
+    (unserialize-schema-object type input))
   (:method ((type-name (eql :list)) type input)
     (let ((list-type (second type)))
       (loop for elem in input

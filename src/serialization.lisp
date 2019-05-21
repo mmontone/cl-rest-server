@@ -39,17 +39,17 @@
 
   ;; Generic streaming serialization api
 
-  (defmacro with-element ((name
+  (defmacro with-object ((name
                            &key (serializer '*serializer*)
                            (stream '*serializer-output*))
                           &body body)
-    "Serializes a serializing element."
-    `(call-with-element ,serializer ,name (lambda () ,@body) ,stream))
+    "Serializes a serializing object."
+    `(call-with-object ,serializer ,name (lambda () ,@body) ,stream))
 
   (defmacro with-attribute ((name &key (serializer '*serializer*)
                                   (stream '*serializer-output*))
                             &body body)
-    "Serializes an element attribute"
+    "Serializes an object attribute"
     `(call-with-attribute ,serializer
                           ,name
                           (lambda () ,@body)
@@ -59,7 +59,7 @@
       ((name &key (serializer '*serializer*)
              (stream '*serializer-output*))
        &body body)
-    "Serializes an list of elements"
+    "Serializes an list of objects"
     `(call-with-list ,serializer ,name (lambda () ,@body) ,stream))
 
   (defmacro with-list-member ((name
@@ -74,14 +74,14 @@
 
 ;; Intermediate representation
 
-(defclass element ()
+(defclass object ()
   ((name :initarg :name
          :accessor name
-         :initform (error "Provide a name for the element"))
+         :initform (error "Provide a name for the object"))
    (attributes :initarg :attributes
                :accessor attributes
                :initform nil))
-  (:documentation "Serializer intermediate representation element class"))
+  (:documentation "Serializer intermediate representation object class"))
 
 (defclass attribute ()
   ((name :initarg :name
@@ -98,36 +98,36 @@
               :accessor attribute-formatter
               :initform nil
               :documentation "Attribute formatter"))
-  (:documentation "Serializer intermediate representation element attribute class"))
+  (:documentation "Serializer intermediate representation object attribute class"))
 
-(defclass elements-list ()
+(defclass objects-list ()
   ((name :initarg :name
          :accessor name
          :initform (error "Provide the list name"))
-   (elements :initarg :elements
-             :accessor list-elements
+   (objects :initarg :objects
+             :accessor list-objects
              :initform nil))
-  (:documentation "Serializer intermediate representation list of elements class"))
+  (:documentation "Serializer intermediate representation list of objects class"))
 
-(defun element (name &rest attributes)
-  "Build an element to be serialized"
-  (make-instance 'element
+(defun object (name &rest attributes)
+  "Build an object to be serialized"
+  (make-instance 'object
                  :name name
                  :attributes attributes))
 
 (defun attribute (name value &optional type formatter)
-  "Build an element attribute to be serialized"
+  "Build an object attribute to be serialized"
   (make-instance 'attribute
                  :name name
                  :value value
                  :type type
                  :formatter formatter))
 
-(defun elements (name &rest elements)
-  "Build a list of elements to be serialized"
-  (make-instance 'elements-list
+(defun objects (name &rest objects)
+  "Build a list of objects to be serialized"
+  (make-instance 'objects-list
                  :name name
-                 :elements elements))
+                 :objects objects))
 
 (defmethod serialize-toplevel ((serializer t) stream function)
   (funcall function))
@@ -147,14 +147,14 @@
 
 ;; Serializer format plug
 
-(defgeneric serialize (element &optional serializer stream &rest args)
-  (:documentation "Main serialization function. Takes the element to serialize, the serializer and the output stream"))
+(defgeneric serialize (object &optional serializer stream &rest args)
+  (:documentation "Main serialization function. Takes the object to serialize, the serializer and the output stream"))
 
-(defmethod serialize ((element element) &optional (serializer *serializer*) (stream *serializer-output*) &rest args)
-  (serialize-element serializer element stream))
+(defmethod serialize ((object object) &optional (serializer *serializer*) (stream *serializer-output*) &rest args)
+  (serialize-object serializer object stream))
 
-(defmethod serialize ((elements-list elements-list) &optional (serializer *serializer*) (stream *serializer-output*) &rest args)
-  (serialize-elements-list serializer elements-list stream))
+(defmethod serialize ((objects-list objects-list) &optional (serializer *serializer*) (stream *serializer-output*) &rest args)
+  (serialize-objects-list serializer objects-list stream))
 
 (defmethod serialize ((attribute attribute) &optional (serializer *serializer*) (stream *serializer-output*) &rest args)
   (serialize-attribute serializer attribute stream))
@@ -179,18 +179,18 @@
 (defmethod serializer-content-type ((serializer (eql :json)))
   "application/json")
 
-(defmethod serialize-element ((serializer (eql :json)) element stream)
+(defmethod serialize-object ((serializer (eql :json)) object stream)
   (json:with-object (stream)
-    (loop for attribute in (attributes element)
+    (loop for attribute in (attributes object)
        do
          (serialize attribute serializer stream))))
 
-(defmethod serialize-elements-list ((serializer (eql :json)) elements-list stream)
+(defmethod serialize-objects-list ((serializer (eql :json)) objects-list stream)
   (json:with-array (stream)
-    (loop for element in (list-elements elements-list)
+    (loop for object in (list-objects objects-list)
        do
          (json:as-array-member (stream)
-           (serialize element serializer stream)))))
+           (serialize object serializer stream)))))
 
 (defmethod serialize-attribute ((serializer (eql :json)) attribute stream)
   (json:as-object-member ((name attribute) stream)
@@ -217,15 +217,15 @@
 (defmethod serializer-content-type ((serializer (eql :xml)))
   "application/xml")
 
-(defmethod serialize-element ((serializer (eql :xml)) element stream)
-  (cxml:with-element (name element)
-    (loop for attribute in (attributes element)
+(defmethod serialize-object ((serializer (eql :xml)) object stream)
+  (cxml:with-element (name object)
+    (loop for attribute in (attributes object)
        do (serialize attribute serializer stream))))
 
-(defmethod serialize-elements-list ((serializer (eql :xml)) elements-list stream)
-  (loop for element in (list-elements elements-list)
+(defmethod serialize-objects-list ((serializer (eql :xml)) objects-list stream)
+  (loop for object in (list-objects objects-list)
      do
-       (serialize element serializer stream)))
+       (serialize object serializer stream)))
 
 (defmethod serialize-attribute ((serializer (eql :xml)) attribute stream)
   (cxml:with-element (name attribute)
@@ -241,17 +241,17 @@
 (defmethod serializer-content-type ((serializer (eql :sexp)))
   "text/lisp")
 
-(defmethod serialize-element ((serializer (eql :sexp)) element stream)
-  (format stream "(~s (" (name element))
-  (loop for attribute in (attributes element)
+(defmethod serialize-object ((serializer (eql :sexp)) object stream)
+  (format stream "(~s (" (name object))
+  (loop for attribute in (attributes object)
      do (serialize attribute serializer stream))
   (format stream "))"))
 
-(defmethod serialize-elements-list ((serializer (eql :sexp)) elements-list stream)
+(defmethod serialize-objects-list ((serializer (eql :sexp)) objects-list stream)
   (format stream "(")
-  (loop for element in (list-elements elements-list)
+  (loop for object in (list-objects objects-list)
      do
-       (serialize element serializer stream)
+       (serialize object serializer stream)
        (format stream " "))
   (format stream ")"))
 
@@ -267,24 +267,24 @@
 
 ;; HTML serializer
 
-(defmethod serialize-element ((serializer (eql :html)) element stream)
+(defmethod serialize-object ((serializer (eql :html)) object stream)
   (cl-who:with-html-output (html stream)
-    (:div :class "element"
-          (:h1 (cl-who:str (name element)))
+    (:div :class "object"
+          (:h1 (cl-who:str (name object)))
           (:div :class "attributes"
                 (mapcar (lambda (attribute)
                           (cl-who:htm
                            (serialize attribute serializer stream)))
-                        (attributes element))))))
+                        (attributes object))))))
 
-(defmethod serialize-elements-list ((serializer (eql :html)) elements-list stream)
+(defmethod serialize-objects-list ((serializer (eql :html)) objects-list stream)
   (cl-who:with-html-output (html stream)
-                                        ;(:ol :class "elements"
-    (format stream "<ol class=\"elements\">")
-    (loop for element in (list-elements elements-list)
+                                        ;(:ol :class "objects"
+    (format stream "<ol class=\"objects\">")
+    (loop for object in (list-objects objects-list)
        do
          (cl-who:htm
-          (:li (serialize element serializer stream))))
+          (:li (serialize object serializer stream))))
     (format stream "</ol>")))
 
 (defmethod serialize-attribute ((serializer (eql :html)) attribute stream)
@@ -302,29 +302,29 @@
 
 ;; Streaming api implementation
 
-(defgeneric call-with-element (serializer name body stream)
+(defgeneric call-with-object (serializer name body stream)
   (:method (serializer name body stream)
     (error "Unknown serializer: ~A. If NIL, remember to wrap with with-serializer."
            serializer)))
 
-(defmethod call-with-element ((serializer (eql :json)) name body stream)
+(defmethod call-with-object ((serializer (eql :json)) name body stream)
   (declare (ignore name))
   (json:with-object (stream)
     (funcall body)))
 
-(defmethod call-with-element ((serializer (eql :xml)) name body stream)
+(defmethod call-with-object ((serializer (eql :xml)) name body stream)
   (declare (ignore stream))
   (cxml:with-element name
     (funcall body)))
 
-(defmethod call-with-element ((serializer (eql :html)) name body stream)
+(defmethod call-with-object ((serializer (eql :html)) name body stream)
   (cl-who:with-html-output (html stream)
-    (:div :class "element"
+    (:div :class "object"
           (:h1 (cl-who:str name))
           (:div :class "attributes"
                 (funcall body)))))
 
-(defmethod call-with-element ((serializer (eql :sexp)) name body stream)
+(defmethod call-with-object ((serializer (eql :sexp)) name body stream)
   (format stream "(~s (" name)
   (funcall body)
   (format stream "))"))
@@ -354,7 +354,7 @@
                       &key
                         (serializer *serializer*)
                         (stream *serializer-output*) &allow-other-keys)
-  "Serializes an element attribute and value"
+  "Serializes an object attribute and value"
   (with-attribute (name :serializer serializer
                         :stream stream)
     (apply #'serialize value serializer stream args)))
@@ -383,7 +383,7 @@
     (funcall body)))
 
 (defmethod call-with-list-member ((serializer (eql :xml)) name body stream)
-  (with-element (name :serializer serializer
+  (with-object (name :serializer serializer
                       :stream stream)
     (funcall body)))
 

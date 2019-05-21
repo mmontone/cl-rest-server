@@ -74,11 +74,11 @@
    #:with-serializer
    #:with-serializer-output
    #:accept-serializer
-   #:element
+   #:object
    #:attribute
-   #:elements
+   #:objects
    #:serialize
-   #:with-element
+   #:with-object
    #:with-attribute
    #:with-list
    #:with-list-member

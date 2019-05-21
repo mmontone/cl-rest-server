@@ -129,7 +129,7 @@
                                                    (serializer rs.serialize::*serializer*)
                                                    (stream rs.serialize::*serializer-output*) &rest args)
   (declare (ignore args))
-  (rs.serialize:with-element ("error" :serializer serializer
+  (rs.serialize:with-object ("error" :serializer serializer
                                       :stream stream)
     (rs.serialize:set-attribute
      "detail"
@@ -150,7 +150,7 @@
                                                         (serializer rs.serialize::*serializer*)
                                                         (stream rs.serialize::*serializer-output*) &rest args)
   (declare (ignore args))
-  (rs.serialize:with-element ("error" :serializer serializer
+  (rs.serialize:with-object ("error" :serializer serializer
                                       :stream stream)
     (rs.serialize:set-attribute
      "detail"
@@ -177,7 +177,7 @@
                                      (serializer rs.serialize::*serializer*)
                                      (stream rs.serialize::*serializer-output*) &rest args)
   (declare (ignore args))
-  (rs.serialize:with-element ("error" :serializer serializer
+  (rs.serialize:with-object ("error" :serializer serializer
                                       :stream stream)
     (rs.serialize:set-attribute
      "detail"

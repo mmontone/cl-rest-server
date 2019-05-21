@@ -219,7 +219,7 @@
          (json:as-object-member ((string-downcase (princ-to-string schema-name)) stream)
                                 (encode-swagger-definition schema stream)))))
 
-(defun encode-swagger-definition (schema-element &optional (stream json:*json-output*))
+(defun encode-swagger-definition (schema-object &optional (stream json:*json-output*))
   (let ((json:*json-output* stream))
     (flet ((encode-definition-property (attribute)
              (json:as-object-member ((rs.schema::attribute-name attribute))
@@ -253,7 +253,7 @@
                                                                                   )))))
                                              (:option (json:encode-object-member :enum
                                                                                  (rest attribute-type)))
-                                             (:element
+                                             (:object
                                               (json:encode-object-member :type "object")
                                         ;(error "Not implemented yet")
                                               )))))
@@ -267,10 +267,10 @@
                                    (mapcar #'rs.schema::attribute-name
                                            (remove-if
                                             #'rs.schema::attribute-optional-p
-                                            (rs.schema::element-attributes schema-element))))
+                                            (rs.schema::object-attributes schema-object))))
         (json:as-object-member (:properties)
                                (json:with-object ()
-                                 (loop for attribute in (rs.schema::element-attributes schema-element)
+                                 (loop for attribute in (rs.schema::object-attributes schema-object)
                                     do
                                       (encode-definition-property attribute))))))))
 
