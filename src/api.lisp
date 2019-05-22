@@ -180,7 +180,7 @@
                     do (log5:log-for (and rest-server log5:dribble) "Matching resource: ~A" resource)
                   when (resource-matches-request-p resource request)
                   do
-                    (rs.log::api-log-for api "Resource matched: ~A" resource)
+                    (log5:log-for (and rest-server log5:dribble) "Resource matched: ~A" resource)
                     (loop for resource-operation in (list-api-resource-functions resource)
                          do (log5:log-for (and rest-server log5:dribble) "Matching resource operation: ~A" resource-operation)
                        when (resource-operation-matches-request-p resource-operation request)
