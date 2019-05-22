@@ -91,8 +91,10 @@
   (destructuring-bind
         (attribute-name attribute-type &rest options)
       schema-attribute
-    (let* ((accessor (symbol-function (or (getf options :accessor) attribute-name)))
-           (attribute-value (funcall accessor input)))
+    (let* ((reader (symbol-function (or (getf options :reader)
+                                        (getf options :accessor)
+                                        attribute-name)))
+           (attribute-value (funcall reader input)))
       (when (not (and (getf options :optional) (not attribute-value)))
         (with-attribute (attribute-name :serializer serializer
                                         :stream stream)
