@@ -478,6 +478,8 @@
   (:documentation "Parses content depending on its format"))
 
 (defmethod parse-api-input ((format (eql :json)) string)
+  (when (null string)
+    (error 'rs.error:http-bad-request))
   (handler-case
       (json:decode-json-from-string string)
     (json:json-syntax-error (e)
