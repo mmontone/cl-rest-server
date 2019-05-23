@@ -1,6 +1,7 @@
 (defpackage rs.openapi
   (:use :rest-server :cl)
-  (:export :define-api-from-spec))
+  (:export :define-api-from-spec
+           :export-api-spec))
 
 (in-package :rs.openapi)
 
@@ -8,13 +9,13 @@
   (flet ((all-equal (set)
            (= 1
               (length (remove-duplicates set :test 'equalp)))))
-      (loop for n downfrom (apply 'min (mapcar 'length strings)) to 1
-         do
-           (when (all-equal (mapcar (lambda (str)
-                                      (subseq str 0 n))
-                                    strings))
-             (return-from common-prefix (subseq (first strings) 0 n))))
-      nil))
+    (loop for n downfrom (apply 'min (mapcar 'length strings)) to 1
+       do
+         (when (all-equal (mapcar (lambda (str)
+                                    (subseq str 0 n))
+                                  strings))
+           (return-from common-prefix (subseq (first strings) 0 n))))
+    nil))
 
 (setf (fdefinition '->) #'access:accesses)
 
@@ -22,18 +23,18 @@
 
 (defun %define-api-from-spec (name filepath)
   (let ((json:*identifier-name-to-key* 'identity)
-               (json:*json-identifier-name-to-lisp* 'identity))
+        (json:*json-identifier-name-to-lisp* 'identity))
     (let ((spec (json:decode-json-from-source filepath)))
       (define-api-from-v3-spec name spec))))
 
 (defun define-api-from-v3-spec (name spec)
   (flet ((@ (&rest path)
              (apply #'access:accesses spec path)))
-  `(rs:define-api ,name
-       (:title ,(@ "info" "title")
-               :documentation ,(@ "info" "description"))
-     ,@(loop for resource in (collect-resources spec)
-          collect (inline-resource-from-v3-spec resource)))))
+    `(rs:define-api ,name
+         (:title ,(@ "info" "title")
+                 :documentation ,(@ "info" "description"))
+       ,@(loop for resource in (collect-resources spec)
+            collect (inline-resource-from-v3-spec resource)))))
 
 (defun inline-resource-from-v3-spec (resource)
   `(,(first resource) (:produces (:json)
@@ -41,34 +42,34 @@
                                  :documentation "TODO"
                                  :path ,(common-prefix (mapcar (lambda (r) (string (car r))) (cdr resource))))
      ,@(loop for operation in (cdr resource)
-         collect (inline-operation-from-v3-spec operation))))
+          collect (inline-operation-from-v3-spec operation))))
 
 (defun inline-operation-from-v3-spec (operation)
   (destructuring-bind (path method &rest args) operation
     `(,(intern (-> args "operationId"))
        (:request-method ,(alexandria:make-keyword (string-upcase method))
-                          :produces (:json)
-                          :consumes (:json)
-                          :path ,(string path)
-                          :documentation ,(-> args "description"))
-         ,(operation-parameters-from-spec operation)))
+                        :produces (:json)
+                        :consumes (:json)
+                        :path ,(string path)
+                        :documentation ,(-> args "description"))
+       ,(operation-parameters-from-spec operation)))
   )
 
 (defun operation-parameters-from-spec (operation)
   (let ((params (-> (cddr operation) "parameters"))
         (result (make-list 0)))
     (let ((required-params (remove-if-not (lambda (param)
-                                                (-> param "required"))
-                                              params))
+                                            (-> param "required"))
+                                          params))
           (optional-params (remove-if (lambda (param)
                                         (-> param "required"))
                                       params)))
       (loop for param in required-params
          do (setf result (append result (list (param-from-spec param)))))
       (when (> (length optional-params) 0)
-         (setf result (append result '(&optional)))
-         (loop for param in optional-params
-            do (setf result (append result (list (param-from-spec param)))))))
+        (setf result (append result '(&optional)))
+        (loop for param in optional-params
+           do (setf result (append result (list (param-from-spec param)))))))
     result))
 
 (defun param-from-spec (param)
@@ -89,6 +90,79 @@
                              (list (cons (car path) operation)))
                        (push (cons (car path) operation) (gethash tag-symbol resources)))))))
     (alexandria:hash-table-alist resources)))
-                         
+
 (defmacro define-api-from-spec (name filepath)
   (%define-api-from-spec name (eval filepath)))
+
+;; OpenAPI export
+
+(defun call-with-destination-stream (function destination)
+  (cond
+    ((null destination)
+     (with-output-to-string (s)
+       (funcall function s)))
+    ((typep destination 'pathname)
+     (with-open-file (s destination :direction :output :if-exists :supersede :if-does-not-exist :create)
+       (funcall function s)))
+    ((typep destination 'stream)
+     (funcall function destination))
+    ((eql destination t)
+     (funcall function t))
+    (t (error "Invalid destination: ~A" destination))))
+
+(defun export-api-spec (api &optional destination)
+  (flet ((render-api (stream)
+           (render-api-spec api stream)))
+    (call-with-destination-stream #'render-api destination)))
+
+(defun api-paths (api)
+  (let ((paths (make-hash-table :test 'equalp)))
+    (loop for resource being the hash-values of (rs::resources api)
+       do
+         (loop for operation being the hash-values of (rs::resource-operations resource)
+            do
+              (push (list :tag (rs:resource-name resource)
+                          :operation operation)
+                    (gethash (rs::path operation)
+                             paths))))
+    paths))
+
+(defun render-api-spec (api stream)
+  (flet ((@= (&rest args)
+           (apply #'json:encode-object-member args)))
+    (let ((json:*json-output* stream))
+      (json:with-object ()
+        (@= "openapi" "3.0.0")
+        (json:as-object-member ("info")
+          (json:with-object ()
+            (@= "description" (rs::api-documentation api))
+            (@= "version" "1.0.0")
+            (@= "title" (rs::title api))))
+        (json:as-object-member ("tags")
+          (json:with-array ()
+            (loop for resource being the hash-values of (rs::resources api)
+               do
+                 (json:as-array-member ()
+                   (json:with-object ()
+                     (@= "name" (string (rs:resource-name resource)))
+                     (@= "description" (rs:resource-documentation resource)))))))
+        (json:as-object-member ("paths")
+          (json:with-object ()
+            (loop for path being the hash-keys of (api-paths api)
+               using (hash-value operations)
+               do (encode-api-path path operations)))
+          )))))
+
+(defun encode-api-path (path operations)
+  (json:as-object-member (path)
+    (json:with-object ()
+      (loop for spec in operations do
+           (let ((tag (getf spec :tag))
+                 (operation (getf spec :operation)))
+             (json:as-object-member ((string-downcase (string (rs::request-method operation))))
+               (json:with-object ()
+                 (json:encode-object-member "tags" (list (string tag)))
+                 (json:encode-object-member "summary" (rs::api-documentation operation))
+                 (json:encode-object-member "description" (rs::api-documentation operation))
+                 (json:encode-object-member "operationId" (rs::name operation)) 
+                 )))))))
