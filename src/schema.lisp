@@ -483,6 +483,12 @@ Args:
 (defun object-attributes (object)
   (third object))
 
+(defun object-options (object)
+  (cdddr object))
+
+(defun object-option (option object)
+  (cadr (find option (object-options object) :key 'car)))
+
 (defun find-object-attribute (object attribute-name &key (error-p t))
   (loop for attribute in (object-attributes object)
      when (equalp (string (attribute-name attribute))
@@ -490,12 +496,6 @@ Args:
      do (return-from find-object-attribute attribute))
   (when error-p
     (error "Attribute ~A not found in ~A" attribute-name object)))
-
-(defun object-options (object)
-  (cdddr object))
-
-(defun object-option (option object)
-  (find option (object-options object) :key #'car))
 
 (defun attribute-name (attribute)
   (first attribute))
@@ -544,6 +544,9 @@ Args:
 
 (defun attribute-formatter (attribute)
   (attribute-option :formatter attribute))
+
+(defun attribute-documentation (attribute)
+  (attribute-option :documentation attribute))
 
 ;; Unserialization
 
@@ -733,3 +736,27 @@ See: parse-api-input (function)"
   `(rs::configure-resource-operation-implementation
     (rs::name (rs::resource-operation ,resource-operation-implementation))
     (list :unserialization ,@args)))
+
+;; JSON-schema (WIP)
+
+(defun json-schema (schema)
+  (with-output-to-string (s)
+    (let ((json:*json-output* s))
+      (render-json-schema schema))))
+
+(defun render-json-schema (schema &optional attribute)
+  (ecase (schema-type schema)
+    (:object (render-object-json-schema schema attribute))
+    (:list (render-array-json-schema schema attribute))
+    (t (render-type-json-schema schema attribute))))
+
+(defun render-object-json-schema (schema attribute)
+  (json:with-object ()
+    (json:encode-object-member "type" "object")
+    (json:as-object-member ("properties")
+      (json:with-object ()
+        (loop for attribute in (object-attributes schema)
+             do
+             (json:as-object-member ((attribute-name attribute))
+               (render-json-schema (attribute-type attribute) attribute)))))
+    (json:encode-object-member "description" (object-documentation schema))))
