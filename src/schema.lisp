@@ -264,9 +264,10 @@ Args:
      :do
      (when (and (not data-attribute)
                 (not (attribute-optional-p schema-attribute)))
-       (validation-error "Attribute ~a not found in ~a"
-                         (attribute-name schema-attribute)
-                         data))
+       (let ((error-msg (or (attribute-option :not-provided-message schema-attribute)
+                            (format nil "Attribute ~a not provided"
+                                    (attribute-name schema-attribute)))))
+         (validation-error error-msg)))
      (when (not (and (attribute-optional-p schema-attribute)
                      (null data-attribute)))
        (schema-validate (attribute-type schema-attribute)
