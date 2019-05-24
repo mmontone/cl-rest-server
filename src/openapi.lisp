@@ -5,10 +5,6 @@
 
 (in-package :rs.openapi)
 
-(defun ensure-list (thing)
-  (if (hash-table-p thing)
-      (alexandria:hash)))
-
 (defun common-prefix (strings)
   (flet ((all-equal (set)
            (= 1
