@@ -180,6 +180,9 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
   (setf (hunchentoot:header-out "Allow")
         (string-upcase (string (request-method resource-operation)))))
 
+(defvar *argument-url-name-parser* (lambda (name) (intern (json:camel-case-to-lisp name))))
+(defvar *argument-url-name-formatter* 'json:lisp-to-camel-case)
+
 (defclass resource-operation-argument ()
   ((name :initarg :name
          :type symbol
@@ -501,23 +504,23 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
 (defun format-optional-url-arg (arg value)
   (format nil "~A=~A"
           (or (argument-url-name arg)
-              (string-downcase (string (argument-name arg))))
+              (funcall *argument-url-name-formatter* (string (argument-name arg))))
           (format-argument-value value (argument-type arg))))
 
 (defun parse-resource-operation-argument (arg)
-  (destructuring-bind (name type &optional documentation) arg
+  (destructuring-bind (name type &optional documentation &key url-name) arg
     (make-instance 'resource-operation-argument
                    :name name
-                   :url-name (string-downcase (string name))
+                   :url-name (or url-name (funcall *argument-url-name-formatter* (string name)))
                    :type (parse-argument-type type)
                    :required-p t
                    :documentation documentation)))
 
 (defun parse-optional-resource-operation-argument (arg)
-  (destructuring-bind (name type default-value &optional documentation) arg
+  (destructuring-bind (name type default-value &optional documentation &key url-name) arg
     (make-instance 'resource-operation-argument
                    :name name
-                   :url-name (string-downcase (string name))
+                   :url-name (or url-name (funcall *argument-url-name-formatter* (string name)))
                    :type (parse-argument-type type)
                    :required-p nil
                    :default default-value

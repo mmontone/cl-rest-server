@@ -19,6 +19,9 @@
 
 (setf (fdefinition '->) #'access:accesses)
 
+(defun symbolicate (string)
+  (intern (json:camel-case-to-lisp string)))
+
 (declaim (ftype (function (pathname) t) define-api-from-spec))
 
 (defun %define-api-from-spec (name filepath)
@@ -46,7 +49,7 @@
 
 (defun inline-operation-from-v3-spec (operation)
   (destructuring-bind (path method &rest args) operation
-    `(,(intern (-> args "operationId"))
+    `(,(symbolicate (-> args "operationId"))
        (:request-method ,(alexandria:make-keyword (string-upcase method))
                         :produces (:json)
                         :consumes (:json)
@@ -73,7 +76,7 @@
     result))
 
 (defun param-from-spec (param)
-  `(,(intern (-> param "name"))
+  `(,(symbolicate (-> param "name"))
      ,(alexandria:make-keyword (string-upcase (-> param "schema" "type")))
      ,(-> param "description")))
 
@@ -84,7 +87,7 @@
              do
                (let ((tag (first (-> (cdr operation) "tags"))))
                  (assert (not (null tag)) nil "Operation ~A is not tagged." (car operation))
-                 (let ((tag-symbol (intern tag)))
+                 (let ((tag-symbol (symbolicate tag)))
                    (if (null (gethash tag-symbol resources))
                        (setf (gethash tag-symbol resources)
                              (list (cons (car path) operation)))

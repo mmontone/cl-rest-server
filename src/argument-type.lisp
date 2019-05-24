@@ -165,6 +165,30 @@
   (:format-spec (argument-type)
                 :list))
 
+(def-argument-type list-argument-type ()
+  ((elems-type-spec
+    :initarg :type
+    :accessor elems-type-spec
+    :initform :string))
+  (:parse (spec)
+          (cond
+            ((eql spec :array)
+             (make-instance 'list-argument-type))
+            ((and (listp spec)
+                  (eql (first spec) :array))
+             (apply #'make-instance 'list-argument-type (rest spec)))))
+  (:parse-value (string)
+                (let ((elems-type (parse-argument-type (elems-type-spec argument-type))))
+                  (mapcar
+                   (lambda (value)
+                     (parse-argument-value value elems-type))
+                   (split-sequence:split-sequence #\, string))))
+  (:format-value (value)
+                 (assert (listp value))
+                 (format nil "~{~A~^,~}" value))
+  (:format-spec (argument-type)
+                :array))
+
 (def-argument-type timestamp-argument-type ()
   ()
   (:parse (spec)

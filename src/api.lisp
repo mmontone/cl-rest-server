@@ -362,7 +362,7 @@
                                     ((string= x "{")
                                      (error "Parse error"))
                                     (t
-                                     (push (intern x)
+                                     (push (funcall *argument-url-name-parser* x)
                                            vars)
                                      `(:register (:non-greedy-repetition 1 nil (:inverted-char-class #\/ #\?))))))))))
          (scanner

@@ -8,21 +8,21 @@
                                    "test/petstore.v3.json"))
 
 (rs:implement-resource-operation petstore
-    |getPetById| (|petId|)
-  (format nil "Pet with id: ~A" |petId|)
+    get-pet-by-id (pet-id)
+  (format nil "Pet with id: ~A" pet-id)
   )
 
 (rs:implement-resource-operation petstore
-    |getUserByName| (username)
+    get-user-by-name (username)
   (format nil "User: ~A" username)
   )
 
 (rs:implement-resource-operation petstore
-    |loginUser| (username password)
+    login-user (username password)
   (format nil "User login with ~A and ~A" username password))
 
 (defun start-petstore-api ()
   (rs:start-api 'petstore "localhost" 3006))
 
 (defun export-petstore-api ()
-  (rs.openapi:export-api-spec 'petstore))
+  (rs.openapi:export-api-spec (find-api 'petstore)))
