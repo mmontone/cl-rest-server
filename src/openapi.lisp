@@ -5,6 +5,10 @@
 
 (in-package :rs.openapi)
 
+(defun ensure-list (thing)
+  (if (hash-table-p thing)
+      (alexandria:hash)))
+
 (defun common-prefix (strings)
   (flet ((all-equal (set)
            (= 1
@@ -24,11 +28,21 @@
 
 (declaim (ftype (function (pathname) t) define-api-from-spec))
 
-(defun %define-api-from-spec (name filepath)
+(defun %define-api-from-spec (name filepath &key type)
+  (let ((ext (or type (alexandria:make-keyword (string-upcase (pathname-type filepath))))))
+    (ecase ext
+      (:json (%define-api-from-json-spec name filepath))
+      (:yaml (%define-api-from-yaml-spec name filepath)))))
+
+(defun %define-api-from-json-spec (name filepath)
   (let ((json:*identifier-name-to-key* 'identity)
         (json:*json-identifier-name-to-lisp* 'identity))
     (let ((spec (json:decode-json-from-source filepath)))
       (define-api-from-v3-spec name spec))))
+
+(defun %define-api-from-yaml-spec (name filepath)
+  (let ((spec (cl-yaml:parse filepath)))
+    (define-api-from-v3-spec name spec)))
 
 (defun define-api-from-v3-spec (name spec)
   (flet ((@ (&rest path)
@@ -81,9 +95,14 @@
      ,(-> param "description")))
 
 (defun collect-resources (spec)
+  (flet ((vals (x)
+           (if (hash-table-p x)
+               (alexandria:hash-table-alist x)
+               x)))    
   (let ((resources (make-hash-table :test 'equalp)))
-    (loop for path in (-> spec "paths")
-       do (loop for operation in (cdr path)
+    (loop for path in (vals (-> spec "paths"))
+       do
+         (loop for operation in (vals (cdr path))
              do
                (let ((tag (first (-> (cdr operation) "tags"))))
                  (assert (not (null tag)) nil "Operation ~A is not tagged." (car operation))
@@ -92,7 +111,7 @@
                        (setf (gethash tag-symbol resources)
                              (list (cons (car path) operation)))
                        (push (cons (car path) operation) (gethash tag-symbol resources)))))))
-    (alexandria:hash-table-alist resources)))
+    (alexandria:hash-table-alist resources))))
 
 (defmacro define-api-from-spec (name filepath)
   (%define-api-from-spec name (eval filepath)))

@@ -2,7 +2,12 @@
 
 (%define-api-from-spec 'petstore
     (asdf:system-relative-pathname :rest-server
+                                   "test/petstore.v3.yaml"))
+
+(%define-api-from-spec 'petstore
+    (asdf:system-relative-pathname :rest-server
                                    "test/petstore.v3.json"))
+
 (define-api-from-spec petstore
     (asdf:system-relative-pathname :rest-server
                                    "test/petstore.v3.json"))

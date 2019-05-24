@@ -69,6 +69,7 @@ OTHER DEALINGS IN THE SOFTWARE."
                :alexandria
                :log5
                :cl-json
+               :cl-yaml
                :cxml
                :local-time
                :split-sequence
