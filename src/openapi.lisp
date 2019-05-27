@@ -1,9 +1,15 @@
 (defpackage rs.openapi
   (:use :rest-server :cl)
   (:export :define-api-from-spec
+           :define-schemas-from-spec
            :export-api-spec))
 
 (in-package :rs.openapi)
+
+(defun alist (x)
+  (if (hash-table-p x)
+      (alexandria:hash-table-alist x)
+      x))
 
 (defun common-prefix (strings)
   (flet ((all-equal (set)
@@ -24,21 +30,13 @@
 
 (declaim (ftype (function (pathname) t) define-api-from-spec))
 
-(defun %define-api-from-spec (name filepath &key type)
+(defun read-spec-file (filepath &key type)
   (let ((ext (or type (alexandria:make-keyword (string-upcase (pathname-type filepath))))))
     (ecase ext
-      (:json (%define-api-from-json-spec name filepath))
-      (:yaml (%define-api-from-yaml-spec name filepath)))))
-
-(defun %define-api-from-json-spec (name filepath)
-  (let ((json:*identifier-name-to-key* 'identity)
-        (json:*json-identifier-name-to-lisp* 'identity))
-    (let ((spec (json:decode-json-from-source filepath)))
-      (define-api-from-v3-spec name spec))))
-
-(defun %define-api-from-yaml-spec (name filepath)
-  (let ((spec (cl-yaml:parse filepath)))
-    (define-api-from-v3-spec name spec)))
+      (:json (let ((json:*identifier-name-to-key* 'identity)
+                   (json:*json-identifier-name-to-lisp* 'identity))
+               (json:decode-json-from-source filepath)))
+      (:yaml (cl-yaml:parse filepath)))))
 
 (defun define-api-from-v3-spec (name spec)
   (flet ((@ (&rest path)
@@ -91,26 +89,23 @@
      ,(-> param "description")))
 
 (defun collect-resources (spec)
-  (flet ((vals (x)
-           (if (hash-table-p x)
-               (alexandria:hash-table-alist x)
-               x)))    
   (let ((resources (make-hash-table :test 'equalp)))
-    (loop for path in (vals (-> spec "paths"))
+    (loop for path in (alist (-> spec "paths"))
        do
-         (loop for operation in (vals (cdr path))
-             do
-               (let ((tag (first (-> (cdr operation) "tags"))))
-                 (assert (not (null tag)) nil "Operation ~A is not tagged." (car operation))
-                 (let ((tag-symbol (symbolicate tag)))
-                   (if (null (gethash tag-symbol resources))
-                       (setf (gethash tag-symbol resources)
-                             (list (cons (car path) operation)))
-                       (push (cons (car path) operation) (gethash tag-symbol resources)))))))
-    (alexandria:hash-table-alist resources))))
+         (loop for operation in (alist (cdr path))
+            do
+              (let ((tag (first (-> (cdr operation) "tags"))))
+                (assert (not (null tag)) nil "Operation ~A is not tagged." (car operation))
+                (let ((tag-symbol (symbolicate tag)))
+                  (if (null (gethash tag-symbol resources))
+                      (setf (gethash tag-symbol resources)
+                            (list (cons (car path) operation)))
+                      (push (cons (car path) operation) (gethash tag-symbol resources)))))))
+    (alexandria:hash-table-alist resources)))
 
 (defmacro define-api-from-spec (name filepath)
-  (%define-api-from-spec name (eval filepath)))
+  (let ((spec (read-spec-file filepath)))
+    (define-api-from-v3-spec name spec)))
 
 ;; OpenAPI export
 
@@ -209,3 +204,19 @@
 (defmethod openapi-type ((type rs::string-argument-type))
   "string")
 
+;; Schemas definition
+
+(defun parse-schemas-from-spec (spec)
+  (parse-schemas-from-v3-spec spec))
+
+(defun parse-schemas-from-v3-spec (spec)
+  (loop for (schema-name . schema-def) in (alist (access:accesses spec "components" "schemas"))
+     collect
+       (cons (intern (json::simplified-camel-case-to-lisp schema-name))
+             (rs.schema::schema-from-json-schema schema-def))))
+
+(defmacro define-schemas-from-spec (filepath)
+  (let ((spec (read-spec-file filepath)))
+    `(progn
+       ,@(loop for (schema-name . schema-def) in (parse-schemas-from-spec spec)
+              collect `(rs.schema:define-schema ,schema-name ,schema-def)))))

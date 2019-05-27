@@ -760,3 +760,46 @@ See: parse-api-input (function)"
              (json:as-object-member ((attribute-name attribute))
                (render-json-schema (attribute-type attribute) attribute)))))
     (json:encode-object-member "description" (object-documentation schema))))
+
+
+;; JSON schema parsing
+
+(defun alist (x)
+  (if (hash-table-p x)
+      (alexandria:hash-table-alist x)
+      x))
+
+(defun schema-from-json-schema (json-schema)
+  (case (alexandria:make-keyword (string-upcase (access:access json-schema "type")))
+    (:object (parse-json-schema-object json-schema))
+    (:array (parse-json-schema-array json-schema))
+    (:integer (parse-json-schema-integer json-schema))
+    (:string (parse-json-schema-string json-schema))
+    (:boolean (parse-json-schema-boolean json-schema))
+    (t (error "Invalid JSON schema type: ~A" (access:access json-schema "type")))))
+
+(defun parse-json-schema-object (json-schema)
+  (let ((required-props (access:access json-schema :required)))
+  `(:object ,(access:access json-schema "title")
+            ,(loop for prop in (alist (access:access json-schema "properties"))
+                collect (parse-json-schema-object-property prop (member (car prop) required-props :test 'equalp)))
+            (:documentation ,(access:access json-schema :description)))))
+
+(defun parse-json-schema-object-property (prop &optional (required-p t))
+  `(,(intern (json:camel-case-to-lisp (car prop)))
+     ,(schema-from-json-schema (cdr prop))
+     ,@(when (not required-p)
+         (list :optional t))
+     :documentation ,(access:access (cdr prop) "description")))
+
+(defun parse-json-schema-boolean (json-schema)
+  :boolean)
+
+(defun parse-json-schema-integer (json-schema)
+  :integer)
+
+(defun parse-json-schema-string (json-schema)
+  :string)
+
+(defun parse-json-schema-array (json-schema)
+  `(:list ,(schema-from-json-schema (access:accesses json-schema "items"))))
