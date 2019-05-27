@@ -790,6 +790,14 @@ See: parse-api-input (function)"
      ,(schema-from-json-schema (cdr prop))
      ,@(when (not required-p)
          (list :optional t))
+     ;; CUSTOM JSON SCHEMA PROPERTIES
+     ;; These are not JSON schema properties, we parse some extra attributes
+     ;; to fill-in REST-SERVER schema things not present in JSON schemas, like
+     ;; accessors, readers, formatters, etc
+     ,@(when (access:access (cdr prop) "accessor")
+         (list :accessor (read-from-string (access:access (cdr prop) "accessor"))))
+     ,@(when (access:access (cdr prop) "reader")
+         (list :reader (read-from-string (access:access (cdr prop) "reader"))))
      :documentation ,(access:access (cdr prop) "description")))
 
 (defun parse-json-schema-boolean (json-schema)
