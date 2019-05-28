@@ -1,16 +1,11 @@
 (in-package :rs.openapi)
 
-(%define-api-from-spec 'petstore
-    (asdf:system-relative-pathname :rest-server
-                                   "test/petstore.v3.yaml"))
-
-(%define-api-from-spec 'petstore
-    (asdf:system-relative-pathname :rest-server
-                                   "test/petstore.v3.json"))
-
+(define-schemas-from-spec
+    #.(asdf:system-relative-pathname :rest-server
+                                     "test/petstore.v3.json"))
 (define-api-from-spec petstore
-    (asdf:system-relative-pathname :rest-server
-                                   "test/petstore.v3.json"))
+    #.(asdf:system-relative-pathname :rest-server
+                                     "test/petstore.v3.json"))
 
 (rs:implement-resource-operation petstore
     get-pet-by-id (pet-id)
