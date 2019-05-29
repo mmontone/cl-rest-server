@@ -800,10 +800,11 @@ See: parse-api-input (function)"
      ;; These are not JSON schema properties, we parse some extra attributes
      ;; to fill-in REST-SERVER schema things not present in JSON schemas, like
      ;; accessors, readers, formatters, etc
-     ,@(when (access:access (cdr prop) "accessor")
-         (list :accessor (read-from-string (access:access (cdr prop) "accessor"))))
-     ,@(when (access:access (cdr prop) "reader")
-         (list :reader (read-from-string (access:access (cdr prop) "reader"))))
+     ;; Extension properties begin with an "x-" prefix
+     ,@(when (access:access (cdr prop) "x-accessor")
+         (list :accessor (read-from-string (access:access (cdr prop) "x-accessor"))))
+     ,@(when (access:access (cdr prop) "x-reader")
+         (list :reader (read-from-string (access:access (cdr prop) "x-reader"))))
      :documentation ,(access:access (cdr prop) "description")))
 
 (defun parse-json-schema-boolean (json-schema)
