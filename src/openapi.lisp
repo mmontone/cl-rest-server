@@ -26,7 +26,8 @@
 (setf (fdefinition '->) #'access:accesses)
 
 (defun symbolicate (string)
-  (intern (json:camel-case-to-lisp string)))
+  ;;(intern (json:camel-case-to-lisp string))
+  (intern (json::simplified-camel-case-to-lisp string)))
 
 (declaim (ftype (function (pathname) t) define-api-from-spec))
 
@@ -93,7 +94,7 @@
     (loop for path in (alist (-> spec "paths"))
        do
          (loop for operation in (alist (cdr path))
-              when (member (cdr operation) '("get" "post" "put" "delete") :test 'equalp)
+              when (member (car operation) '("get" "post" "put" "delete") :test 'equalp)
             do
               (let ((tag (first (-> (cdr operation) "tags"))))
                 (assert (not (null tag)) nil "Operation ~A is not tagged." (car operation))
