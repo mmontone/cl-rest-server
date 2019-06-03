@@ -116,7 +116,7 @@
 
 (in-package :rest-server-tests)
 
-(start-api 'oauth2-test::oauth2-api-test "localhost" 8183)
+(start-api 'oauth2-test::oauth2-api-test :port 8183)
 
 (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor
                                   :port 8184))

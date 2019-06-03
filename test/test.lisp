@@ -23,7 +23,7 @@
 (defvar *api-acceptor*)
 
 (def-fixture api-fixture ()
-  (let ((*api-acceptor* (start-api 'api-test::api-test "localhost" 8181 
+  (let ((*api-acceptor* (start-api 'api-test::api-test :port 8181 
 								   :access-log-destination nil)))
 	(rs::with-text-content-types 
 	  (&body))

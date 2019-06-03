@@ -22,7 +22,7 @@
   (format nil "User login with ~A and ~A" username password))
 
 (defun start-petstore-api ()
-  (rs:start-api 'petstore "localhost" 3006))
+  (rs:start-api 'petstore :port 3006))
 
 (defun export-petstore-api ()
   (rs.openapi:export-api-spec (find-api 'petstore)))

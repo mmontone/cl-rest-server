@@ -74,7 +74,7 @@
 
                           `(define-api-resource ,name ,resource-options ,@operations))))))))
 
-(defun start-api (api address port &rest args)
+(defun start-api (api &rest args)
   "Start an api at address and port.
 
    In production mode, we bind the api directly. In debug mode, we only bind the API name in order to be able to make modifications to the api (definition) in development time"
@@ -90,8 +90,6 @@
                      api))))
     (let ((api-acceptor (apply #'make-instance
                                'api-acceptor
-                               :address address
-                               :port port
                                :api api
                                :allow-other-keys t
                                args)))
