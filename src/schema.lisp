@@ -816,5 +816,8 @@ See: parse-api-input (function)"
 (defun parse-json-schema-string (json-schema)
   :string)
 
+(defun parse-json-schema-number (json-schema)
+  (alexandria:make-keyword (string-upcase (access:access json-schema :format))))
+
 (defun parse-json-schema-array (json-schema)
   `(:list ,(schema-from-json-schema (access:accesses json-schema "items"))))
