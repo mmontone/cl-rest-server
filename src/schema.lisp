@@ -528,16 +528,23 @@ Args:
   (attribute-option :add-validator attribute))
 
 (defun attribute-writer (attribute)
-  (or (attribute-option :writer attribute)
+  (or (and (attribute-option :writer attribute)
+           (alexandria:ensure-function (attribute-option :writer attribute)))
       (and (attribute-accessor attribute)
-           (fdefinition
+           (alexandria:ensure-function
             `(setf
-              ,(attribute-accessor attribute))))))
+              ,(attribute-accessor attribute))))
+      (lambda (value obj)
+        (setf (access:access obj (attribute-name attribute)) value))))
 
 (defun attribute-reader (attribute)
   (or
-   (attribute-option :reader attribute)
-   (attribute-accessor attribute)))
+   (and (attribute-option :reader attribute)
+        (alexandria:ensure-function (attribute-option :reader attribute)))
+   (and (attribute-accessor attribute)
+        (alexandria:ensure-function (attribute-accessor attribute)))
+   (lambda (obj)
+     (access:access obj (attribute-name attribute)))))
 
 (defun attribute-parser (attribute)
   (attribute-option :parser attribute))
@@ -651,6 +658,20 @@ See: parse-api-input (function)"
           (error "Invalid type ~A" type-name)
                                         ; else
           (unserialize-schema-attribute-value schema input)))))
+
+(defun populate-with-schema (schema object data &key exclude)
+  "Populate CLOS objects from data + schema.
+Attributes members of EXCLUDE parameter are not populated."
+  (loop for attribute in (object-attributes schema)
+     unless (member (attribute-name attribute) exclude)
+     do
+       (multiple-value-bind (value found)
+           (access:access data (attribute-name attribute))
+         (when found
+           (let ((attribute-writer (attribute-writer attribute)))
+             (funcall attribute-writer
+                      value
+                      object))))))
 
 ;; Plugging
 

@@ -106,7 +106,8 @@
            #:validation-error
            #:validate-with-schema
            #:parse-with-schema
-           #:unserialize-with-schema))
+           #:unserialize-with-schema
+           #:populate-with-schema))
 
 (defpackage #:rest-server.mop
   (:nicknames #:rs.mop)
