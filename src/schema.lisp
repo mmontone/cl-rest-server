@@ -780,6 +780,7 @@ See: parse-api-input (function)"
         (:object (parse-json-schema-object json-schema))
         (:array (parse-json-schema-array json-schema))
         (:integer (parse-json-schema-integer json-schema))
+        (:number (parse-json-schema-number json-schema))
         (:string (parse-json-schema-string json-schema))
         (:boolean (parse-json-schema-boolean json-schema))
         (t (error "Invalid JSON schema type: ~A" (access:access json-schema "type"))))))
