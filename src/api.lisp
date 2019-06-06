@@ -80,7 +80,7 @@
    In production mode, we bind the api directly. In debug mode, we only bind the API name in order to be able to make modifications to the api (definition) in development time"
   (when (getf args :config)
     (configure-api api (getf args :config)))
-  (let ((api (if (getf args :debug-mode)
+  (let ((api (if (not (getf args :prod-mode))
                  (if (symbolp api)
                      api
                      (name api))
