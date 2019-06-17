@@ -145,7 +145,7 @@
       (cond
         ((keywordp list-type)
          ;; It is a primitive type like :string, :boolean, etc
-         (loop for elem in input
+         (loop for elem in (coerce input 'list)
             do
               (add-list-member "ITEM" elem
                                :serializer serializer
@@ -153,7 +153,7 @@
         ((symbolp list-type)
          ;; It is a reference to a schema like 'user-schema'
          (let ((schema (find-schema list-type)))
-           (loop for elem in input
+           (loop for elem in (coerce input 'list)
               do
                 (with-list-member ("ITEM" :serializer serializer
                                           :stream stream)
@@ -161,7 +161,7 @@
         ((listp list-type)
          ;; It is some compound type, like :object, :list, or :option
          (let ((schema list-type))
-           (loop for elem in input
+           (loop for elem in (coerce input 'list)
               do
                 (with-list-member ("ITEM" :serializer serializer
                                           :stream stream)
