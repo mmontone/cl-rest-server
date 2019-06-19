@@ -56,16 +56,23 @@
      ,@(loop for operation in (cdr resource)
           collect (inline-operation-from-v3-spec operation))))
 
+(defun parse-authorization (security-name)
+  (intern (format nil "~A-AUTH" (symbolicate security-name))))
+
 (defun inline-operation-from-v3-spec (operation)
   (destructuring-bind (path method &rest args) operation
-    `(,(symbolicate (-> args "operationId"))
+    (let ((security (mapcar (alexandria:compose 'parse-authorization
+                                                'caar)
+                            (-> args "security"))))
+      `(,(symbolicate (-> args "operationId"))
        (:request-method ,(alexandria:make-keyword (string-upcase method))
                         :produces (:json)
                         :consumes (:json)
                         :path ,(string path)
+                        :authorizations ,security
                         :documentation ,(-> args "description"))
        ,(operation-parameters-from-spec operation)))
-  )
+  ))
 
 (defun operation-parameters-from-spec (operation)
   (let ((params (-> (cddr operation) "parameters"))
