@@ -346,13 +346,18 @@ Args:
                                      :test #'equalp
                                      :key #'string)
          appending
-           (progn
-             (when (and (not data-attribute)
-                        (not (attribute-optional-p schema-attribute)))
+           (cond
+             ((and (not data-attribute)
+                   (not (attribute-optional-p schema-attribute)))
                (validation-error "Attribute ~a not found in ~a"
                                  (attribute-name schema-attribute)
                                  data))
-             (when (or (equalp (attribute-type schema-attribute) :boolean)
+             ((and (not data-attribute)
+                   (attribute-optional-p schema-attribute))
+              ;; don't add the attribute to the data in this case
+              ;; idea to think of: we could use the attribute default value if specified, instead
+              nil)
+             ((or (equalp (attribute-type schema-attribute) :boolean)
                        (not (null (cdr data-attribute))))
                (list (cons (intern (string (attribute-name schema-attribute)) :keyword)
                            (parse-schema-attribute schema-attribute (cdr data-attribute)))))))))
@@ -818,6 +823,9 @@ Attributes members of EXCLUDE parameter are not populated."
      ,(schema-from-json-schema (cdr prop))
      ,@(when (not required-p)
          (list :optional t))
+     ,@(let ((default (access:access (cdr prop) "default")))
+         (when default
+           (list :default default)))
      ;; CUSTOM JSON SCHEMA PROPERTIES
      ;; These are not JSON schema properties, we parse some extra attributes
      ;; to fill-in REST-SERVER schema things not present in JSON schemas, like
@@ -827,6 +835,8 @@ Attributes members of EXCLUDE parameter are not populated."
          (list :accessor (read-from-string (access:access (cdr prop) "x-accessor"))))
      ,@(when (access:access (cdr prop) "x-reader")
          (list :reader (read-from-string (access:access (cdr prop) "x-reader"))))
+     ,@(when (access:access (cdr prop) "x-writer")
+         (list :writer (read-from-string (access:access (cdr prop) "x-writer"))))
      :documentation ,(access:access (cdr prop) "description")))
 
 (defun parse-json-schema-boolean (json-schema)
