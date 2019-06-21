@@ -79,10 +79,10 @@
   (destructuring-bind (_ object-name attributes &rest options) schema-object
     (declare (ignore _))
     (with-object ((or (and (stringp object-name)
-                            object-name)
-                       (symbol-name object-name))
-                   :serializer serializer
-                   :stream stream)
+                           object-name)
+                      (symbol-name object-name))
+                  :serializer serializer
+                  :stream stream)
       (loop for attribute in attributes
          do
            (serialize-schema-attribute attribute serializer input stream)))))
@@ -236,13 +236,13 @@ Args:
                                   (find-schema schema))
                              schema)))
              (%schema-validate (schema-type schema) schema data attribute))))
-  (if (and attribute (attribute-validator attribute))
-      
-      ;; The validator function receives the data to validate and an "schema validator" function
-      ;; it can use to validate the schema
-      (funcall (attribute-validator attribute) data #'schema-validator)
-      ;; else
-      (schema-validator))))
+    (if (and attribute (attribute-validator attribute))
+
+        ;; The validator function receives the data to validate and an "schema validator" function
+        ;; it can use to validate the schema
+        (funcall (attribute-validator attribute) data #'schema-validator)
+        ;; else
+        (schema-validator))))
 
 (defmethod schema-validate :after (schema data &optional attribute)
   ;; After normal validation, :add-validator is evaluated if found
@@ -262,17 +262,21 @@ Args:
                                    :test #'equalp
                                    :key #'string)
      :do
-     (when (and (not data-attribute)
-                (not (attribute-optional-p schema-attribute)))
-       (let ((error-msg (or (attribute-option :not-provided-message schema-attribute)
-                            (format nil "Attribute ~a not provided"
-                                    (attribute-name schema-attribute)))))
-         (validation-error error-msg)))
-     (when (not (and (attribute-optional-p schema-attribute)
+     (cond
+       ((and (not data-attribute)
+             (not (attribute-optional-p schema-attribute)))
+        (let ((error-msg (or (attribute-option :not-provided-message schema-attribute)
+                             (format nil "Attribute ~a not provided"
+                                     (attribute-name schema-attribute)))))
+          (validation-error error-msg)))
+       ((not data-attribute)
+        ;; Nothing to validate
+        )
+       ((not (and (attribute-optional-p schema-attribute)
                      (null data-attribute)))
        (schema-validate (attribute-type schema-attribute)
                         (cdr data-attribute)
-                        schema-attribute))))
+                        schema-attribute)))))
 
 (defmethod %schema-validate ((schema-type (eql :list)) schema data &optional attribute)
   (let ((list-type (or (and (listp schema)
@@ -290,6 +294,12 @@ Args:
 (defmethod %schema-validate ((schema-type (eql :string)) schema data &optional attribute)
   (when (not (stringp data))
     (validation-error "~A: ~A is not a string"
+                      (attribute-name attribute)
+                      data)))
+
+(defmethod %schema-validate ((schema-type (eql :boolean)) schema data &optional attribute)
+  (when (not (typep data 'boolean))
+    (validation-error "~A: ~A is not a boolean"
                       (attribute-name attribute)
                       data)))
 
@@ -349,18 +359,17 @@ Args:
            (cond
              ((and (not data-attribute)
                    (not (attribute-optional-p schema-attribute)))
-               (validation-error "Attribute ~a not found in ~a"
-                                 (attribute-name schema-attribute)
-                                 data))
-             ((and (not data-attribute)
-                   (attribute-optional-p schema-attribute))
+              (validation-error "Attribute ~a not found in ~a"
+                                (attribute-name schema-attribute)
+                                data))
+             ((not data-attribute)
               ;; don't add the attribute to the data in this case
               ;; idea to think of: we could use the attribute default value if specified, instead
               nil)
              ((or (equalp (attribute-type schema-attribute) :boolean)
-                       (not (null (cdr data-attribute))))
-               (list (cons (intern (string (attribute-name schema-attribute)) :keyword)
-                           (parse-schema-attribute schema-attribute (cdr data-attribute)))))))))
+                  (not (null (cdr data-attribute))))
+              (list (cons (intern (string (attribute-name schema-attribute)) :keyword)
+                          (parse-schema-attribute schema-attribute (cdr data-attribute)))))))))
 
 (defun parse-schema-attribute (schema-attribute value)
   (let ((parsed-value (parse-schema-attribute-value (attribute-type schema-attribute) value)))
@@ -782,7 +791,7 @@ Attributes members of EXCLUDE parameter are not populated."
     (json:as-object-member ("properties")
       (json:with-object ()
         (loop for attribute in (object-attributes schema)
-             do
+           do
              (json:as-object-member ((attribute-name attribute))
                (render-json-schema (attribute-type attribute) attribute)))))
     (json:encode-object-member "description" (object-documentation schema))))
@@ -813,10 +822,10 @@ Attributes members of EXCLUDE parameter are not populated."
 
 (defun parse-json-schema-object (json-schema)
   (let ((required-props (access:access json-schema :required)))
-  `(:object ,(access:access json-schema "title")
-            ,(loop for prop in (alist (access:access json-schema "properties"))
-                collect (parse-json-schema-object-property prop (member (car prop) required-props :test 'equalp)))
-            (:documentation ,(access:access json-schema :description)))))
+    `(:object ,(access:access json-schema "title")
+              ,(loop for prop in (alist (access:access json-schema "properties"))
+                  collect (parse-json-schema-object-property prop (member (car prop) required-props :test 'equalp)))
+              (:documentation ,(access:access json-schema :description)))))
 
 (defun parse-json-schema-object-property (prop &optional (required-p t))
   `(,(intern (json:camel-case-to-lisp (car prop)))
