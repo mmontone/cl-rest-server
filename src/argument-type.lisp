@@ -217,7 +217,7 @@
 (def-argument-type date-argument-type ()
   ()
   (:parse (spec)
-          (when (= spec :date)
+          (when (equalp spec :date)
             (make-instance 'date-argument-type)))
   (:parse-value (string)
                 (or (local-time:parse-timestring string
