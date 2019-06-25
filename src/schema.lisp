@@ -265,8 +265,8 @@ Args:
      (cond
        ((and (not data-attribute)
              (not (attribute-optional-p schema-attribute)))
-        (let ((error-msg (or (attribute-option :not-provided-message schema-attribute)
-                             (format nil "Attribute ~a not provided"
+        (let ((error-msg (or (attribute-option :attribute-required-message schema-attribute)
+                             (format nil "Attribute required: ~a"
                                      (attribute-name schema-attribute)))))
           (validation-error error-msg)))
        ((not data-attribute)
@@ -320,7 +320,7 @@ Args:
          (or (typep data 'local-time:timestamp)
              (and (stringp data)
                   (chronicity:parse data))))
-    (validation-error "~A: ~A is not a timestamp"
+    (validation-error "~A: ~A is not a valid timestamp"
                       (attribute-name attribute)
                       data)))
 
@@ -329,7 +329,7 @@ Args:
          (or (typep data 'local-time:timestamp)
              (and (stringp data)
                   (chronicity:parse data))))
-    (validation-error "~A: ~A is not a timestamp"
+    (validation-error "~A: ~A is not a valid timestamp"
                       (attribute-name attribute)
                       data)))
 
@@ -338,7 +338,7 @@ Args:
          (or (typep data 'local-time:timestamp)
              (and (stringp data)
                   (chronicity:parse data))))
-    (validation-error "~A: ~A is not a date"
+    (validation-error "~A: ~A is not a valid date"
                       (attribute-name attribute)
                       data)))
 
@@ -864,6 +864,11 @@ Attributes members of EXCLUDE parameter are not populated."
          (list :reader (read-from-string (access:access (cdr prop) "x-reader"))))
      ,@(when (access:access (cdr prop) "x-writer")
          (list :writer (read-from-string (access:access (cdr prop) "x-writer"))))
+     ,@(when (access:access (cdr prop) "x-validator")
+         (list :validator (read-from-string (access:access (cdr prop) "x-validator"))))
+     ,@(when (access:access (cdr prop) "x-add-validator")
+         (list :add-validator (read-from-string (access:access (cdr prop) "x-add-validator"))))
+     
      :documentation ,(access:access (cdr prop) "description")))
 
 (defun parse-json-schema-boolean (json-schema)
