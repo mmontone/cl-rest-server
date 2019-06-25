@@ -324,6 +324,24 @@ Args:
                       (attribute-name attribute)
                       data)))
 
+(defmethod %schema-validate ((schema-type (eql :datetime)) schema data &optional attribute)
+  (when (not
+         (or (typep data 'local-time:timestamp)
+             (and (stringp data)
+                  (chronicity:parse data))))
+    (validation-error "~A: ~A is not a timestamp"
+                      (attribute-name attribute)
+                      data)))
+
+(defmethod %schema-validate ((schema-type (eql :date)) schema data &optional attribute)
+  (when (not
+         (or (typep data 'local-time:timestamp)
+             (and (stringp data)
+                  (chronicity:parse data))))
+    (validation-error "~A: ~A is not a date"
+                      (attribute-name attribute)
+                      data)))
+
 (defmethod %schema-validate ((schema-type (eql :keyword)) schema data &optional attribute)
   (when (not (stringp data))
     (validation-error "~A: ~A is not a keyword"
