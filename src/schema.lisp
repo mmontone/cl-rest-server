@@ -855,7 +855,14 @@ Attributes members of EXCLUDE parameter are not populated."
   :integer)
 
 (defun parse-json-schema-string (json-schema)
-  :string)
+  (cond
+    ((equalp (access:access json-schema "format")
+             "date")
+     :date)
+    ((equalp (access:access json-schema "format")
+             "date-time")
+     :datetime)
+    (t :string)))
 
 (defun parse-json-schema-number (json-schema)
   (alexandria:make-keyword (string-upcase (access:access json-schema :format))))

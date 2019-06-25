@@ -214,6 +214,33 @@
   (:format-spec (argument-type)
                 :timestamp))
 
+(def-argument-type date-argument-type ()
+  ()
+  (:parse (spec)
+          (when (= spec :date)
+            (make-instance 'date-argument-type)))
+  (:parse-value (string)
+                (or (local-time:parse-timestring string
+                                                 :allow-missing-time-part t
+                                                 :allow-missing-timezone-part t)
+                    (chronicity:parse string)
+                    (parse-error "Could not parse date: ~A"
+                                 string)))
+  (:format-value (value)
+                 (cond
+                   ((integerp value)
+                    (local-time:format-timestring
+                     nil
+                     (local-time:universal-to-timestamp value)))
+                   ((typep value 'local-time:timestamp)
+                    (local-time:format-timestring
+                     nil
+                     value))
+                   (t
+                    (error "Not a date: ~A" value))))
+  (:format-spec (argument-type)
+                :date))
+
 (def-argument-type keyword-argument-type ()
   ()
   (:parse (spec)
