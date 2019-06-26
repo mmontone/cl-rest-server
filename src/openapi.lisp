@@ -93,8 +93,18 @@
 
 (defun param-from-spec (param)
   `(,(symbolicate (-> param "name"))
-     ,(alexandria:make-keyword (string-upcase (-> param "schema" "type")))
+     ,(param-type-from-spec param)
      ,(-> param "description")))
+
+(defun param-type-from-spec (param)
+  (cond
+    ((and (equalp (-> param "schema" "type") "string")
+          (equalp (-> param "schema" "format") "date"))
+     :date)
+    ((and (equalp (-> param "schema" "type") "string")
+          (equalp (-> param "schema" "format") "date-time"))
+     :timestamp)
+    (t (alexandria:make-keyword (string-upcase (-> param "schema" "type"))))))
 
 (defun collect-resources (spec)
   (let ((resources (make-hash-table :test 'equalp)))
