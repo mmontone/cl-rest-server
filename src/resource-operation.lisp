@@ -457,10 +457,8 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
   (or
    (find name (optional-arguments resource-operation)
          :key (alexandria:compose #'make-keyword #'argument-name))
-   (rs.schema:validation-error "Optional argument ~A not found in ~A ~A"
-                               name
-                               resource-operation
-                               (optional-arguments resource-operation))))
+   (rs.schema:validation-error "Invalid argument: ~A"
+                               name)))
 
 (defun resource-operation-matches-request-p (resource-operation request)
   (let ((scanner (parse-resource-operation-path (path resource-operation))))

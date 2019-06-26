@@ -24,17 +24,21 @@
     (remf fargs :page)
     (remf fargs :object-name)
     (remf fargs :results)
-    (rs.serialize:object object-name
-                         (rs.serialize:attribute :page page)
-                         (rs.serialize:attribute :next
-                                                 (format-absolute-resource-operation-url *resource-operation*
-                                                                                         `(:page (1+ ,page)
-                                                                                                 ,@fargs)))
-                         (rs.serialize:attribute :previous
-                                                 (format-absolute-resource-operation-url *resource-operation*
-                                                                                         `(:page (1- ,page)
-                                                                                                 ,@fargs)))
-                         (rs.serialize:attribute :results results))))
+    (if (zerop (length results))
+        (rs.serialize:object object-name
+                             (rs.serialize:attribute :results results))
+        ;; else
+        (rs.serialize:object object-name
+                             (rs.serialize:attribute :page page)
+                             (rs.serialize:attribute :next
+                                                     (format-absolute-resource-operation-url *resource-operation*
+                                                                                             `(:page (1+ ,page)
+                                                                                                     ,@fargs)))
+                             (rs.serialize:attribute :previous
+                                                     (format-absolute-resource-operation-url *resource-operation*
+                                                                                             `(:page (1- ,page)
+                                                                                                     ,@fargs)))
+                             (rs.serialize:attribute :results results)))))
 
 ;; (defclass pagination ()
 ;;   ((function :initarg :function
