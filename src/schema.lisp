@@ -326,7 +326,9 @@ Args:
   (when (not
          (or (typep data 'local-time:timestamp)
              (and (stringp data)
-                  (chronicity:parse data))))
+                  (or (ignore-errors (local-time:parse-timestring data
+                                                                  :allow-missing-timezone-part t))
+                      (chronicity:parse data)))))
     (validation-error "~A: ~A is not a valid timestamp"
                       (or (attribute-external-name attribute)
                           (attribute-name attribute))
@@ -336,7 +338,9 @@ Args:
   (when (not
          (or (typep data 'local-time:timestamp)
              (and (stringp data)
-                  (chronicity:parse data))))
+                  (or (ignore-errors (local-time:parse-timestring data
+                                                                  :allow-missing-timezone-part t))
+                      (chronicity:parse data)))))
     (validation-error "~A: ~A is not a valid timestamp"
                       (or (attribute-external-name attribute)
                           (attribute-name attribute))
@@ -346,7 +350,10 @@ Args:
   (when (not
          (or (typep data 'local-time:timestamp)
              (and (stringp data)
-                  (chronicity:parse data))))
+                  (or (ignore-errors (local-time:parse-timestring data
+                                                                  :allow-missing-time-part t
+                                                                  :allow-missing-timezone-part t))
+                      (chronicity:parse data)))))
     (validation-error "~A: ~A is not a valid date"
                       (or (attribute-external-name attribute)
                           (attribute-name attribute))
@@ -451,13 +458,28 @@ Args:
     (t (validation-error "~A is not a float" data))))
 
 (defmethod parse-schema-attribute-value ((type (eql :timestamp)) data)
-  (chronicity:parse data))
+  (or (ignore-errors (local-time:parse-timestring data :allow-missing-timezone-part t))
+      (chronicity:parse data)))
+
+(defmethod parse-schema-attribute-value ((type (eql :datetime)) data)
+  (or (ignore-errors (local-time:parse-timestring data :allow-missing-timezone-part t))
+      (chronicity:parse data)))
 
 (defmethod parse-schema-attribute-value ((type (eql :time)) data)
-  (chronicity:parse data))
+  (or
+   (ignore-errors (local-time:parse-timestring
+                   data
+                   :allow-missing-date-part t
+                   :allow-missing-timezone-part t))
+   (chronicity:parse data)))
 
 (defmethod parse-schema-attribute-value ((type (eql :date)) data)
-  (chronicity:parse data))
+  (or 
+   (ignore-errors (local-time:parse-timestring
+                   data
+                   :allow-missing-time-part t
+                   :allow-missing-timezone-part t))
+   (chronicity:parse data)))
 
 (defmethod parse-schema-attribute-value ((type (eql :keyword)) data)
   (intern (string-upcase data) :keyword))
