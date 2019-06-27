@@ -251,7 +251,8 @@ Args:
       (when (not valid-p)
         (validation-error (or error-message
                               (format nil "~A: is invalid"
-                                      (attribute-name attribute))))))))
+                                      (or (attribute-external-name attribute)
+                                          (attribute-name attribute)))))))))
 
 (defmethod %schema-validate ((schema-type (eql :object)) schema data &optional attribute)
   "Validate data using schema object. "
@@ -267,7 +268,8 @@ Args:
              (not (attribute-optional-p schema-attribute)))
         (let ((error-msg (or (attribute-option :attribute-required-message schema-attribute)
                              (format nil "Attribute required: ~a"
-                                     (attribute-name schema-attribute)))))
+                                     (or (attribute-external-name schema-attribute)
+                                         (attribute-name schema-attribute))))))
           (validation-error error-msg)))
        ((not data-attribute)
         ;; Nothing to validate
@@ -284,7 +286,8 @@ Args:
                        :any)))
     (when (not (listp data))
       (validation-error "~A: ~A is not of type ~A"
-                        (attribute-name attribute)
+                        (or (attribute-external-name attribute)
+                            (attribute-name attribute))
                         attribute
                         (attribute-type attribute)))
     (every (lambda (val)
@@ -294,25 +297,29 @@ Args:
 (defmethod %schema-validate ((schema-type (eql :string)) schema data &optional attribute)
   (when (not (stringp data))
     (validation-error "~A: ~A is not a string"
-                      (attribute-name attribute)
+                      (or (attribute-external-name attribute)
+                          (attribute-name attribute))
                       data)))
 
 (defmethod %schema-validate ((schema-type (eql :boolean)) schema data &optional attribute)
   (when (not (typep data 'boolean))
     (validation-error "~A: ~A is not a boolean"
-                      (attribute-name attribute)
+                      (or (attribute-external-name attribute)
+                          (attribute-name attribute))
                       data)))
 
 (defmethod %schema-validate ((schema-type (eql :integer)) schema data &optional attribute)
   (when (not (integerp data))
     (validation-error "~A: ~A is not a number"
-                      (attribute-name attribute)
+                      (or (attribute-external-name attribute)
+                          (attribute-name attribute))
                       data)))
 
 (defmethod %schema-validate ((schema-type (eql :float)) schema data &optional attribute)
   (when (not (floatp data))
     (validation-error "~A: ~A is not a float"
-                      (attribute-name attribute)
+                      (or (attribute-external-name attribute)
+                          (attribute-name attribute))
                       data)))
 
 (defmethod %schema-validate ((schema-type (eql :timestamp)) schema data &optional attribute)
@@ -321,7 +328,8 @@ Args:
              (and (stringp data)
                   (chronicity:parse data))))
     (validation-error "~A: ~A is not a valid timestamp"
-                      (attribute-name attribute)
+                      (or (attribute-external-name attribute)
+                          (attribute-name attribute))
                       data)))
 
 (defmethod %schema-validate ((schema-type (eql :datetime)) schema data &optional attribute)
@@ -330,7 +338,8 @@ Args:
              (and (stringp data)
                   (chronicity:parse data))))
     (validation-error "~A: ~A is not a valid timestamp"
-                      (attribute-name attribute)
+                      (or (attribute-external-name attribute)
+                          (attribute-name attribute))
                       data)))
 
 (defmethod %schema-validate ((schema-type (eql :date)) schema data &optional attribute)
@@ -339,13 +348,15 @@ Args:
              (and (stringp data)
                   (chronicity:parse data))))
     (validation-error "~A: ~A is not a valid date"
-                      (attribute-name attribute)
+                      (or (attribute-external-name attribute)
+                          (attribute-name attribute))
                       data)))
 
 (defmethod %schema-validate ((schema-type (eql :keyword)) schema data &optional attribute)
   (when (not (stringp data))
     (validation-error "~A: ~A is not a keyword"
-                      (attribute-name attribute)
+                      (or (attribute-external-name attribute)
+                          (attribute-name attribute))
                       data)))
 
 (defgeneric parse-with-schema (schema string-or-data &optional format)
@@ -586,6 +597,10 @@ Args:
 
 (defun attribute-documentation (attribute)
   (attribute-option :documentation attribute))
+
+(defun attribute-external-name (attribute)
+  "Name of the field that is shown in error messages (and in serialization?)"
+  (attribute-option :external-name attribute))
 
 ;; Unserialization
 
@@ -848,6 +863,7 @@ Attributes members of EXCLUDE parameter are not populated."
 (defun parse-json-schema-object-property (prop &optional (required-p t))
   `(,(intern (json:camel-case-to-lisp (car prop)))
      ,(schema-from-json-schema (cdr prop))
+     :external-name ,(car prop)
      ,@(when (not required-p)
          (list :optional t))
      ,@(let ((default (access:access (cdr prop) "default")))
