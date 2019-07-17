@@ -29,9 +29,6 @@
   `(call-with-error-handler ,error-handler
                             (lambda () (progn ,@body))))
 
-;; We have to disable hunchentoot handler and enable ours
-(setf hunchentoot:*catch-errors-p* nil)
-
 ;; Conditions
 
 (define-condition http-error (simple-error)
