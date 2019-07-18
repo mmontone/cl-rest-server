@@ -483,7 +483,10 @@
     (json:json-syntax-error (e)
       (error 'rs.error:http-bad-request
              :format-control (simple-condition-format-control e)
-             :format-arguments (simple-condition-format-arguments e)))))
+             :format-arguments (simple-condition-format-arguments e)))
+    (error (e)
+      (error 'rs.error:http-bad-request
+             :format-control "Invalid JSON"))))
 
 (defun fold-tree (f g tree)
   (if (listp tree)
