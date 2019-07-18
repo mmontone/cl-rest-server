@@ -18,8 +18,8 @@
   (log5:log-for (rs::rest-server log5:error+) "ERROR: ~A" error)
   (log5:log-for (rs::rest-server log5:error+)
                 (trivial-backtrace:print-backtrace error :output nil))
-  (format t "ERROR: ~a~%" error)
-  (trivial-backtrace:print-backtrace error :output t))
+  (format *debug-io* "ERROR: ~a~%" error)
+  (trivial-backtrace:print-backtrace error))
 
 (defmethod log-api-error ((error http-error))
   ;; We don't want to log HTTP "error" signals like
