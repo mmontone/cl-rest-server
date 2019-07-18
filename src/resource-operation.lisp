@@ -1,6 +1,8 @@
 (in-package :rest-server)
 
-(defparameter *default-reply-content-type* "application/json")
+(defvar *default-reply-content-type* "application/json")
+(defvar *argument-url-name-parser* (lambda (name) (intern (json:camel-case-to-lisp name))))
+(defvar *argument-url-name-formatter* 'json:lisp-to-camel-case)
 
 (defun set-reply-content-type (content-type)
   (setf (hunchentoot:header-out "Content-Type") content-type))
@@ -180,9 +182,6 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
   (setf (hunchentoot:header-out "Allow")
         (string-upcase (string (request-method resource-operation)))))
 
-(defvar *argument-url-name-parser* (lambda (name) (intern (json:camel-case-to-lisp name))))
-(defvar *argument-url-name-formatter* 'json:lisp-to-camel-case)
-
 (defclass resource-operation-argument ()
   ((name :initarg :name
          :type symbol
@@ -247,6 +246,68 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
    resource-operation-implementation
    (lambda (&rest args)
      (apply #'execute resource-operation-implementation args))))
+
+(defun parse-resource-operation-path (string)
+  (let* ((vars nil)
+         (path-regex (remove
+                      nil
+                      (loop for x in (cl-ppcre:split '(:register (:char-class #\{ #\})) string :with-registers-p t)
+                         with status = :norm
+                         collect
+                           (case status
+                             (:norm
+                              (cond ((string= x "{")
+                                     (setf status :invar)
+                                     nil)
+                                    ((string= x "}")
+                                     (error "Parse error"))
+                                    (t x)))
+                             (:invar
+                              (cond ((string= x "}")
+                                     (setf status :norm)
+                                     nil)
+                                    ((string= x "{")
+                                     (error "Parse error"))
+                                    (t
+                                     (push (funcall *argument-url-name-parser* x)
+                                           vars)
+                                     `(:register (:non-greedy-repetition 1 nil (:inverted-char-class #\/ #\?))))))))))
+         (scanner
+          `(:sequence
+            :start-anchor
+            (:alternation
+             (:sequence
+              ,@path-regex)
+             (:sequence
+              ,@path-regex
+              #\?
+              (:non-greedy-repetition 0 nil :everything)))
+            :end-anchor)))
+    (values scanner vars)))
+
+(defun extract-function-arguments (resource-operation request)
+  (let* ((request-uri (request-uri request))
+         (scanner (parse-resource-operation-path (path resource-operation))))
+    (multiple-value-bind (replaced-uri args)
+        (ppcre:scan-to-strings scanner request-uri)
+      (declare (ignore replaced-uri))
+      (let ((args (loop for arg across args
+                     when arg
+                     collect (hunchentoot:url-decode arg))))
+        (let ((required-args
+               (loop
+                  for reqarg in (required-arguments resource-operation)
+                  for arg in args
+                  collect (parse-argument-value arg (argument-type reqarg))))
+              (optional-args
+               (loop
+                  for (var . string) in (request-uri-parameters request-uri)
+                  for optarg = (find-optional-argument (make-keyword var) resource-operation)
+                  appending
+                    (list (make-keyword (string (argument-name optarg)))
+                          (parse-argument-value (hunchentoot:url-decode string)
+                                                (argument-type optarg))))))
+          (append required-args optional-args))))))
 
 (defmethod execute ((resource-operation-implementation resource-operation-implementation) &rest args)
   (rs.auth::call-verifying-authorization
