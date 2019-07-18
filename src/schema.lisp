@@ -87,6 +87,13 @@
          do
            (serialize-schema-attribute attribute serializer input stream)))))
 
+(defvar *null-values* (list nil)
+  "The list of values considered null. Attribute with these values are not
+serialized when optional. Useful for treatment of special values, like :null in Postmodern library")
+
+(defun null-value (value)
+  (member value *null-values*))
+
 (defun serialize-schema-attribute (schema-attribute serializer input stream)
   (destructuring-bind
         (attribute-name attribute-type &rest options)
@@ -95,7 +102,11 @@
                                         (getf options :accessor)
                                         attribute-name)))
            (attribute-value (funcall reader input)))
-      (when (not (and (getf options :optional) (not attribute-value)))
+      (when (and
+             ;; Booleans are always serialized. We don't have a way of
+             ;; distinguishing between "false" and "unset" boolean attributes (both are nil)
+             (not (eql attribute-type :boolean))
+             (not (and (getf options :optional) (null-value attribute-value))))
         (with-attribute (attribute-name :serializer serializer
                                         :stream stream)
           (cond
