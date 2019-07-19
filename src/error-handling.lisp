@@ -10,27 +10,6 @@
 
 (defvar *default-error-handler* 'default-error-handler)
 
-(defun default-error-handler (error)
-  (log-api-error error)
-  (setup-reply-from-error error))
-
-(defmethod log-api-error ((error error))
-  (log5:log-for (rs::rest-server log5:error+) "ERROR: ~A" error)
-  (log5:log-for (rs::rest-server log5:error+)
-                (trivial-backtrace:print-backtrace error :output nil))
-  (format *debug-io* "ERROR: ~a~%" error)
-  (trivial-backtrace:print-backtrace error))
-
-(defmethod log-api-error ((error http-error))
-  ;; We don't want to log HTTP "error" signals like
-  ;; an application error
-  )
-
-(defmacro with-error-handler ((&optional (error-handler '*default-error-handler*))
-                              &body body)
-  `(call-with-error-handler ,error-handler
-                            (lambda () (progn ,@body))))
-
 ;; Conditions
 
 (define-condition http-error (simple-error)
@@ -53,6 +32,27 @@
          :status-code status-code
          :format-control datum
          :format-arguments args))
+
+(defun default-error-handler (error)
+  (log-api-error error)
+  (setup-reply-from-error error))
+
+(defmethod log-api-error ((error error))
+  (log5:log-for (rs::rest-server log5:error+) "ERROR: ~A" error)
+  (log5:log-for (rs::rest-server log5:error+)
+                (trivial-backtrace:print-backtrace error :output nil))
+  (format *debug-io* "ERROR: ~a~%" error)
+  (trivial-backtrace:print-backtrace error))
+
+(defmethod log-api-error ((error http-error))
+  ;; We don't want to log HTTP "error" signals like
+  ;; an application error
+  )
+
+(defmacro with-error-handler ((&optional (error-handler '*default-error-handler*))
+                              &body body)
+  `(call-with-error-handler ,error-handler
+                            (lambda () (progn ,@body))))
 
 (define-condition http-not-found-error (http-error)
   ()
