@@ -33,8 +33,28 @@
          :format-control datum
          :format-arguments args))
 
+(defgeneric log-error-p (error)
+  (:documentation "Returns true for conditions that should be logged."))
+
+(defmethod log-error-p ((error error))
+  "Errors are logged"
+  t)
+
+(defmethod log-error-p (error)
+  "The default is not to log conditions"
+  nil)
+
+(defmethod log-error-p ((error http-error))
+  "HTTP errors are not logged"
+  nil)
+
+(defmethod log-error-p ((error rs.schema:validation-error))
+  "Validation errors are not logged"
+  nil)
+
 (defun default-error-handler (error)
-  (log-api-error error)
+  (when (log-error-p error)
+    (log-api-error error))
   (setup-reply-from-error error))
 
 (defmethod log-api-error ((error error))
