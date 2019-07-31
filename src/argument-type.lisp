@@ -165,7 +165,7 @@
   (:format-spec (argument-type)
                 :list))
 
-(def-argument-type list-argument-type ()
+(def-argument-type array-argument-type ()
   ((elems-type-spec
     :initarg :type
     :accessor elems-type-spec
