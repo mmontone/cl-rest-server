@@ -140,7 +140,7 @@
                                                                     (rs::api-summary operation)
                                                                     (and (rs::api-documentation operation)
                                                                          (subseq (rs::api-documentation operation) 0 (min 30 (length (rs::api-documentation operation)))))))
-                               (json:encode-object-member :description (api-documentation operation))
+                               (json:encode-object-member :description (rs::api-documentation operation))
                                (json:encode-object-member :operation-id (string-downcase (symbol-name (rs::name operation))))
                                #+nil(json:encode-object-member :type (resource-operation-type operation))
                                (when (rs::produces operation)
