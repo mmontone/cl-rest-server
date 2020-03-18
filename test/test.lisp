@@ -32,7 +32,7 @@
 (defvar *auth-api*)  
 
 (def-fixture auth-api-fixture ()
-  (let ((*auth-api* (start-api 'auth-api-test "localhost" 8182
+  (let ((*auth-api* (start-api 'auth-api-test :port 8182
 							   :access-log-destination nil)))
 	(rs::with-text-content-types 
 	  (&body))
