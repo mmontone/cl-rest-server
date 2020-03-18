@@ -30,6 +30,11 @@
 (defvar *signal-validation-errors* t)
 (defvar *validation-errors-collection*)
 
+(defun object-documentation (schema-object)
+  (destructuring-bind (_ object-name attributes &rest options) schema-object
+    (declare (ignore _ object-name attributes))
+    (access:access options :documentation)))             
+
 ;; Schemas may be used either to serialize objects or validate input
 
 (defun serialize-with-schema (schema input
@@ -77,7 +82,7 @@
 
 (defun serialize-schema-object (schema-object serializer input stream)
   (destructuring-bind (_ object-name attributes &rest options) schema-object
-    (declare (ignore _))
+    (declare (ignore _ options))
     (with-object ((or (and (stringp object-name)
                            object-name)
                       (symbol-name object-name))
@@ -122,8 +127,8 @@ serialized when optional. Useful for treatment of special values, like :null in 
                                         ; else, try with a serializable class reference
                    (let ((serializable-class (find-class attribute-type nil)))
                      (if (and serializable-class
-                              (typep serializable-class 'serializable-class))
-                         (%serialize-with-schema (serializable-class-schema serializable-class)
+                              (typep serializable-class 'rs.mop::serializable-class))
+                         (%serialize-with-schema (rs.mop::serializable-class-schema serializable-class)
                                                  serializer attribute-value stream)
                                         ; else
                          (error "Could not resolve reference ~A when serializing" attribute-type))))))
@@ -137,6 +142,7 @@ serialized when optional. Useful for treatment of special values, like :null in 
   (serialize attribute-value serializer stream))
 
 (defmethod serialize-attribute-value ((attribute-type (eql :timestamp)) attribute-value stream &optional (serializer rs.serialize::*serializer*))
+  (declare (ignore serializer))
   (if (integerp attribute-value)
       ;; Assume a universal time number
       (write (net.telent.date:universal-time-to-rfc-date attribute-value) :stream stream)
@@ -146,6 +152,7 @@ serialized when optional. Useful for treatment of special values, like :null in 
 (defmethod serialize ((thing local-time:timestamp)
                       &optional (serializer rs.serialize::*serializer*)
                         (stream rs.serialize::*serializer-output*) &rest args)
+  (declare (ignore serializer args))
   (local-time:format-rfc1123-timestring stream thing))
 
 (defun serialize-schema-list (schema-list serializer input stream)
@@ -266,6 +273,7 @@ Args:
                                           (attribute-name attribute)))))))))
 
 (defmethod %schema-validate ((schema-type (eql :object)) schema data &optional attribute)
+  (declare (ignore attribute))
   "Validate data using schema object. "
   (loop
      :for schema-attribute :in (object-attributes schema)
@@ -292,18 +300,15 @@ Args:
                         schema-attribute)))))
 
 (defmethod %schema-validate ((schema-type (eql :list)) schema data &optional attribute)
-  (let ((list-type (or (and (listp schema)
-                            (second schema))
-                       :any)))
-    (when (not (listp data))
-      (validation-error "~A: ~A is not of type ~A"
-                        (or (attribute-external-name attribute)
-                            (attribute-name attribute))
-                        attribute
-                        (attribute-type attribute)))
-    (every (lambda (val)
-             (schema-validate (second schema) val))
-           data)))
+  (when (not (listp data))
+    (validation-error "~A: ~A is not of type ~A"
+                      (or (attribute-external-name attribute)
+                          (attribute-name attribute))
+                      attribute
+                      (attribute-type attribute)))
+  (every (lambda (val)
+           (schema-validate (second schema) val))
+         data))
 
 (defmethod %schema-validate ((schema-type (eql :string)) schema data &optional attribute)
   (when (not (stringp data))
@@ -521,8 +526,8 @@ Args:
                (second schema) ;; the list type
                item))))
       (:object
-       (assert (equalp (make-keyword (object-name schema))
-                       (make-keyword (first input))) nil
+       (assert (equalp (rs::make-keyword (object-name schema))
+                       (rs::make-keyword (first input))) nil
                        "~A is not a ~A" input (object-name schema))
        (loop for attribute in (object-attributes schema)
           appending (let ((input-attribute
@@ -532,7 +537,7 @@ Args:
                                  :test #'equalp)))
                       (if input-attribute
                           ;; The attrbute is present
-                          (list (cons (make-keyword (first input-attribute))
+                          (list (cons (rs::make-keyword (first input-attribute))
                                       (cond
                                         ((listp (attribute-type attribute))
                                          ;; It is a compound type (:list, :object, etc)
@@ -921,9 +926,11 @@ Attributes members of EXCLUDE parameter are not populated."
      :documentation ,(access:access (cdr prop) "description")))
 
 (defun parse-json-schema-boolean (json-schema)
+  (declare (ignore json-schema))
   :boolean)
 
 (defun parse-json-schema-integer (json-schema)
+  (declare (ignore json-schema))
   :integer)
 
 (defun parse-json-schema-string (json-schema)

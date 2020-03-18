@@ -230,7 +230,8 @@
 				    &optional 
 				      (serializer rs.serialize::*serializer*)
 				      (stream rs.serialize::*serializer-output*) 
-				    &rest args)
+                                    &rest args)
+  (declare (ignore args))
   (serialize-with-schema (serializable-class-schema (class-of object))
 			 object
 			 serializer

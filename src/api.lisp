@@ -396,8 +396,7 @@
 
 (defun request-uri (request)
   (if *extract-reply-content-type-from-url*
-      (multiple-value-bind (uri content-type)
-          (extract-url-content-type (hunchentoot:request-uri request))
+      (let ((uri (extract-url-content-type (hunchentoot:request-uri request))))
         (or uri (hunchentoot:request-uri request)))
       (hunchentoot:request-uri request)))
 
@@ -406,6 +405,7 @@
    (if *extract-reply-content-type-from-url*
        (multiple-value-bind (uri content-type)
            (extract-url-content-type (hunchentoot:request-uri request))
+         (declare (ignore uri))
          (or content-type (hunchentoot:header-in "accept" request)))
        (hunchentoot:header-in "accept" request))
    *default-reply-content-type*))
@@ -422,7 +422,7 @@
       (error 'rs.error:http-bad-request
              :format-control (simple-condition-format-control e)
              :format-arguments (simple-condition-format-arguments e)))
-    (error (e)
+    (error ()
       (error 'rs.error:http-bad-request
              :format-control "Invalid JSON"))))
 

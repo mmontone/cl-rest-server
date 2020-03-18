@@ -151,12 +151,15 @@
   (:documentation "Main serialization function. Takes the object to serialize, the serializer and the output stream"))
 
 (defmethod serialize ((object object) &optional (serializer *serializer*) (stream *serializer-output*) &rest args)
+  (declare (ignore args))
   (serialize-object serializer object stream))
 
 (defmethod serialize ((objects-list objects-list) &optional (serializer *serializer*) (stream *serializer-output*) &rest args)
+  (declare (ignore args))
   (serialize-objects-list serializer objects-list stream))
 
 (defmethod serialize ((attribute attribute) &optional (serializer *serializer*) (stream *serializer-output*) &rest args)
+  (declare (ignore args))
   (serialize-attribute serializer attribute stream))
 
 (defmethod serialize ((value t) &optional (serializer *serializer*) (stream *serializer-output*) &rest args)
@@ -234,6 +237,7 @@
                :formatter (attribute-formatter attribute))))
 
 (defmethod serialize-value ((serializer (eql :xml)) value stream &key type formatter &allow-other-keys)
+  (declare (ignore type formatter))
   (cxml:text (prin1-to-string value)))
 
 ;; SEXP serializer
@@ -263,6 +267,7 @@
   (format stream ")"))
 
 (defmethod serialize-value ((serializer (eql :sexp)) value stream &key type formatter &allow-other-keys)
+  (declare (ignore type formatter))
   (prin1 value stream))
 
 ;; HTML serializer
@@ -297,6 +302,7 @@
                                  :formatter (attribute-formatter attribute))))))
 
 (defmethod serialize-value ((serializer (eql :html)) value stream &key type formatter &allow-other-keys)
+  (declare (ignore type formatter))
   (cl-who:with-html-output (html stream)
     (cl-who:fmt "~A" value)))
 
@@ -445,6 +451,7 @@
 
 (defmethod rs::execute :around ((decoration serialization-resource-operation-implementation-decoration)
                                 &rest args)
+  (declare (ignore args))
   (let ((serializer (accept-serializer)))
     (set-reply-content-type (serializer-content-type serializer))
     (with-output-to-string (s)

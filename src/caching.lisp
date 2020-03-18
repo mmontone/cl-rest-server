@@ -95,7 +95,6 @@ For instance, if the resource-operation fetches users, then it's the resource op
 
 (defmethod execute :around ((decoration etag-validation-decoration)
                             &rest args)
-  (declare (ignore args))
   (flet ((get-etag ()
            (if (content-id decoration)
                (let ((id (getf args (content-id decoration))))

@@ -265,6 +265,7 @@
 
 (defmethod execute :around ((decoration error-handling-resource-operation-implementation-decoration)
                             &rest args)
+  (declare (ignore args))
   (with-error-handler ((error-handler decoration))
     (call-next-method)))
 

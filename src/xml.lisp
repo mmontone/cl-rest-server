@@ -14,6 +14,7 @@
   ())
 
 (defun make-node (&key name ns attrs children)
+  (declare (ignore ns attrs))
   (cons name
 	children))
 

@@ -70,6 +70,7 @@
 
 (defmethod rs::execute :around ((decoration logging-resource-operation-implementation-decoration)
                                 &rest args)
+  (declare (ignore args))
   (api-log-for decoration
                "API: Handling ~A ~A by ~A"
                (hunchentoot:request-method*)

@@ -213,6 +213,7 @@
 
 (defgeneric process-api-resource-option (option-name resource &rest args)
   (:method (option-name resource &rest args)
+    (declare (ignore args))
     (error "~A is not a valid resource option" option-name)))
 
 (defun process-api-resource-options (resource options)

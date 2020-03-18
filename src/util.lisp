@@ -51,6 +51,7 @@ Returns a lambda list with the special arguments removed, and the removed specia
 
 (defun encode-file-data-uri-scheme (filename &optional charset)
   "Encode file data as URI Data scheme: https://en.wikipedia.org/wiki/Data_URI_scheme"
+  (declare (ignore charset))
   (let ((file-contents 
          (alexandria:read-file-into-byte-vector filename))
         (file-mime

@@ -71,16 +71,13 @@ Accept: application/json"
            :additional-headers `(("Authorization" . ,(format nil "Basic ~A" authorization)))
            :parameters nil)
         (values (alexandria:alist-plist
-                   (with-lisp-json
+                   (rs::with-lisp-json
                      (json:decode-json-from-string result)))
                 status))))
 
 (defun exchange-authorization-code (code redirect-uri client-id client-secret &optional (grant-type "authorization_code"))
-  (with-lisp-json
+  (rs::with-lisp-json
     (let ((uri (puri:merge-uris "/oauth2/token" *oauth2-server-url*))
-          (content (json:encode-json-plist-to-string (list :code code
-                                                           :grant-type grant-type
-                                                           :redirect-uri redirect-uri)))
           (authorization
            (cl-base64:string-to-base64-string
             (format nil "~A:~A" client-id client-secret))))

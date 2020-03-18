@@ -170,8 +170,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
     (error "resource operation not found ~A" operation-name)))
 
 (defmethod format-api-url ((api-name symbol) operation-name &rest args)
-  (let ((api (find-api api-name)))
-    (apply #'format-api-url api-name operation-name args)))
+  (apply #'format-api-url api-name operation-name args))
 
 (defmethod format-api-url ((api api-definition) operation-name &rest args)
   (let ((resource-operation (find-resource-operation api operation-name)))

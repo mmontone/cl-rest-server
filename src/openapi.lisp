@@ -23,13 +23,12 @@
            (return-from common-prefix (subseq (first strings) 0 n))))
     nil))
 
-(setf (fdefinition '->) #'access:accesses)
+(defun -> (&rest args)
+  (apply #'access:accesses args))
 
 (defun symbolicate (string)
   ;;(intern (json:camel-case-to-lisp string))
   (intern (json::simplified-camel-case-to-lisp string)))
-
-(declaim (ftype (function (pathname) t) define-api-from-spec))
 
 (defun read-spec-file (filepath &key type)
   (let ((ext (or type (alexandria:make-keyword (string-upcase (pathname-type filepath))))))
