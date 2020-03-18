@@ -30,10 +30,37 @@
 (defvar *signal-validation-errors* t)
 (defvar *validation-errors-collection*)
 
-(defun object-documentation (schema-object)
-  (destructuring-bind (_ object-name attributes &rest options) schema-object
-    (declare (ignore _ object-name attributes))
-    (access:access options :documentation)))             
+(defun object-name (object)
+  (second object))
+
+(defun object-attributes (object)
+  (third object))
+
+(defun object-options (object)
+  (cdddr object))
+
+(defun object-option (option object)
+  (cadr (find option (object-options object) :key 'car)))
+
+(defun find-object-attribute (object attribute-name &key (error-p t))
+  (loop for attribute in (object-attributes object)
+     when (equalp (string (attribute-name attribute))
+                  (string attribute-name))
+     do (return-from find-object-attribute attribute))
+  (when error-p
+    (error "Attribute ~A not found in ~A" attribute-name object)))
+
+(defun object-documentation (object)
+  (object-option :documentation object))
+
+(defun object-class (object)
+  "Returns the CLOS class associated with an object. May be null."
+  (object-option :class object))
+
+(defun object-unserializer (object)
+  "Returns the unserializer of the object if any"
+  (object-option :unserializer object))
+
 
 ;; Schemas may be used either to serialize objects or validate input
 
@@ -558,26 +585,6 @@ Args:
                                             (third input-attribute) ;; The attribute value
                                             )))))))))))))
 
-(defun object-name (object)
-  (second object))
-
-(defun object-attributes (object)
-  (third object))
-
-(defun object-options (object)
-  (cdddr object))
-
-(defun object-option (option object)
-  (cadr (find option (object-options object) :key 'car)))
-
-(defun find-object-attribute (object attribute-name &key (error-p t))
-  (loop for attribute in (object-attributes object)
-     when (equalp (string (attribute-name attribute))
-                  (string attribute-name))
-     do (return-from find-object-attribute attribute))
-  (when error-p
-    (error "Attribute ~A not found in ~A" attribute-name object)))
-
 (defun attribute-name (attribute)
   (first attribute))
 
@@ -641,16 +648,6 @@ Args:
   (attribute-option :external-name attribute))
 
 ;; Unserialization
-
-(defun object-class (object)
-  "Returns the CLOS class associated with an object. May be null."
-  (let ((object-class (object-option :class object)))
-    (second object-class)))
-
-(defun object-unserializer (object)
-  "Returns the unserializer of the object if any"
-  (let ((unserializer (object-option :unserializer object)))
-    (second unserializer)))
 
 ;; (object-unserializer '(:object user () (:unserializer unserialize-user)))
 
