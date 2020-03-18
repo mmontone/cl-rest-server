@@ -12,7 +12,7 @@
                ((:id :integer :documentation "The user id")
                 (:realname :string :documentation "The user realname")))))
 
-(define-api api-test
+(define-api api-test ()
     (:title "Api test"
             :documentation "This is an api test")
   (parameters (:produces (:json)

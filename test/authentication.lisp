@@ -6,7 +6,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
 
-  (define-api auth-api-test
+  (define-api auth-api-test ()
       (:title "Api test"
               :documentation "This is an api test")
     (authentication (:produces (:json)

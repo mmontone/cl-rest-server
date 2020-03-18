@@ -10,7 +10,7 @@
 (in-package :oauth-test)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (define-api oauth-api
+  (define-api oauth-api ()
       (:title "Api test"
 	      :documentation "This is an api test")
     (resource (:produces (:json :xml)

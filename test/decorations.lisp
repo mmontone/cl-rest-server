@@ -1,6 +1,6 @@
 (in-package :rest-server-tests)
 
-(define-api decorated-api
+(define-api decorated-api ()
     (:title "Decorated"
 	    :documentation "This is a decorated api")
   (decorations (:produces (:json)

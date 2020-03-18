@@ -23,7 +23,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
 
-  (define-api oauth2-api-test
+  (define-api oauth2-api-test ()
       (:title "Api test"
               :documentation "This is an api test")
     (users (:produces (:json :xml)

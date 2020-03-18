@@ -42,7 +42,7 @@
 (defun define-api-from-v3-spec (name spec)
   (flet ((@ (&rest path)
              (apply #'access:accesses spec path)))
-    `(rs:define-api ,name
+    `(rs:define-api ,name ()
          (:title ,(@ "info" "title")
                  :documentation ,(@ "info" "description"))
        ,@(loop for resource in (collect-resources spec)

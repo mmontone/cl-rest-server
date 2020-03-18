@@ -49,13 +49,13 @@
   (let ((*api-backend* backend))
     (funcall function)))
 
-(defmacro define-api (name options &body resources)
+(defmacro define-api (name superclasses options &body resources)
   "Define an api."
   `(eval-when (:compile-toplevel :load-toplevel :execute)
-     (apply #'make-instance
-            'api-definition
-            :name ',name
-            ',options)
+     (defclass ,name (api-definition ,@superclasses)
+       ()
+       (:default-initargs :name ',name ,@options))
+     (make-instance ',name)
      (with-api ,name
        ,@(let ((client-package (or (find-package (getf options :client-package))
                                    *package*)))
