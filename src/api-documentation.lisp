@@ -5,9 +5,7 @@
     `(cl-who:with-html-output-to-string (*standard-output* nil :prologue t :indent t)
        (:html
         (:head
-         (:title (cl-who:str (name ,api)))
-         (:style :media "screen" :type "text/css"
-                 (cl-who:str "body {  }")))
+         (:title (who:str (name ,api))))
         (:body
          ,@body)))))
 
@@ -101,7 +99,15 @@
 (defun print-html-api-docs (api)
   (who:with-html-output-to-string (*api-docs-html*)
     (:html
-     (:head)
+     (:head
+      (:title (who:fmt "~a api documentation" (title api)))
+      (:style :media "screen" :type "text/css"
+              (who:str "table.arguments th, td {
+border: 1px solid black;
+}")
+              (who:str "th {
+text-align:left;
+}")))
      (:body
       (:h1 (who:str (title api)))
       (:p (who:str (api-documentation api)))
@@ -125,20 +131,30 @@
     (:p (who:fmt "~a ~a"(request-method operation) (path operation)))
     (:p (who:str (api-documentation operation)))
     (:h6 "Arguments")
-    (loop for arg in (append (required-arguments operation)
-                             (optional-arguments operation))
-       do (print-argument-html arg html))))
+    (:table :class "arguments"
+     (:thead
+      (:tr
+       (:th (who:str "Name"))
+       (:th (who:str "Type"))
+       (:th (who:str "Required"))
+       (:th (who:str "Default"))
+       (:th (who:str "Description"))
+     (:tbody
+      (loop for arg in (append (required-arguments operation)
+                               (optional-arguments operation))
+         do (print-argument-html arg html))))))))
 
 (defun print-argument-html (arg html)
   (who:with-html-output (html)
-    (:div :class "arg"
-          (:i (who:str (argument-name arg)))
-          (who:str "::")
-          (:b (who:str (argument-type-spec (argument-type arg))))
-          (when (not (argument-required-p arg))
-            (who:str ". Optional."))
-          (when (argument-default arg)
-            (who:fmt ". Default: ~a" (argument-default arg))))))
+    (:tr :class "arg"
+          (:td (who:str (argument-name arg)))
+          (:td (who:str (argument-type-spec (argument-type arg))))
+          (:td (who:str (if (argument-required-p arg)
+                            "True" "False")))
+          (:td (when (argument-default arg)
+                 (who:fmt "~a" (argument-default arg))))
+          (:td (who:str (argument-documentation arg)))
+          )))
 
 (defun print-text-api-docs (api)
   "TODO")
