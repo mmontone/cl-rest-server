@@ -83,7 +83,7 @@
 
 (defmethod api-dispatch-request :around ((api api-docs-mixin) request)
   (if (ppcre:scan (parse-resource-path (docs-path api))
-                    (request-uri request))
+                  (request-uri request))
       (print-api-docs api (parse-content-type
                            (mimeparse:best-match (list "text/html" "text/plain")
                                                  (hunchentoot:header-in* "accept"))))
@@ -107,7 +107,22 @@ border: 1px solid black;
 }")
               (who:str "th {
 text-align:left;
-}")))
+}")
+              (who:str ".resource {
+border: 1px solid lightgray;
+background-color: lightblue;
+padding: 0px 10px;
+margin-bottom: 30px;
+box-shadow: 10px 10px 5px gray;
+}")
+              (who:str ".operation {
+border: 1px solid lightgray;
+background-color: lightyellow;
+padding: 0px 10px;
+margin-bottom: 20px;
+box-shadow: 5px 5px 5px gray;
+}")
+              ))
      (:body
       (:h1 (who:str (title api)))
       (:p (who:str (api-documentation api)))
@@ -118,43 +133,45 @@ text-align:left;
 
 (defun print-resource-html (resource html)
   (who:with-html-output (html)
-    (:h3 (who:str (resource-name resource)))
-    (:p (who:str (resource-path resource)))
-    (:p (who:str (resource-documentation resource)))
-    (:h4 (who:str "Resource operations"))
-    (loop for operation being the hash-value in (resource-operations resource)
-       do (print-operation-html operation html))))
+    (:div :class "resource"
+          (:h3 (who:str (resource-name resource)))
+          (:p (who:str (resource-path resource)))
+          (:p (who:str (resource-documentation resource)))
+          (:h4 (who:str "Resource operations"))
+          (loop for operation being the hash-value in (resource-operations resource)
+             do (print-operation-html operation html)))))
 
 (defun print-operation-html (operation html)
   (who:with-html-output (html)
-    (:h5 (who:str (name operation)))
-    (:p (who:fmt "~a ~a"(request-method operation) (path operation)))
-    (:p (who:str (api-documentation operation)))
-    (:h6 "Arguments")
-    (:table :class "arguments"
-     (:thead
-      (:tr
-       (:th (who:str "Name"))
-       (:th (who:str "Type"))
-       (:th (who:str "Required"))
-       (:th (who:str "Default"))
-       (:th (who:str "Description"))
-     (:tbody
-      (loop for arg in (append (required-arguments operation)
-                               (optional-arguments operation))
-         do (print-argument-html arg html))))))))
+    (:div :class "operation"
+          (:h5 (who:str (name operation)))
+          (:p (who:fmt "~a ~a"(request-method operation) (path operation)))
+          (:p (who:str (api-documentation operation)))
+          (:h6 "Arguments")
+          (:table :class "arguments"
+                  (:thead
+                   (:tr
+                    (:th (who:str "Name"))
+                    (:th (who:str "Type"))
+                    (:th (who:str "Required"))
+                    (:th (who:str "Default"))
+                    (:th (who:str "Description"))
+                    (:tbody
+                     (loop for arg in (append (required-arguments operation)
+                                              (optional-arguments operation))
+                        do (print-argument-html arg html)))))))))
 
 (defun print-argument-html (arg html)
   (who:with-html-output (html)
     (:tr :class "arg"
-          (:td (who:str (argument-name arg)))
-          (:td (who:str (argument-type-spec (argument-type arg))))
-          (:td (who:str (if (argument-required-p arg)
-                            "True" "False")))
-          (:td (when (argument-default arg)
-                 (who:fmt "~a" (argument-default arg))))
-          (:td (who:str (argument-documentation arg)))
-          )))
+         (:td (who:str (argument-name arg)))
+         (:td (who:str (argument-type-spec (argument-type arg))))
+         (:td (who:str (if (argument-required-p arg)
+                           "True" "False")))
+         (:td (when (argument-default arg)
+                (who:fmt "~a" (argument-default arg))))
+         (:td (who:str (argument-documentation arg)))
+         )))
 
 (defun print-text-api-docs (api)
   "TODO")
