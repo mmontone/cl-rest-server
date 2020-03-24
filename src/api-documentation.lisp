@@ -75,3 +75,70 @@
                                               (rs::argument-type arg)
                                               (rs::argument-documentation arg)
                                               (rs::argument-default arg))))))))))))
+
+;; API misin that displays a summary documentation of the api for the
+;; indicated endpoints (default is root).
+
+(defclass api-docs-mixin ()
+  ((docs-path :accessor docs-path :initform "/"))
+  (:documentation "Mixin for displaying API documentation at DOC-PATH"))
+
+(defmethod api-dispatch-request :around ((api api-docs-mixin) request)
+  (if (ppcre:scan (parse-resource-path (docs-path api))
+                    (request-uri request))
+      (print-api-docs api (parse-content-type
+                           (mimeparse:best-match (list "text/html" "text/plain")
+                                                 (hunchentoot:header-in* "accept"))))
+      (call-next-method)))
+
+(defun print-api-docs (api content-type)
+  (case content-type
+    (:html (print-html-api-docs api))
+    (t (print-text-api-docs api))))
+
+(defvar *api-docs-html*)
+
+(defun print-html-api-docs (api)
+  (who:with-html-output-to-string (*api-docs-html*)
+    (:html
+     (:head)
+     (:body
+      (:h1 (who:str (title api)))
+      (:p (who:str (api-documentation api)))
+      (:h2 "Resources")
+      (loop for resource being the hash-value in (resources api)
+         do
+           (print-resource-html resource *api-docs-html*))))))
+
+(defun print-resource-html (resource html)
+  (who:with-html-output (html)
+    (:h3 (who:str (resource-name resource)))
+    (:p (who:str (resource-path resource)))
+    (:p (who:str (resource-documentation resource)))
+    (:h4 (who:str "Resource operations"))
+    (loop for operation being the hash-value in (resource-operations resource)
+       do (print-operation-html operation html))))
+
+(defun print-operation-html (operation html)
+  (who:with-html-output (html)
+    (:h5 (who:str (name operation)))
+    (:p (who:fmt "~a ~a"(request-method operation) (path operation)))
+    (:p (who:str (api-documentation operation)))
+    (:h6 "Arguments")
+    (loop for arg in (append (required-arguments operation)
+                             (optional-arguments operation))
+       do (print-argument-html arg html))))
+
+(defun print-argument-html (arg html)
+  (who:with-html-output (html)
+    (:div :class "arg"
+          (:i (who:str (argument-name arg)))
+          (who:str "::")
+          (:b (who:str (argument-type-spec (argument-type arg))))
+          (when (not (argument-required-p arg))
+            (who:str ". Optional."))
+          (when (argument-default arg)
+            (who:fmt ". Default: ~a" (argument-default arg))))))
+
+(defun print-text-api-docs (api)
+  "TODO")
