@@ -37,6 +37,7 @@
            #:*debug-mode*
            #:*server-debug-mode*
            #:start-api-documentation
+           #:api-docs-mixin
            #:self-reference
            #:with-pagination
            #:with-resource
