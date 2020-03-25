@@ -38,12 +38,13 @@
                (json:decode-json-from-source filepath)))
       (:yaml (cl-yaml:parse filepath)))))
 
-(defun define-api-from-v3-spec (name spec)
+(defun define-api-from-v3-spec (name superclasses options spec)
   (flet ((@ (&rest path)
              (apply #'access:accesses spec path)))
-    `(rs:define-api ,name ()
+    `(rs:define-api ,name ,superclasses
          (:title ,(@ "info" "title")
-                 :documentation ,(@ "info" "description"))
+                 :documentation ,(@ "info" "description")
+                 ,@options)
        ,@(loop for resource in (collect-resources spec)
             collect (inline-resource-from-v3-spec resource)))))
 
@@ -121,9 +122,9 @@
                       (push (cons (car path) operation) (gethash tag-symbol resources)))))))
     (alexandria:hash-table-alist resources)))
 
-(defmacro define-api-from-spec (name filepath)
+(defmacro define-api-from-spec (name superclasses options filepath)
   (let ((spec (read-spec-file filepath)))
-    (define-api-from-v3-spec name spec)))
+    (define-api-from-v3-spec name superclasses options spec)))
 
 ;; OpenAPI export
 
