@@ -84,16 +84,27 @@
                                         (-> param "required"))
                                       params)))
       (loop for param in required-params
-         do (setf result (append result (list (param-from-spec param)))))
+         do (setf result (append result (list (required-param-from-spec param)))))
       (when (> (length optional-params) 0)
         (setf result (append result '(&optional)))
         (loop for param in optional-params
-           do (setf result (append result (list (param-from-spec param)))))))
+           do (setf result (append result (list (optional-param-from-spec param)))))))
     result))
 
-(defun param-from-spec (param)
+(defun parse-value (string type)
+  "TODO"
+  string)
+
+(defun required-param-from-spec (param)
   `(,(symbolicate (-> param "name"))
      ,(param-type-from-spec param)
+     ,(-> param "description")))
+
+(defun optional-param-from-spec (param)
+  `(,(symbolicate (-> param "name"))
+     ,(param-type-from-spec param)
+     ,(when (not (null (-> param "default")))
+        (parse-value (-> param "default") (param-type-from-spec param)))
      ,(-> param "description")))
 
 (defun param-type-from-spec (param)
