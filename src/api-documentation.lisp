@@ -82,12 +82,14 @@
   (:documentation "Mixin for displaying API documentation at DOC-PATH"))
 
 (defmethod api-dispatch-request :around ((api api-docs-mixin) request)
-  (if (ppcre:scan (parse-resource-path (docs-path api))
-                  (request-uri request))
-      (print-api-docs api (parse-content-type
-                           (mimeparse:best-match (list "text/html" "text/plain")
-                                                 (hunchentoot:header-in* "accept"))))
-      (call-next-method)))
+  (let* ((doc-types (list "text/html" "text/plain"))
+         (content-type (mimeparse:best-match doc-types
+                                             (hunchentoot:header-in* "accept"))))
+    (if (and (member content-type doc-types :test 'string=)
+             (ppcre:scan (parse-resource-path (docs-path api))
+                         (request-uri request)))
+        (print-api-docs api (parse-content-type content-type))
+        (call-next-method))))
 
 (defun print-api-docs (api content-type)
   (case content-type
