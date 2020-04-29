@@ -107,6 +107,13 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
   (:metaclass closer-mop:funcallable-standard-class)
   (:documentation "The resource operation description"))
 
+(defmethod print-object ((ro resource-operation) stream)
+  (print-unreadable-object (ro stream :type t :identity t)
+    (with-accessors ((name name) (request-method request-method)
+                     (path path)) ro
+      (format stream "~a : ~a ~a"
+              name request-method path))))
+
 ;; resource-operation
 
 (defmethod initialize-instance :after ((resource-operation resource-operation) &rest initargs)
@@ -236,6 +243,13 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
             :documentation "resource-operation options"))
   (:metaclass closer-mop:funcallable-standard-class)
   (:documentation "resource-operation implementation"))
+
+(defmethod print-object ((roi resource-operation-implementation) stream)
+  (print-unreadable-object (roi stream :type t :identity t)
+    (with-accessors ((name name) (request-method request-method)
+                     (path path)) (resource-operation roi)
+      (format stream "~a : ~a ~a"
+              name request-method path))))
 
 (defmethod initialize-instance :after
     ((resource-operation-implementation resource-operation-implementation)
