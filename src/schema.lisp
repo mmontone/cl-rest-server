@@ -748,7 +748,7 @@ Attributes members of EXCLUDE parameter are not populated."
      unless (member (attribute-name attribute) exclude)
      do
        (multiple-value-bind (value found)
-           (access:access data (attribute-name attribute))
+           (access:access data (attribute-name attribute) :skip-call? t) ;; skip calls, as data should be plain data
          (when found
            (let ((attribute-writer (attribute-writer attribute)))
              (funcall attribute-writer
