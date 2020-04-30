@@ -29,6 +29,7 @@
 (defvar *collect-validation-errors* nil)
 (defvar *signal-validation-errors* t)
 (defvar *validation-errors-collection*)
+(defvar *ignore-unknown-object-attributes* nil)
 
 (defun object-name (object)
   (second object))
@@ -302,6 +303,18 @@ Args:
 (defmethod %schema-validate ((schema-type (eql :object)) schema data &optional attribute)
   (declare (ignore attribute))
   "Validate data using schema object. "
+
+  ;; Check unknown attributes first
+  (unless (or *ignore-unknown-object-attributes*
+              (object-option :ignore-unknown-attributes schema))
+    (alexandria:when-let ((unknown-attributes
+                           (set-difference (mapcar 'car data)
+                                           (mapcar 'attribute-name (object-attributes schema))
+                                           :test 'equalp
+                                           :key 'string)))
+      (validation-error "Attributes not part of schema: ~a" unknown-attributes)))
+
+  ;; Validate each attribute of object
   (loop
      :for schema-attribute :in (object-attributes schema)
      :for data-attribute := (assoc (string (attribute-name schema-attribute))
