@@ -447,26 +447,27 @@ Args:
   (if (null data)
       data
       (loop
-         for schema-attribute in (object-attributes schema)
-         for data-attribute = (assoc (string (attribute-name schema-attribute))
-                                     data
-                                     :test #'equalp
-                                     :key #'string)
-         appending
-           (cond
-             ((and (not data-attribute)
-                   (not (attribute-optional-p schema-attribute)))
-              (validation-error "Attribute ~a not found in ~a"
-                                (attribute-name schema-attribute)
-                                data))
-             ((not data-attribute)
-              ;; don't add the attribute to the data in this case
-              ;; idea to think of: we could use the attribute default value if specified, instead
-              nil)
-             ((or (equalp (attribute-type schema-attribute) :boolean)
-                  (not (null (cdr data-attribute))))
-              (list (cons (intern (string (attribute-name schema-attribute)) :keyword)
-                          (parse-schema-attribute schema-attribute (cdr data-attribute)))))))))
+        for schema-attribute in (object-attributes schema)
+        for data-attribute = (assoc (string (attribute-name schema-attribute))
+                                    data
+                                    :test #'equalp
+                                    :key #'string)
+        appending
+        (cond
+          ;; Don't do validation here, only parsing
+          #+nil((and (not data-attribute)
+                     (not (attribute-optional-p schema-attribute)))
+                (validation-error "Attribute ~a not found in ~a"
+                                  (attribute-name schema-attribute)
+                                  data))
+          ((not data-attribute)
+           ;; don't add the attribute to the data in this case
+           ;; idea to think of: we could use the attribute default value if specified, instead
+           nil)
+          ((or (equalp (attribute-type schema-attribute) :boolean)
+               (not (null (cdr data-attribute))))
+           (list (cons (intern (string (attribute-name schema-attribute)) :keyword)
+                       (parse-schema-attribute schema-attribute (cdr data-attribute)))))))))
 
 (defun parse-schema-attribute (schema-attribute value)
   (let ((parsed-value (parse-schema-attribute-value (attribute-type schema-attribute) value)))
