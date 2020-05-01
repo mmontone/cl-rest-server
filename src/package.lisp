@@ -108,7 +108,8 @@
            #:validate-with-schema
            #:parse-with-schema
            #:unserialize-with-schema
-           #:populate-with-schema))
+           #:populate-with-schema
+           #:patch-with-schema))
 
 (defpackage #:rest-server.mop
   (:nicknames #:rs.mop)

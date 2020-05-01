@@ -350,6 +350,11 @@ Args:
            (schema-validate (second schema) val))
          data))
 
+(defmethod %schema-validate ((schema-type (eql :option)) schema data &optional attribute)
+  (when (not (member data (cdr schema) :test 'equalp))
+    (validation-error "~s : should be one of ~s" data (cdr schema)))
+  t)
+
 (defmethod %schema-validate ((schema-type (eql :string)) schema data &optional attribute)
   (when (not (stringp data))
     (validation-error "~A: ~A is not a string"
@@ -767,6 +772,26 @@ Attributes members of EXCLUDE parameter are not populated."
              (funcall attribute-writer
                       value
                       object))))))
+
+(defun patch-with-schema (schema object data)
+  "Populate CLOS objects from data + schema. 
+Only populates attributes available in DATA, validating them.
+Useful for PATCH rest api operations implementations.
+DATA should be an association list."
+  (loop :for data-attribute :in data
+        :for schema-attribute := (or (find (string (car data-attribute))
+                                           (object-attributes schema)
+                                           :key (alexandria:compose 'string 'attribute-name)
+                                           :test 'equalp)
+                                     (validation-error "Attribute not found: ~a" (car data-attribute)))
+        :do
+           (schema-validate (attribute-type schema-attribute)
+                            (cdr data-attribute)
+                            schema-attribute)
+           (let ((attribute-writer (attribute-writer schema-attribute)))
+             (funcall attribute-writer
+                      (cdr data-attribute)
+                      object))))
 
 ;; Plugging
 

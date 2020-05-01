@@ -101,11 +101,11 @@
                                                          :realname "Fernando"
                                                          :age 31))))
     (let ((json
-           (with-output-to-string (s)
-             (with-serializer-output s
-               (with-serializer :json
-                 (serialize-with-schema
-                  *schema* user))))))
+            (with-output-to-string (s)
+              (with-serializer-output s
+                (with-serializer :json
+                  (serialize-with-schema
+                   *schema* user))))))
       (finishes (json:decode-json-from-string json)))))
 
 (with-output-to-string (s)
@@ -243,11 +243,11 @@
 ;; Unserialization
 
 (let ((data
-       (with-output-to-string (s)
-         (with-serializer-output s
-           (with-serializer :json
-             (serialize-with-schema
-              (find-schema 'user-schema) *user*))))))
+        (with-output-to-string (s)
+          (with-serializer-output s
+            (with-serializer :json
+              (serialize-with-schema
+               (find-schema 'user-schema) *user*))))))
   (unserialize-with-schema
    (find-schema 'user-schema)
    data))
@@ -255,11 +255,11 @@
 ;; Parsing
 
 (let ((data
-       (with-output-to-string (s)
-         (with-serializer-output s
-           (with-serializer :json
-             (serialize-with-schema
-              (find-schema 'user-schema) *user*))))))
+        (with-output-to-string (s)
+          (with-serializer-output s
+            (with-serializer :json
+              (serialize-with-schema
+               (find-schema 'user-schema) *user*))))))
   (parse-with-schema
    (find-schema 'user-schema)
    data))
@@ -373,3 +373,62 @@
       (unserialize-with-schema
        (find-schema 'user-schema)
        data))))
+
+(test validate-with-schema-test
+  (signals validation-error
+    (rs.schema:validate-with-schema *schema*
+                                    '((:id . 22))))
+  (finishes
+    (rs.schema:validate-with-schema *schema*
+                                    '((:id . 1)
+                                      (:realname . "bar")
+                                      (:sex . :male)
+                                      (:best-friend . ((:id . 2)
+                                                       (:realname . "foo")))))))
+
+(test populate-with-schema-test
+  (let ((user
+          (make-instance 'user
+                         :realname "Mariano"
+                         :id 2
+                         :age 30
+                         :groups (list (make-instance 'group
+                                                      :name "My group"
+                                                      :id 3))
+                         :best-friend (make-instance 'user
+                                                     :id 3
+                                                     :realname "Fernando"
+                                                     :age 31
+                                                     )))
+        (data `((:id . 1)
+                (:realname . "bar")
+                (:sex . :male)
+                (:best-friend . ((:id . 2)
+                                 (:realname . "foo"))))))
+    (rs.schema:validate-with-schema *schema* data)
+    (rs.schema:populate-with-schema *schema* user data)
+    (is (string= (realname user) "bar"))))
+
+(test patch-with-schema-test
+  (let ((user
+          (make-instance 'user
+                         :realname "Mariano"
+                         :id 2
+                         :age 30
+                         :groups (list (make-instance 'group
+                                                      :name "My group"
+                                                      :id 3))
+                         :best-friend (make-instance 'user
+                                                     :id 3
+                                                     :realname "Fernando"
+                                                     :age 31
+                                                     ))))
+    (signals validation-error
+      (rs.schema:patch-with-schema *schema* user '((:realname . 22))))
+    (finishes
+      (rs.schema:patch-with-schema *schema* user nil))
+    (finishes
+      (rs.schema:patch-with-schema *schema* user '((:realname . "John"))))
+    (is (string= (realname user) "John"))
+    (is (= (age user) 30))
+    (is (= (id user) 2))))
