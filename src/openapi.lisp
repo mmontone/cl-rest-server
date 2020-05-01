@@ -117,12 +117,13 @@
      :timestamp)
     (t (alexandria:make-keyword (string-upcase (-> param "schema" "type"))))))
 
+
 (defun collect-resources (spec)
   (let ((resources (make-hash-table :test 'equalp)))
     (loop for path in (alist (-> spec "paths"))
        do
          (loop for operation in (alist (cdr path))
-              when (member (car operation) '("get" "post" "put" "delete") :test 'equalp)
+              when (member (car operation) '("get" "post" "put" "patch" "delete") :test 'equalp)
             do
               (let ((tag (first (-> (cdr operation) "tags"))))
                 (assert (not (null tag)) nil "Operation ~A is not tagged." (car operation))
