@@ -936,30 +936,34 @@ DATA should be an association list."
 
 (defun parse-json-schema-object-property (prop &optional (required-p t))
   `(,(intern (json:camel-case-to-lisp (car prop)))
-     ,(schema-from-json-schema (cdr prop))
-     :external-name ,(car prop)
-     ,@(when (not required-p)
-         (list :optional t))
-     ,@(let ((default (access:access (cdr prop) "default")))
-         (when default
-           (list :default default)))
-     ;; CUSTOM JSON SCHEMA PROPERTIES
-     ;; These are not JSON schema properties, we parse some extra attributes
-     ;; to fill-in REST-SERVER schema things not present in JSON schemas, like
-     ;; accessors, readers, formatters, etc
-     ;; Extension properties begin with an "x-" prefix
-     ,@(when (access:access (cdr prop) "x-accessor")
-         (list :accessor (read-from-string (access:access (cdr prop) "x-accessor"))))
-     ,@(when (access:access (cdr prop) "x-reader")
-         (list :reader (read-from-string (access:access (cdr prop) "x-reader"))))
-     ,@(when (access:access (cdr prop) "x-writer")
-         (list :writer (read-from-string (access:access (cdr prop) "x-writer"))))
-     ,@(when (access:access (cdr prop) "x-validator")
-         (list :validator (read-from-string (access:access (cdr prop) "x-validator"))))
-     ,@(when (access:access (cdr prop) "x-add-validator")
-         (list :add-validator (read-from-string (access:access (cdr prop) "x-add-validator"))))
+    ,(schema-from-json-schema (cdr prop))
+    :external-name ,(car prop)
+    ,@(when (not required-p)
+        (list :optional t))
+    ,@(let ((default (access:access (cdr prop) "default")))
+        (when default
+          (list :default default)))
+    ;; CUSTOM JSON SCHEMA PROPERTIES
+    ;; These are not JSON schema properties, we parse some extra attributes
+    ;; to fill-in REST-SERVER schema things not present in JSON schemas, like
+    ;; accessors, readers, formatters, etc
+    ;; Extension properties begin with an "x-" prefix
+    ,@(when (access:access (cdr prop) "x-accessor")
+        (list :accessor (read-from-string (access:access (cdr prop) "x-accessor"))))
+    ,@(when (access:access (cdr prop) "x-reader")
+        (list :reader (read-from-string (access:access (cdr prop) "x-reader"))))
+    ,@(when (access:access (cdr prop) "x-writer")
+        (list :writer (read-from-string (access:access (cdr prop) "x-writer"))))
+    ,@(when (access:access (cdr prop) "x-parser")
+        (list :parser (read-from-string (access:access (cdr prop) "x-parser"))))
+    ,@(when (access:access (cdr prop) "x-formatter")
+        (list :formatter (read-from-string (access:access (cdr prop) "x-formatter"))))
+    ,@(when (access:access (cdr prop) "x-validator")
+        (list :validator (read-from-string (access:access (cdr prop) "x-validator"))))
+    ,@(when (access:access (cdr prop) "x-add-validator")
+        (list :add-validator (read-from-string (access:access (cdr prop) "x-add-validator"))))
      
-     :documentation ,(access:access (cdr prop) "description")))
+    :documentation ,(access:access (cdr prop) "description")))
 
 (defun parse-json-schema-boolean (json-schema)
   (declare (ignore json-schema))
