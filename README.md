@@ -5,13 +5,17 @@ Common Lisp REST Server
 
 [![Build Status](https://travis-ci.org/mmontone/cl-rest-server.svg?branch=master)](https://travis-ci.org/mmontone/cl-rest-server)
 
-Documentation:
+## Install
+
+The library is available at [Ultralisp](https://ultralisp.org).
+
+## Documentation
 
 [HTML](http://mmontone.github.io/cl-rest-server/doc/build/html)
 
 [PDF](http://mmontone.github.io/cl-rest-server/doc/build/latex/CommonLispRESTServer.pdf)
 
-Features:
+## Features
 
 * Method matching
   - Based on HTTP method (GET, PUT, POST, DELETE)
@@ -34,6 +38,9 @@ Features:
 
 * API client
   - Generation of API client functions via macros
+  
+* Alpha OpenAPI support
+  - Parse Open API v3 apis and generate Lisp API spec from it.
 
 * APIs documentation
   - Via Swagger: http://swagger.wordnik.com
