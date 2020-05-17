@@ -75,7 +75,7 @@
                                     (encode-swagger-path path stream))))
       (json:as-object-member (:definitions)
                              (encode-swagger-definitions
-                              rs.schema::*schemas*))
+                              schemata::*schemas*))
       )))
 
 (defun list-api-paths (api)
@@ -223,9 +223,9 @@
 (defun encode-swagger-definition (schema-object &optional (stream json:*json-output*))
   (let ((json:*json-output* stream))
     (flet ((encode-definition-property (attribute)
-             (json:as-object-member ((rs.schema::attribute-name attribute))
+             (json:as-object-member ((schemata::attribute-name attribute))
                                     (json:with-object ()
-                                      (let ((attribute-type (rs.schema::attribute-type attribute)))
+                                      (let ((attribute-type (schemata::attribute-type attribute)))
                                         (cond
                                           ((keywordp attribute-type) ;; A primitive type
                                            (json:encode-object-member
@@ -258,20 +258,20 @@
                                               (json:encode-object-member :type "object")
                                         ;(error "Not implemented yet")
                                               )))))
-                                      (let ((desc (or (rs.schema::attribute-option :description attribute)
-                                                      (rs.schema::attribute-option :documentation attribute))))
+                                      (let ((desc (or (schemata::attribute-option :description attribute)
+                                                      (schemata::attribute-option :documentation attribute))))
                                         (when desc
                                           (json:encode-object-member :description desc)))))))
       (json:with-object ()
         (json:encode-object-member :type "object")
         (json:encode-object-member :required
-                                   (mapcar #'rs.schema::attribute-name
+                                   (mapcar #'schemata::attribute-name
                                            (remove-if
-                                            #'rs.schema::attribute-optional-p
-                                            (rs.schema::object-attributes schema-object))))
+                                            #'schemata::attribute-optional-p
+                                            (schemata::object-attributes schema-object))))
         (json:as-object-member (:properties)
                                (json:with-object ()
-                                 (loop for attribute in (rs.schema::object-attributes schema-object)
+                                 (loop for attribute in (schemata::object-attributes schema-object)
                                     do
                                       (encode-definition-property attribute))))))))
 

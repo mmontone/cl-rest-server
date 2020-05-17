@@ -69,58 +69,9 @@
            #:logging
            #:logging-enabled))
 
-(defpackage #:rest-server.serialize
-  (:nicknames #:rs.serialize)
-  (:use :cl :rest-server)
-  (:export
-   #:with-serializer
-   #:with-serializer-output
-   #:accept-serializer
-   #:object
-   #:attribute
-   #:objects
-   #:serialize
-   #:with-object
-   #:with-attribute
-   #:with-list
-   #:with-list-member
-   #:add-list-member
-   #:set-attribute
-   #:name
-   #:attributes
-   #:value
-   #:boolean-value
-   #:list-value
-   #:serialize-value
-   #:serialization
-   #:unserialization
-   #:*default-serializer*))
-
-(defpackage #:rest-server.schema
-  (:nicknames #:rs.schema)
-  (:use :cl :rest-server :rs.serialize)
-  (:export #:serialize-with-schema
-           #:find-schema
-           #:schema
-           #:define-schema
-           #:validation
-           #:validation-error
-           #:validate-with-schema
-           #:parse-with-schema
-           #:unserialize-with-schema
-           #:populate-with-schema
-           #:patch-with-schema))
-
-(defpackage #:rest-server.mop
-  (:nicknames #:rs.mop)
-  (:use :cl :rest-server :rs.serialize :rs.schema)
-  (:export #:serializable-class
-           #:serializable-class-schema
-           #:define-serializable-class))
-
 (defpackage #:rest-server.error
   (:nicknames #:rs.error)
-  (:use #:cl #:rest-server :rs.serialize)
+  (:use #:cl #:rest-server :generic-serializer)
   (:export
    #:*catch-errors*
    #:*server-catch-errors*

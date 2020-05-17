@@ -84,7 +84,7 @@
   (declare (ignore expand-groups))
   (with-output-to-string (s)
     (with-serializer-output s
-      (with-serializer (rest-server.serialize::accept-serializer)
+      (with-serializer (rest-server::accept-serializer)
         (with-list ("users")
           (loop for user in (model-test:all-users)
              do

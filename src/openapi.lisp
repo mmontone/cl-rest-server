@@ -244,10 +244,10 @@
   (loop for (schema-name . schema-def) in (alist (access:accesses spec "components" "schemas"))
      collect
        (cons (intern (json::simplified-camel-case-to-lisp schema-name))
-             (rs.schema::schema-from-json-schema schema-def))))
+             (schemata.json-schema:schema-from-json-schema schema-def))))
 
 (defmacro define-schemas-from-spec (filepath)
   (let ((spec (read-spec-file filepath)))
     `(progn
        ,@(loop for (schema-name . schema-def) in (parse-schemas-from-spec spec)
-              collect `(rs.schema:define-schema ,schema-name ,schema-def)))))
+              collect `(schemata:define-schema ,schema-name ,schema-def)))))

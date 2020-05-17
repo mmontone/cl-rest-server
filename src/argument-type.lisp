@@ -40,7 +40,7 @@
                `(defmethod parse-argument-value (,@args (argument-type ,name) &key (error-p t))
                   (flet ((parse-error (message &rest args)
                            (if error-p
-                               (cerror "Continue" 'rs.schema:validation-error
+                               (cerror "Continue" 'schemata:validation-error
                                        :format-control message
                                        :format-arguments args)
                                (return-from parse-argument-value

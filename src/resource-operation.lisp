@@ -132,7 +132,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
 
   ;; Check the body-schema, if defined (only warn if not defined)
   (when (body-schema resource-operation)
-    (when (not (rs.schema:find-schema (body-schema resource-operation) nil))
+    (when (not (schemata:find-schema (body-schema resource-operation) nil))
       (warn "Schema not defined: ~A" (body-schema resource-operation))))
 
   ;; Install the resource operation
@@ -531,7 +531,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
   (or
    (find name (optional-arguments resource-operation)
          :key (alexandria:compose #'make-keyword #'argument-name))
-   (rs.schema:validation-error "Invalid argument: ~A"
+   (schemata:validation-error "Invalid argument: ~A"
                                name)))
 
 (defun resource-operation-matches-request-p (resource-operation request)
@@ -837,7 +837,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                     ,@body)))))
 
 (defun self-reference (&rest args)
-  (rs.serialize:set-attribute
+  (generic-serializer:set-attribute
    :href
    (apply #'format-absolute-resource-operation-url *resource-operation* args)))
 

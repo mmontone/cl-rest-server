@@ -45,7 +45,6 @@ OTHER DEALINGS IN THE SOFTWARE."
              (:file "mimeparse")
              (:file "argument-type")
              (:file "serialization")
-             (:file "mop")
              (:file "xml")
              (:file "schema")
              (:file "error-handling")
@@ -86,6 +85,9 @@ OTHER DEALINGS IN THE SOFTWARE."
                :md5
                :cl-annot
                :dynamic-mixins
+               :generic-serializer
+               :schemata
+               :schemata.json-schema
                :cl-oauth
                :trivial-mimes
                :access

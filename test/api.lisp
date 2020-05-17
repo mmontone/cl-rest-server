@@ -12,7 +12,7 @@
                ((:id :integer :documentation "The user id")
                 (:realname :string :documentation "The user realname")))))
 
-(define-api api-test ()
+(define-api api-test (rs::api-docs-mixin)
     (:title "Api test"
             :documentation "This is an api test")
   (parameters (:produces (:json)
@@ -155,8 +155,8 @@
 (defpackage :api-test-implementation
   (:use :cl
         :rest-server
-        :rest-server.serialize
-        :rest-server.schema
+        :generic-serializer
+        :schemata
         :rest-server.logging
         :rest-server.error
         ))
@@ -177,8 +177,8 @@
      (:error-handling :enabled t))
     (&rest args &key expand (page 1))
   (declare (ignorable args))
-  (let ((serializer (rest-server.serialize:accept-serializer)))
-    (set-reply-content-type (rest-server.serialize::serializer-content-type serializer))
+  (let ((serializer (rest-server::accept-serializer)))
+    (set-reply-content-type (generic-serializer::serializer-content-type serializer))
     (with-output-to-string (s)
       (with-serializer-output s
         (with-serializer serializer

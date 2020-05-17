@@ -32,9 +32,7 @@ OTHER DEALINGS IN THE SOFTWARE."
   ((:module :test
 	    :components
 	    ((:file "test")
-	     (:file "serialization")
 	     (:file "api")
-	     (:file "schema")
 	     (:file "authentication")
 	     #+oauth2(:file "oauth2-api")
 	     #+oauth(:file "oauth"))

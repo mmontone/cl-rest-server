@@ -8,11 +8,11 @@
   (let* ((fargs (copy-list args)))
     (remf fargs :page)
     (remf fargs :object-name)
-    `(rs.serialize:with-object (,object-name)
-       (rs.serialize:set-attribute :page ,page)
-       (rs.serialize:set-attribute :next (format-absolute-resource-operation-url *resource-operation* :page (1+ ,page) ,@fargs))
-       (rs.serialize:set-attribute :previous (format-absolute-resource-operation-url *resource-operation* :page (1- ,page),@fargs))
-       (rs.serialize:with-attribute (:results)
+    `(generic-serializer:with-object (,object-name)
+       (generic-serializer:set-attribute :page ,page)
+       (generic-serializer:set-attribute :next (format-absolute-resource-operation-url *resource-operation* :page (1+ ,page) ,@fargs))
+       (generic-serializer:set-attribute :previous (format-absolute-resource-operation-url *resource-operation* :page (1- ,page),@fargs))
+       (generic-serializer:with-attribute (:results)
          ,@body))))
 
 (defun make-pagination-object (&rest args
@@ -25,20 +25,20 @@
     (remf fargs :object-name)
     (remf fargs :results)
     (if (zerop (length results))
-        (rs.serialize:object object-name
-                             (rs.serialize:attribute :results results))
+        (generic-serializer:object object-name
+                             (generic-serializer:attribute :results results))
         ;; else
-        (rs.serialize:object object-name
-                             (rs.serialize:attribute :page page)
-                             (rs.serialize:attribute :next
+        (generic-serializer:object object-name
+                             (generic-serializer:attribute :page page)
+                             (generic-serializer:attribute :next
                                                      (format-absolute-resource-operation-url *resource-operation*
                                                                                              `(:page (1+ ,page)
                                                                                                      ,@fargs)))
-                             (rs.serialize:attribute :previous
+                             (generic-serializer:attribute :previous
                                                      (format-absolute-resource-operation-url *resource-operation*
                                                                                              `(:page (1- ,page)
                                                                                                      ,@fargs)))
-                             (rs.serialize:attribute :results results)))))
+                             (generic-serializer:attribute :results results)))))
 
 ;; (defclass pagination ()
 ;;   ((function :initarg :function

@@ -48,7 +48,7 @@
   "HTTP errors are not logged"
   nil)
 
-(defmethod log-error-p ((error rs.schema:validation-error))
+(defmethod log-error-p ((error schemata:validation-error))
   "Validation errors are not logged"
   nil)
 
@@ -137,20 +137,20 @@
     (415 . http-unsupported-media-type-error)))
 
 (defun serialize-error (error)
-  (let ((serializer (rs.serialize:accept-serializer)))
-    (set-reply-content-type (rs.serialize::serializer-content-type serializer))
+  (let ((serializer (rs::accept-serializer)))
+    (set-reply-content-type (generic-serializer::serializer-content-type serializer))
     (with-output-to-string (s)
-      (rs.serialize:with-serializer-output s
-        (rs.serialize:with-serializer serializer
-          (rs.serialize:serialize error))))))
+      (generic-serializer:with-serializer-output s
+        (generic-serializer:with-serializer serializer
+          (generic-serializer:serialize error))))))
 
-(defmethod rs.serialize:serialize ((error error) &optional
-                                                   (serializer rs.serialize::*serializer*)
-                                                   (stream rs.serialize::*serializer-output*) &rest args)
+(defmethod generic-serializer:serialize ((error error) &optional
+                                                   (serializer generic-serializer::*serializer*)
+                                                   (stream generic-serializer::*serializer-output*) &rest args)
   (declare (ignore args))
-  (rs.serialize:with-object ("error" :serializer serializer
+  (generic-serializer:with-object ("error" :serializer serializer
                                      :stream stream)
-    (rs.serialize:set-attribute
+    (generic-serializer:set-attribute
      "detail"
      (let ((debug-mode (if (boundp 'rs:*server-debug-mode*)
                            rs:*server-debug-mode*
@@ -165,13 +165,13 @@
      :serializer serializer
      :stream stream)))
 
-(defmethod rs.serialize:serialize ((error http-error) &optional
-                                                        (serializer rs.serialize::*serializer*)
-                                                        (stream rs.serialize::*serializer-output*) &rest args)
+(defmethod generic-serializer:serialize ((error http-error) &optional
+                                                        (serializer generic-serializer::*serializer*)
+                                                        (stream generic-serializer::*serializer-output*) &rest args)
   (declare (ignore args))
-  (rs.serialize:with-object ("error" :serializer serializer
+  (generic-serializer:with-object ("error" :serializer serializer
                                      :stream stream)
-    (rs.serialize:set-attribute
+    (generic-serializer:set-attribute
      "detail"
      (apply #'format
             nil
@@ -180,7 +180,7 @@
      :serializer serializer
      :stream stream)
     (alexandria:doplist (key val (http-error-info error))
-        (rs.serialize:set-attribute
+        (generic-serializer:set-attribute
          (princ-to-string key)
          val))))
 
@@ -188,17 +188,17 @@
 ;; the signaled condition. Implement this method for new conditions.
 ;; Example:
 
-(defmethod http-return-code ((error rs.schema:validation-error))
+(defmethod http-return-code ((error schemata:validation-error))
   hunchentoot:+http-bad-request+)
 
-(defmethod rs.serialize:serialize ((error rs.schema:validation-error)
+(defmethod generic-serializer:serialize ((error schemata:validation-error)
                                    &optional
-                                     (serializer rs.serialize::*serializer*)
-                                     (stream rs.serialize::*serializer-output*) &rest args)
+                                     (serializer generic-serializer::*serializer*)
+                                     (stream generic-serializer::*serializer-output*) &rest args)
   (declare (ignore args))
-  (rs.serialize:with-object ("error" :serializer serializer
+  (generic-serializer:with-object ("error" :serializer serializer
                                      :stream stream)
-    (rs.serialize:set-attribute
+    (generic-serializer:set-attribute
      "message"
      (apply #'format
             nil
