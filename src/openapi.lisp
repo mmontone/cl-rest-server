@@ -144,7 +144,9 @@ Use like:
 
 IMPORTANT:
 1) All operations in OpenAPI spec need to have a tag, in camel case, that is translated to a REST-SERVER api operation. For example: 'createUser', gets translated to CREATE-USER entry point in REST-SERVER api.
-2) Operations in OpenAPI spec need to be tagged with a name for the resource. This is because REST-SERVER is designed based on an old version of Swagger API that groups operations in resources. But OpenAPI v3 does not group in resources, it just has paths. So, the tagging is needed for the OpenAPI -> REST-SERVER api translation. For example, if you have two paths, /invoice/{id}, and /invoice/{id}/payments, you should tag them both with 'Invoice', so that both operations are created under an INVOICE resource. 
+2) Operations in OpenAPI spec need to be tagged with a name for the resource. This is because REST-SERVER is designed based on an old version of Swagger API that groups operations in resources. But OpenAPI v3 does not group in resources, it just has paths. So, the tagging is needed for the OpenAPI -> REST-SERVER api translation. For example, if you have two paths, /invoice/{id}, and /invoice/{id}/payments, you should tag them both with 'Invoice', so that both operations are created under an INVOICE resource.
+
+Use this together with DEFINE-SCHEMAS-FROM-SPEC 
 "
   (let ((spec (read-spec-file filepath)))
     (define-api-from-v3-spec name superclasses options spec)))
@@ -258,6 +260,13 @@ IMPORTANT:
              (schemata.json-schema:schema-from-json-schema schema-def))))
 
 (defmacro define-schemas-from-spec (filepath)
+  "Define REST-SERVER schemas from an OpenAPI spec file.
+
+Example:
+(rs.openapi:define-schemas-from-spec
+    #.(asdf:system-relative-pathname :my-project \"api.json\"))
+
+Use this together with DEFINE-API-FROM-SPEC"
   (let ((spec (read-spec-file filepath)))
     `(progn
        ,@(loop for (schema-name . schema-def) in (parse-schemas-from-spec spec)
