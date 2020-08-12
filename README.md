@@ -40,7 +40,7 @@ The library is available at [Ultralisp](https://ultralisp.org).
   - Generation of API client functions via macros
   
 * Alpha OpenAPI support
-  - Parse Open API v3 apis and generate Lisp API spec from it.
+  - [Parse Open API v3 apis and generate Lisp API spec from it](test/openapi.lisp)
 
 * APIs documentation
   - Via Swagger: http://swagger.wordnik.com
