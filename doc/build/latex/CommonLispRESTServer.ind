@@ -1,0 +1,146 @@
+\begin{sphinxtheindex}
+\let\bigletter\sphinxstyleindexlettergroup
+\let\spxpagem \sphinxstyleindexpagemain
+\let\spxentry \sphinxstyleindexentry
+\let\spxextra \sphinxstyleindexextra
+
+  \bigletter {\sphinxsymbolsname}
+  \item \spxentry{*catch\sphinxhyphen{}errors*}\spxextra{Lisp variable}, \hyperpage{17}, 
+		\hyperpage{24}
+  \item \spxentry{*server\sphinxhyphen{}catch\sphinxhyphen{}errors*}\spxextra{Lisp variable}, 
+		\hyperpage{17}, \hyperpage{25}
+
+  \indexspace
+  \bigletter A
+  \item \spxentry{accept\sphinxhyphen{}serializer}\spxextra{Lisp function}, \hyperpage{23}
+  \item \spxentry{add\sphinxhyphen{}list\sphinxhyphen{}member}\spxextra{Lisp function}, 
+		\hyperpage{24}
+  \item \spxentry{attribute}\spxextra{Lisp function}, \hyperpage{25}
+
+  \indexspace
+  \bigletter B
+  \item \spxentry{boolean\sphinxhyphen{}value}\spxextra{Lisp function}, \hyperpage{23}
+
+  \indexspace
+  \bigletter C
+  \item \spxentry{caching}\spxextra{Lisp macro}, \hyperpage{24}
+  \item \spxentry{configure\sphinxhyphen{}api}\spxextra{Lisp function}, \hyperpage{19}, 
+		\hyperpage{24}
+  \item \spxentry{configure\sphinxhyphen{}api\sphinxhyphen{}resource}\spxextra{Lisp function}, 
+		\hyperpage{23}
+  \item \spxentry{configure\sphinxhyphen{}resource\sphinxhyphen{}operation\sphinxhyphen{}implementation}\spxextra{Lisp function}, 
+		\hyperpage{24}
+
+  \indexspace
+  \bigletter D
+  \item \spxentry{define\sphinxhyphen{}api}\spxextra{Lisp macro}, \hyperpage{7}, \hyperpage{25}
+  \item \spxentry{define\sphinxhyphen{}api\sphinxhyphen{}resource}\spxextra{Lisp macro}, 
+		\hyperpage{7}, \hyperpage{24}
+  \item \spxentry{define\sphinxhyphen{}resource\sphinxhyphen{}operation}\spxextra{Lisp macro}, 
+		\hyperpage{24}
+  \item \spxentry{define\sphinxhyphen{}schema}\spxextra{Lisp macro}, \hyperpage{23}
+  \item \spxentry{define\sphinxhyphen{}serializable\sphinxhyphen{}class}\spxextra{Lisp macro}, 
+		\hyperpage{24}
+  \item \spxentry{define\sphinxhyphen{}swagger\sphinxhyphen{}resource}\spxextra{Lisp macro}, 
+		\hyperpage{24}
+  \item \spxentry{disable\sphinxhyphen{}api\sphinxhyphen{}logging}\spxextra{Lisp function}, 
+		\hyperpage{23}
+
+  \indexspace
+  \bigletter E
+  \item \spxentry{element}\spxextra{Lisp function}, \hyperpage{25}
+  \item \spxentry{elements}\spxextra{Lisp function}, \hyperpage{24}
+  \item \spxentry{enable\sphinxhyphen{}api\sphinxhyphen{}logging}\spxextra{Lisp function}, 
+		\hyperpage{24}
+  \item \spxentry{error\sphinxhyphen{}handling}\spxextra{Lisp macro}, \hyperpage{24}
+
+  \indexspace
+  \bigletter F
+  \item \spxentry{fetch\sphinxhyphen{}content}\spxextra{Lisp macro}, \hyperpage{24}
+  \item \spxentry{find\sphinxhyphen{}api}\spxextra{Lisp function}, \hyperpage{23}
+  \item \spxentry{find\sphinxhyphen{}schema}\spxextra{Lisp function}, \hyperpage{23}
+  \item \spxentry{format\sphinxhyphen{}absolute\sphinxhyphen{}resource\sphinxhyphen{}operation\sphinxhyphen{}url}\spxextra{Lisp function}, 
+		\hyperpage{23}
+
+  \indexspace
+  \bigletter H
+  \item \spxentry{http\sphinxhyphen{}error}\spxextra{Lisp function}, \hyperpage{23}
+
+  \indexspace
+  \bigletter I
+  \item \spxentry{implement\sphinxhyphen{}resource\sphinxhyphen{}operation}\spxextra{Lisp macro}, 
+		\hyperpage{11}, \hyperpage{23}
+  \item \spxentry{implement\sphinxhyphen{}resource\sphinxhyphen{}operation\sphinxhyphen{}case}\spxextra{Lisp function}, 
+		\hyperpage{12}
+  \item \spxentry{implement\sphinxhyphen{}resource\sphinxhyphen{}operation\sphinxhyphen{}case}\spxextra{Lisp macro}, 
+		\hyperpage{23}
+
+  \indexspace
+  \bigletter L
+  \item \spxentry{list\sphinxhyphen{}value}\spxextra{Lisp function}, \hyperpage{23}
+  \item \spxentry{logging}\spxextra{Lisp macro}, \hyperpage{24}
+
+  \indexspace
+  \bigletter M
+  \item \spxentry{make\sphinxhyphen{}resource\sphinxhyphen{}operation}\spxextra{Lisp function}, 
+		\hyperpage{24}
+
+  \indexspace
+  \bigletter P
+  \item \spxentry{permission\sphinxhyphen{}checking}\spxextra{Lisp macro}, \hyperpage{23}
+
+  \indexspace
+  \bigletter S
+  \item \spxentry{schema}\spxextra{Lisp macro}, \hyperpage{24}
+  \item \spxentry{self\sphinxhyphen{}reference}\spxextra{Lisp function}, \hyperpage{23}
+  \item \spxentry{serializable\sphinxhyphen{}class\sphinxhyphen{}schema}\spxextra{Lisp function}, 
+		\hyperpage{24}
+  \item \spxentry{serialization}\spxextra{Lisp macro}, \hyperpage{23}
+  \item \spxentry{set\sphinxhyphen{}attribute}\spxextra{Lisp function}, \hyperpage{24}
+  \item \spxentry{set\sphinxhyphen{}reply\sphinxhyphen{}content\sphinxhyphen{}type}\spxextra{Lisp function}, 
+		\hyperpage{23}
+  \item \spxentry{start\sphinxhyphen{}api}\spxextra{Lisp function}, \hyperpage{13}, \hyperpage{24}
+  \item \spxentry{start\sphinxhyphen{}api\sphinxhyphen{}documentation}\spxextra{Lisp function}, 
+		\hyperpage{23}
+  \item \spxentry{start\sphinxhyphen{}api\sphinxhyphen{}logging}\spxextra{Lisp function}, 
+		\hyperpage{19}, \hyperpage{24}
+  \item \spxentry{stop\sphinxhyphen{}api}\spxextra{Lisp function}, \hyperpage{24}
+  \item \spxentry{stop\sphinxhyphen{}api\sphinxhyphen{}logging}\spxextra{Lisp function}, 
+		\hyperpage{24}
+
+  \indexspace
+  \bigletter U
+  \item \spxentry{unserialization}\spxextra{Lisp macro}, \hyperpage{23}
+
+  \indexspace
+  \bigletter V
+  \item \spxentry{validation}\spxextra{Lisp macro}, \hyperpage{24}
+  \item \spxentry{validation\sphinxhyphen{}error}\spxextra{Lisp function}, \hyperpage{24}
+
+  \indexspace
+  \bigletter W
+  \item \spxentry{with\sphinxhyphen{}api}\spxextra{Lisp macro}, \hyperpage{7}, \hyperpage{23}
+  \item \spxentry{with\sphinxhyphen{}api\sphinxhyphen{}backend}\spxextra{Lisp macro}, 
+		\hyperpage{15}, \hyperpage{23}
+  \item \spxentry{with\sphinxhyphen{}api\sphinxhyphen{}resource}\spxextra{Lisp macro}, 
+		\hyperpage{8}, \hyperpage{25}
+  \item \spxentry{with\sphinxhyphen{}attribute}\spxextra{Lisp macro}, \hyperpage{24}
+  \item \spxentry{with\sphinxhyphen{}content}\spxextra{Lisp macro}, \hyperpage{25}
+  \item \spxentry{with\sphinxhyphen{}element}\spxextra{Lisp macro}, \hyperpage{24}
+  \item \spxentry{with\sphinxhyphen{}json\sphinxhyphen{}reply}\spxextra{Lisp macro}, \hyperpage{24}
+  \item \spxentry{with\sphinxhyphen{}list}\spxextra{Lisp macro}, \hyperpage{24}
+  \item \spxentry{with\sphinxhyphen{}list\sphinxhyphen{}member}\spxextra{Lisp macro}, 
+		\hyperpage{23}
+  \item \spxentry{with\sphinxhyphen{}pagination}\spxextra{Lisp macro}, \hyperpage{25}
+  \item \spxentry{with\sphinxhyphen{}permission\sphinxhyphen{}checking}\spxextra{Lisp macro}, 
+		\hyperpage{24}
+  \item \spxentry{with\sphinxhyphen{}posted\sphinxhyphen{}content}\spxextra{Lisp macro}, 
+		\hyperpage{25}
+  \item \spxentry{with\sphinxhyphen{}reply\sphinxhyphen{}content\sphinxhyphen{}type}\spxextra{Lisp macro}, 
+		\hyperpage{25}
+  \item \spxentry{with\sphinxhyphen{}serializer}\spxextra{Lisp macro}, \hyperpage{24}
+  \item \spxentry{with\sphinxhyphen{}serializer\sphinxhyphen{}output}\spxextra{Lisp macro}, 
+		\hyperpage{23}
+  \item \spxentry{with\sphinxhyphen{}xml\sphinxhyphen{}reply}\spxextra{Lisp macro}, \hyperpage{23}
+
+\end{sphinxtheindex}

@@ -1,42 +1,30 @@
 <!DOCTYPE html>
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Error handling &mdash; Common Lisp REST Server 0.2 documentation</title>
-    
-    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/bootswatch-3.1.0/cosmo/bootstrap.min.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>Error handling &#8212; Common Lisp REST Server 0.2 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.2',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
-    <link rel="top" title="Common Lisp REST Server 0.2 documentation" href="index.html" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API configuration" href="api-configuration.html" />
     <link rel="prev" title="API definition" href="api.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -54,7 +42,6 @@
 
         <div class="collapse navbar-collapse nav-collapse">
           <ul class="nav navbar-nav">
-            <li class="divider-vertical"></li>
             
             
               <li class="dropdown globaltoc-container">
@@ -72,7 +59,10 @@
 <li class="toctree-l1"><a class="reference internal" href="api.html#api-implementation">API implementation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#starting-the-api">Starting the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#accessing-the-api">Accessing the API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Error handling</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-configuration.html">API configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbols.html">API</a></li>
 </ul>
 </ul>
 </li>
@@ -87,9 +77,6 @@
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">Error handling</a><ul>
-<li><a class="reference internal" href="#production-mode">Production mode</a></li>
-<li><a class="reference internal" href="#testing-mode">Testing mode</a></li>
-<li><a class="reference internal" href="#development-mode">Development mode</a></li>
 <li><a class="reference internal" href="#global-error-mode">Global error mode</a></li>
 </ul>
 </li>
@@ -102,7 +89,11 @@
               
                 
   <li>
-    <a href="api.html" title="Previous Chapter: API definition"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm">&laquo; API definition</span>
+    <a href="api.html" title="Previous Chapter: API definition"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; API definition</span>
+    </a>
+  </li>
+  <li>
+    <a href="api-configuration.html" title="Next Chapter: API configuration"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">API configuration &raquo;</span>
     </a>
   </li>
               
@@ -112,7 +103,7 @@
             
               <li class="hidden-sm">
 <div id="sourcelink">
-  <a href="_sources/error-handling.txt"
+  <a href="_sources/error-handling.rst.txt"
      rel="nofollow">Source</a>
 </div></li>
             
@@ -134,37 +125,24 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12">
+    <div class="body col-md-12 content" role="main">
       
   <div class="section" id="error-handling">
 <h1>Error handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h1>
-<p>APIs can be run with different error handling modes. This is controlled passing the desired mode to <a class="reference internal" href="api.html#function:rest-server:start-api" title="rest-server:start-api"><tt class="xref cl cl-function docutils literal"><span class="pre">start-api</span></tt></a>. Can be one of <tt class="docutils literal"><span class="pre">:development</span></tt>, <tt class="docutils literal"><span class="pre">:testing</span></tt>, or <tt class="docutils literal"><span class="pre">:production</span></tt>. Default is <tt class="docutils literal"><span class="pre">:production</span></tt>.</p>
-<dl class="variable">
-<dt id="variable:rest-server:*development-mode*">
-<em class="property">variable </em><tt class="descname">*development-mode*</tt><a class="headerlink" href="#variable:rest-server:*development-mode*" title="Permalink to this definition">¶</a></dt>
-<dd><p>Api development mode. One of :development, :testing, :production. Influences how errors are handled from the api</p>
-</dd></dl>
+<p>APIs can be run with different error handling modes. This is controlled via the argument <cite>:catch-errors</cite> in <a class="reference internal" href="api.html#function:rest-server:start-api" title="rest-server:start-api"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">start-api</span></code></a>. Default is NIL.</p>
+<dl class="cl variable">
+<dt id="variable:rest-server:*catch-errors*">
+<em class="property">variable </em><code class="sig-name descname">*catch-errors*</code><a class="headerlink" href="#variable:rest-server:*catch-errors*" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-<div class="section" id="production-mode">
-<h2>Production mode<a class="headerlink" href="#production-mode" title="Permalink to this headline">¶</a></h2>
-<p>In production mode, when an error occurs, 505 internal server error is returned.</p>
-</div>
-<div class="section" id="testing-mode">
-<h2>Testing mode<a class="headerlink" href="#testing-mode" title="Permalink to this headline">¶</a></h2>
-<p>In testing mode, when an error occurs the condition is serialized so it is possible to see what went wrong when accessing the API to some extent.</p>
-</div>
-<div class="section" id="development-mode">
-<h2>Development mode<a class="headerlink" href="#development-mode" title="Permalink to this headline">¶</a></h2>
-<p>In development mode, when an error occurs, the Lisp debugger is entered.</p>
-</div>
+<p>If T, then the error is serialize and the corresponding HTTP is returned. Otherwise, when an error occurs, the Lisp debugger is entered.</p>
 <div class="section" id="global-error-mode">
 <h2>Global error mode<a class="headerlink" href="#global-error-mode" title="Permalink to this headline">¶</a></h2>
-<p>To setup a global error hanling mode, that has precedence to individual running apis error handling modes, assign one of <tt class="docutils literal"><span class="pre">:development</span></tt>, <tt class="docutils literal"><span class="pre">:testing</span></tt>, or <tt class="docutils literal"><span class="pre">:production</span></tt> to the <a class="reference internal" href="#variable:rest-server:*server-development-mode*" title="rest-server:*server-development-mode*"><tt class="xref cl cl-function docutils literal"><span class="pre">*SERVER-DEVELOPMENT-MODE*</span></tt></a> variable.</p>
-<dl class="variable">
-<dt id="variable:rest-server:*server-development-mode*">
-<em class="property">variable </em><tt class="descname">*server-development-mode*</tt><a class="headerlink" href="#variable:rest-server:*server-development-mode*" title="Permalink to this definition">¶</a></dt>
-<dd><p>Global server development mode. Takes precedence over <em>development-mode</em> when handling errors</p>
-</dd></dl>
+<p>To setup a global error handling mode, that has precedence to individual running apis error handling modes, set <a class="reference internal" href="#variable:rest-server:*server-catch-errors*" title="rest-server:*server-catch-errors*"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">*SERVER-CATCH-ERRORS*</span></code></a> variable.</p>
+<dl class="cl variable">
+<dt id="variable:rest-server:*server-catch-errors*">
+<em class="property">variable </em><code class="sig-name descname">*server-catch-errors*</code><a class="headerlink" href="#variable:rest-server:*server-catch-errors*" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 </div>
@@ -182,7 +160,7 @@
     </p>
     <p>
         &copy; Copyright 2014, Mariano Montone.<br/>
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.0.<br/>
     </p>
   </div>
 </footer>

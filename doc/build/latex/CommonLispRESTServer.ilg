@@ -1,0 +1,7 @@
+This is makeindex, version 2.15 [TeX Live 2019] (kpathsea + Thai support).
+Scanning style file ./python.ist.......done (7 attributes redefined, 0 ignored).
+Scanning input file CommonLispRESTServer.idx....done (74 entries accepted, 0 rejected).
+Sorting entries....done (493 comparisons).
+Generating output file CommonLispRESTServer.ind....done (146 lines written, 0 warnings).
+Output written in CommonLispRESTServer.ind.
+Transcript written in CommonLispRESTServer.ilg.

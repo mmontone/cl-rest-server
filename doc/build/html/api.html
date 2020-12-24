@@ -1,42 +1,30 @@
 <!DOCTYPE html>
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>API definition &mdash; Common Lisp REST Server 0.2 documentation</title>
-    
-    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/bootswatch-3.1.0/cosmo/bootstrap.min.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>API definition &#8212; Common Lisp REST Server 0.2 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.2',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
-    <link rel="top" title="Common Lisp REST Server 0.2 documentation" href="index.html" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Error handling" href="error-handling.html" />
     <link rel="prev" title="Install" href="install.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -54,7 +42,6 @@
 
         <div class="collapse navbar-collapse nav-collapse">
           <ul class="nav navbar-nav">
-            <li class="divider-vertical"></li>
             
             
               <li class="dropdown globaltoc-container">
@@ -68,10 +55,14 @@
       aria-labelledby="dLabelGlobalToc"><ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">API definition</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API definition</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#api-implementation">API implementation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#starting-the-api">Starting the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#accessing-the-api">Accessing the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-configuration.html">API configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbols.html">API</a></li>
 </ul>
 </ul>
 </li>
@@ -99,7 +90,10 @@
 <li><a class="reference internal" href="#api-example">API example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#api-implementation">API implementation</a></li>
+<li><a class="reference internal" href="#api-implementation">API implementation</a><ul>
+<li><a class="reference internal" href="#conditional-dispatch">Conditional dispatch</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#starting-the-api">Starting the API</a></li>
 <li><a class="reference internal" href="#accessing-the-api">Accessing the API</a></li>
 </ul>
@@ -111,7 +105,11 @@
               
                 
   <li>
-    <a href="install.html" title="Previous Chapter: Install"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm">&laquo; Install</span>
+    <a href="install.html" title="Previous Chapter: Install"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Install</span>
+    </a>
+  </li>
+  <li>
+    <a href="error-handling.html" title="Next Chapter: Error handling"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Error handling &raquo;</span>
     </a>
   </li>
               
@@ -121,7 +119,7 @@
             
               <li class="hidden-sm">
 <div id="sourcelink">
-  <a href="_sources/api.txt"
+  <a href="_sources/api.rst.txt"
      rel="nofollow">Source</a>
 </div></li>
             
@@ -143,19 +141,19 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12">
+    <div class="body col-md-12 content" role="main">
       
   <div class="section" id="api-definition">
 <h1>API definition<a class="headerlink" href="#api-definition" title="Permalink to this headline">¶</a></h1>
-<p>APIs are defined using the <a class="reference internal" href="#macro:rest-server:define-api" title="rest-server:define-api"><tt class="xref cl cl-function docutils literal"><span class="pre">DEFINE-API</span></tt></a> macro. APIs contain resources and resources contain api-functions.</p>
-<dl class="macro">
+<p>APIs are defined using the <a class="reference internal" href="#macro:rest-server:define-api" title="rest-server:define-api"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">DEFINE-API</span></code></a> macro. APIs contain resources and resources contain api-functions.</p>
+<dl class="cl macro">
 <dt id="macro:rest-server:define-api">
-<em class="property">macro </em> (<tt class="descname">define-api</tt> <em>name</em> <em>options</em> <em>&amp;body</em> <em>resources</em>)<a class="headerlink" href="#macro:rest-server:define-api" title="Permalink to this definition">¶</a></dt>
+<em class="property">macro </em> (<code class="sig-name descname">define-api</code> <em>name</em> <em>superclasses</em> <em>options</em> <em>&amp;body</em> <em>resources</em>)<a class="headerlink" href="#macro:rest-server:define-api" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define an api.</p>
 </dd></dl>
 
 <p>This is the syntax:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">define-api</span> <span class="nv">&lt;api-name&gt;</span> <span class="nv">&lt;options-plist&gt;</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">define-api</span> <span class="nv">&lt;api-name&gt;</span> <span class="p">(</span><span class="k">&amp;rest</span> <span class="nv">&lt;superclasses&gt;</span><span class="p">)</span> <span class="nv">&lt;options-plist&gt;</span>
    <span class="k">&amp;rest</span>
    <span class="nv">&lt;resources&gt;</span><span class="p">)</span>
 </pre></div>
@@ -163,43 +161,47 @@
 <div class="section" id="api-options">
 <h2>API options<a class="headerlink" href="#api-options" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">:title</span></tt>: The API title. This appears in the generated API documentation</li>
-<li><tt class="docutils literal"><span class="pre">:documentation</span></tt>: A string with the API description. This appears in the generated API documentation.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:title</span></code>: The API title. This appears in the generated API documentation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:documentation</span></code>: A string with the API description. This appears in the generated API documentation.</p></li>
 </ul>
 </div>
 <div class="section" id="resources">
 <h2>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
 <p>Resources have the following syntax:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;resource-name&gt;</span> <span class="nv">&lt;resource-options&gt;</span> <span class="nv">&lt;api-functions&gt;</span><span class="p">)</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">&lt;resource-name&gt;</span> <span class="nv">&lt;resource-options&gt;</span> <span class="nv">&lt;api-functions&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Resources can be added to an already defined API via the :cl:function::<cite>with-api</cite> and <a class="reference internal" href="#macro:rest-server:define-api-resource" title="rest-server:define-api-resource"><tt class="xref cl cl-function docutils literal"><span class="pre">define-api-resource</span></tt></a> macros</p>
-<dl class="macro">
+<p>Resources can be added to an already defined API via the :cl:function::<cite>with-api</cite> and <a class="reference internal" href="#macro:rest-server:define-api-resource" title="rest-server:define-api-resource"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">define-api-resource</span></code></a> macros</p>
+<dl class="cl macro">
 <dt id="macro:rest-server:with-api">
-<em class="property">macro </em> (<tt class="descname">with-api</tt> <em>api</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-api" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute body under api scope.</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="nv">Example:</span>
-<span class="p">(</span><span class="nv">with-api</span> <span class="nv">test-api</span>
-   <span class="p">(</span><span class="nv">define-resource-operation</span> <span class="nv">get-user</span> <span class="ss">:get</span> <span class="p">(</span><span class="ss">:url-prefix</span> <span class="s">&quot;users/{id}&quot;</span><span class="p">)</span>
-                                 <span class="o">&#39;</span><span class="p">((</span><span class="ss">:id</span> <span class="ss">:integer</span><span class="p">))))</span>
-</pre></div>
-</div>
+<em class="property">macro </em> (<code class="sig-name descname">with-api</code> <em>api</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-api" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Execute body under api scope.</dt><dd><p>Example:
+(with-api test-api</p>
+<blockquote>
+<div><dl class="simple">
+<dt>(define-resource-operation get-user :get (:url-prefix “users/{id}”)</dt><dd><p>‘((:id :integer))))</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="macro">
+<dl class="cl macro">
 <dt id="macro:rest-server:define-api-resource">
-<em class="property">macro </em> (<tt class="descname">define-api-resource</tt> <em>name</em> <em>options</em> <em>&amp;body</em> <em>functions</em>)<a class="headerlink" href="#macro:rest-server:define-api-resource" title="Permalink to this definition">¶</a></dt>
+<em class="property">macro </em> (<code class="sig-name descname">define-api-resource</code> <em>name</em> <em>options</em> <em>&amp;body</em> <em>functions</em>)<a class="headerlink" href="#macro:rest-server:define-api-resource" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define an api resource.</p>
 </dd></dl>
 
 <div class="section" id="resource-options">
 <h3>Resource options<a class="headerlink" href="#resource-options" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">:produces</span></tt>: A list of content types produced by this resource. The content types can be <tt class="docutils literal"><span class="pre">:json</span></tt>, <tt class="docutils literal"><span class="pre">:html</span></tt>, <tt class="docutils literal"><span class="pre">:xml</span></tt>, <tt class="docutils literal"><span class="pre">:lisp</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">:consumes</span></tt>: A list of content types consumed by this resource.</li>
-<li><tt class="docutils literal"><span class="pre">:documentation</span></tt>: A string describing the resource. This appears in the generated API documentation.</li>
-<li><tt class="docutils literal"><span class="pre">:path</span></tt>: The resource path. Should start with the <cite>/</cite> character. Ex: <cite>&#8220;/users&#8221;</cite></li>
-<li><tt class="docutils literal"><span class="pre">:models</span></tt>: A list of <cite>models</cite> used by the resource</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:produces</span></code>: A list of content types produced by this resource. The content types can be <code class="docutils literal notranslate"><span class="pre">:json</span></code>, <code class="docutils literal notranslate"><span class="pre">:html</span></code>, <code class="docutils literal notranslate"><span class="pre">:xml</span></code>, <code class="docutils literal notranslate"><span class="pre">:lisp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:consumes</span></code>: A list of content types consumed by this resource.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:documentation</span></code>: A string describing the resource. This appears in the generated API documentation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:path</span></code>: The resource path. Should start with the <cite>/</cite> character. Ex: <cite>“/users”</cite></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:models</span></code>: A list of <cite>models</cite> used by the resource</p></li>
 </ul>
 </div>
 </div>
@@ -207,51 +209,55 @@
 <h2>Resource operations<a class="headerlink" href="#resource-operations" title="Permalink to this headline">¶</a></h2>
 <p>Resources provide a set of operations to access them.</p>
 <p>They have the following syntax:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;resource-operation-name&gt;</span> <span class="nv">&lt;resource-operation-options&gt;</span> <span class="nv">&lt;resource-operation-arguments&gt;</span><span class="p">)</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">&lt;resource-operation-name&gt;</span> <span class="nv">&lt;resource-operation-options&gt;</span> <span class="nv">&lt;resource-operation-arguments&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>New operations can be added to an already defined resource via the <a class="reference internal" href="#macro:rest-server:with-api-resource" title="rest-server:with-api-resource"><tt class="xref cl cl-function docutils literal"><span class="pre">with-api-resource</span></tt></a></p>
-<dl class="macro">
+<p>New operations can be added to an already defined resource via the <a class="reference internal" href="#macro:rest-server:with-api-resource" title="rest-server:with-api-resource"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">with-api-resource</span></code></a></p>
+<dl class="cl macro">
 <dt id="macro:rest-server:with-api-resource">
-<em class="property">macro </em> (<tt class="descname">with-api-resource</tt> <em>resource</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-api-resource" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute body under resource scope.</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="nv">Example:</span>
-<span class="p">(</span><span class="nv">with-api-resource</span> <span class="nv">users</span>
-   <span class="p">(</span><span class="nv">define-resource-operation</span> <span class="nv">get-user</span> <span class="ss">:get</span> <span class="p">(</span><span class="ss">:url-prefix</span> <span class="s">&quot;users/{id}&quot;</span><span class="p">)</span>
-                                 <span class="o">&#39;</span><span class="p">((</span><span class="ss">:id</span> <span class="ss">:integer</span><span class="p">))))</span>
-</pre></div>
-</div>
+<em class="property">macro </em> (<code class="sig-name descname">with-api-resource</code> <em>resource</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-api-resource" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Execute body under resource scope.</dt><dd><p>Example:
+(with-api-resource users</p>
+<blockquote>
+<div><dl class="simple">
+<dt>(define-resource-operation get-user :get (:url-prefix “users/{id}”)</dt><dd><p>‘((:id :integer))))</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="resource-operation-options">
 <h3>Resource operation options<a class="headerlink" href="#resource-operation-options" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">:request-method</span></tt>: The HTTP request method</li>
-<li><tt class="docutils literal"><span class="pre">:path</span></tt>: The operation path. Arguments in the operation are enclosed between <tt class="docutils literal"><span class="pre">{}</span></tt>. For example: <tt class="docutils literal"><span class="pre">&quot;/users/{id}&quot;</span></tt>.</li>
-<li><tt class="docutils literal"><span class="pre">:produces</span></tt>: A list of content types produced by the operation. The content types can be <tt class="docutils literal"><span class="pre">:json</span></tt>, <tt class="docutils literal"><span class="pre">:html</span></tt>, <tt class="docutils literal"><span class="pre">:xml</span></tt>, <tt class="docutils literal"><span class="pre">:lisp</span></tt>. This is matched with the HTTP &#8220;Accept&#8221; header.</li>
-<li><tt class="docutils literal"><span class="pre">:consumes</span></tt>: A list of content types that the operation can consume.</li>
-<li><tt class="docutils literal"><span class="pre">:authorizations</span></tt>: A list with the authorizations required for the operation. Can be one of <tt class="docutils literal"><span class="pre">:token</span></tt>, <tt class="docutils literal"><span class="pre">:oauth</span></tt>, <tt class="docutils literal"><span class="pre">:oauth</span></tt>, or a custom authorization type.</li>
-<li><tt class="docutils literal"><span class="pre">:documentation</span></tt>: A string describing the operation. This appears in the generated API documentation.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:request-method</span></code>: The HTTP request method</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:path</span></code>: The operation path. Arguments in the operation are enclosed between <code class="docutils literal notranslate"><span class="pre">{}</span></code>. For example: <code class="docutils literal notranslate"><span class="pre">&quot;/users/{id}&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:produces</span></code>: A list of content types produced by the operation. The content types can be <code class="docutils literal notranslate"><span class="pre">:json</span></code>, <code class="docutils literal notranslate"><span class="pre">:html</span></code>, <code class="docutils literal notranslate"><span class="pre">:xml</span></code>, <code class="docutils literal notranslate"><span class="pre">:lisp</span></code>. This is matched with the HTTP “Accept” header.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:consumes</span></code>: A list of content types that the operation can consume.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:authorizations</span></code>: A list with the authorizations required for the operation. Can be one of <code class="docutils literal notranslate"><span class="pre">:token</span></code>, <code class="docutils literal notranslate"><span class="pre">:oauth</span></code>, <code class="docutils literal notranslate"><span class="pre">:oauth</span></code>, or a custom authorization type.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:documentation</span></code>: A string describing the operation. This appears in the generated API documentation.</p></li>
 </ul>
 </div>
 <div class="section" id="resource-operation-arguments">
 <h3>Resource operation arguments<a class="headerlink" href="#resource-operation-arguments" title="Permalink to this headline">¶</a></h3>
 <p>Arguments lists have the following syntax:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">*&lt;required-arguments&gt;</span> <span class="k">&amp;optional</span> <span class="nv">&lt;optional-arguments&gt;</span><span class="p">)</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">*&lt;required-arguments&gt;</span> <span class="k">&amp;optional</span> <span class="nv">&lt;optional-arguments&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Required arguments are those appearing in the api function path between <tt class="docutils literal"><span class="pre">{}</span></tt>.
+<p>Required arguments are those appearing in the api function path between <code class="docutils literal notranslate"><span class="pre">{}</span></code>.
 They are specified like this:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;argument-name&gt;</span> <span class="nv">&lt;argument-type&gt;</span> <span class="nv">&lt;documentation-string&gt;</span><span class="p">)</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">&lt;argument-name&gt;</span> <span class="nv">&lt;argument-type&gt;</span> <span class="nv">&lt;documentation-string&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Argument type can be one of: <tt class="docutils literal"><span class="pre">string</span></tt>, <tt class="docutils literal"><span class="pre">integer</span></tt>, <tt class="docutils literal"><span class="pre">boolean</span></tt>, <tt class="docutils literal"><span class="pre">list</span></tt>.</p>
-<p>Optional arguments are those that can be passed after the <tt class="docutils literal"><span class="pre">?</span></tt> in the url. For instance, the <tt class="docutils literal"><span class="pre">page</span></tt> parameter in this url: <tt class="docutils literal"><span class="pre">/users?page=1</span></tt>. They are listed after the <tt class="docutils literal"><span class="pre">&amp;optional</span></tt> symbol, and have the following syntax:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">&lt;argument-name&gt;</span> <span class="nv">&lt;argument-type&gt;</span> <span class="nv">&lt;default-value&gt;</span> <span class="nv">&lt;documentation-string&gt;</span><span class="p">)</span>
+<p>Argument type can be one of: <code class="docutils literal notranslate"><span class="pre">string</span></code>, <code class="docutils literal notranslate"><span class="pre">integer</span></code>, <code class="docutils literal notranslate"><span class="pre">boolean</span></code>, <code class="docutils literal notranslate"><span class="pre">list</span></code>.</p>
+<p>Optional arguments are those that can be passed after the <code class="docutils literal notranslate"><span class="pre">?</span></code> in the url. For instance, the <code class="docutils literal notranslate"><span class="pre">page</span></code> parameter in this url: <code class="docutils literal notranslate"><span class="pre">/users?page=1</span></code>. They are listed after the <code class="docutils literal notranslate"><span class="pre">&amp;optional</span></code> symbol, and have the following syntax:</p>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">&lt;argument-name&gt;</span> <span class="nv">&lt;argument-type&gt;</span> <span class="nv">&lt;default-value&gt;</span> <span class="nv">&lt;documentation-string&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Here is an example of an api function arguments list:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">((</span><span class="nv">id</span> <span class="ss">:integer</span> <span class="s">&quot;The user id&quot;</span><span class="p">)</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="nv">id</span> <span class="ss">:integer</span> <span class="s">&quot;The user id&quot;</span><span class="p">)</span>
   <span class="k">&amp;optional</span> <span class="p">(</span><span class="kt">boolean</span> <span class="ss">:boolean</span> <span class="no">nil</span> <span class="s">&quot;A boolean parameter&quot;</span><span class="p">)</span>
             <span class="p">(</span><span class="nc">integer</span> <span class="ss">:integer</span> <span class="no">nil</span> <span class="s">&quot;An integer parameter&quot;</span><span class="p">)</span>
             <span class="p">(</span><span class="nb">string</span> <span class="ss">:string</span> <span class="no">nil</span> <span class="s">&quot;A string parameter&quot;</span><span class="p">)</span>
@@ -263,7 +269,7 @@ They are specified like this:</p>
 <div class="section" id="api-example">
 <h2>API example<a class="headerlink" href="#api-example" title="Permalink to this headline">¶</a></h2>
 <p>Here is a complete example of an API interface:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">define-api</span> <span class="nv">api-test</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">define-api</span> <span class="nv">api-test</span> <span class="p">()</span>
     <span class="p">(</span><span class="ss">:title</span> <span class="s">&quot;Api test&quot;</span>
             <span class="ss">:documentation</span> <span class="s">&quot;This is an api test&quot;</span><span class="p">)</span>
   <span class="p">(</span><span class="nv">parameters</span> <span class="p">(</span><span class="ss">:produces</span> <span class="p">(</span><span class="ss">:json</span><span class="p">)</span>
@@ -302,17 +308,17 @@ They are specified like this:</p>
 </div>
 <div class="section" id="api-implementation">
 <h1>API implementation<a class="headerlink" href="#api-implementation" title="Permalink to this headline">¶</a></h1>
-<p>APIs need to implement its resources operations. This is done via the <a class="reference internal" href="#macro:rest-server:implement-resource-operation" title="rest-server:implement-resource-operation"><tt class="xref cl cl-function docutils literal"><span class="pre">implement-resource-operation</span></tt></a> macro.</p>
-<dl class="macro">
+<p>APIs need to implement its resources operations. This is done via the <a class="reference internal" href="#macro:rest-server:implement-resource-operation" title="rest-server:implement-resource-operation"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">implement-resource-operation</span></code></a> macro.</p>
+<dl class="cl macro">
 <dt id="macro:rest-server:implement-resource-operation">
-<em class="property">macro </em> (<tt class="descname">implement-resource-operation</tt> <em>api-name</em> <em>name-and-options</em> <em>args</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:implement-resource-operation" title="Permalink to this definition">¶</a></dt>
+<em class="property">macro </em> (<code class="sig-name descname">implement-resource-operation</code> <em>api-name</em> <em>name-and-options</em> <em>args</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:implement-resource-operation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define an resource operation implementation</p>
 </dd></dl>
 
 <p>The required arguments of the resource operation appear as normal arguments in the function, in the order in which they were declared. The optional arguments of a resource operation appear as <cite>&amp;key</cite> arguments of the function. In case the resource operation request method is either <strong>PUT</strong> or <strong>POST</strong>, then a <a href="#id1"><span class="problematic" id="id2">``</span></a>posted-content` argument should be added to the implementation function as the first argument.</p>
 <p>Some examples:</p>
 <p>For this operation:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">get-user</span> <span class="p">(</span><span class="ss">:request-method</span> <span class="ss">:get</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">get-user</span> <span class="p">(</span><span class="ss">:request-method</span> <span class="ss">:get</span>
                      <span class="ss">:produces</span> <span class="p">(</span><span class="ss">:json</span><span class="p">)</span>
                      <span class="ss">:path</span> <span class="s">&quot;/users/{id}&quot;</span>
                      <span class="ss">:documentation</span> <span class="s">&quot;Retrive an user&quot;</span><span class="p">)</span>
@@ -322,12 +328,12 @@ They are specified like this:</p>
 </pre></div>
 </div>
 <p>The following resource implementation should be defined:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">implement-resource-operation</span> <span class="nv">get-user</span> <span class="p">(</span><span class="nv">id</span> <span class="k">&amp;key</span> <span class="nv">expand</span><span class="p">)</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">implement-resource-operation</span> <span class="nv">get-user</span> <span class="p">(</span><span class="nv">id</span> <span class="k">&amp;key</span> <span class="nv">expand</span><span class="p">)</span>
    <span class="p">(</span><span class="nv">serialize</span> <span class="p">(</span><span class="nv">find-user</span> <span class="nv">id</span><span class="p">)</span> <span class="ss">:expand</span> <span class="nv">expand</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>And for this POST operation:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">create-user</span> <span class="p">(</span><span class="ss">:request-method</span> <span class="ss">:post</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">create-user</span> <span class="p">(</span><span class="ss">:request-method</span> <span class="ss">:post</span>
                              <span class="ss">:consumes</span> <span class="p">(</span><span class="ss">:json</span><span class="p">)</span>
                              <span class="ss">:path</span> <span class="s">&quot;/users&quot;</span>
                              <span class="ss">:documentation</span> <span class="s">&quot;Create a user&quot;</span>
@@ -335,38 +341,68 @@ They are specified like this:</p>
                     <span class="p">())</span>
 </pre></div>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">posted-content</span></tt> argument should be included:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">implement-resource-operation</span> <span class="nv">create-user</span> <span class="p">(</span><span class="nv">posted-content</span><span class="p">)</span>
+<p>The <code class="docutils literal notranslate"><span class="pre">posted-content</span></code> argument should be included:</p>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">implement-resource-operation</span> <span class="nv">create-user</span> <span class="p">(</span><span class="nv">posted-content</span><span class="p">)</span>
    <span class="p">(</span><span class="nv">with-posted-content</span> <span class="p">(</span><span class="nv">name</span> <span class="nv">age</span><span class="p">)</span> <span class="nv">posted-content</span>
        <span class="p">(</span><span class="nv">serialize</span> <span class="p">(</span><span class="nv">model:create-user</span> <span class="ss">:name</span> <span class="nv">name</span> <span class="ss">:age</span> <span class="nv">age</span><span class="p">))))</span>
 </pre></div>
 </div>
+<div class="section" id="conditional-dispatch">
+<h2>Conditional dispatch<a class="headerlink" href="#conditional-dispatch" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to dispatch to a particular resource operation implementation depending on the content type requested by the client in the HTTP Accept header via the <a class="reference internal" href="#function:rest-server:implement-resource-operation-case" title="rest-server:implement-resource-operation-case"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">implement-resource-operation-case</span></code></a> macro.</p>
+<dl class="cl function">
+<dt id="function:rest-server:implement-resource-operation-case">
+<em class="property">function </em> (<code class="sig-name descname">implement-resource-operation-case</code> <em>name</em> <em>accept-content-type</em> <em>args</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#function:rest-server:implement-resource-operation-case" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Example:</p>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">implement-resource-operation</span> <span class="nv">api-test::api-test</span>
+  <span class="nv">api-test::conditional-dispatch</span> <span class="p">()</span>
+<span class="p">(</span><span class="nb">error</span> <span class="ss">&#39;http-not-acceptable-error</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nv">implement-resource-operation-case</span>
+  <span class="nv">api-test::conditional-dispatch</span> <span class="s">&quot;text/html&quot;</span>
+  <span class="p">()</span>
+<span class="s">&quot;&lt;p&gt;Hello&lt;/p&gt;&quot;</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nv">implement-resource-operation-case</span>
+  <span class="nv">api-test::conditional-dispatch</span> <span class="s">&quot;application/json&quot;</span>
+  <span class="p">()</span>
+<span class="s">&quot;\&quot;hello\&quot;&quot;</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nv">implement-resource-operation-case</span>
+  <span class="nv">api-test::conditional-dispatch</span> <span class="s">&quot;application/xml&quot;</span>
+  <span class="p">()</span>
+<span class="s">&quot;&lt;p&gt;Hello&lt;/p&gt;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="starting-the-api">
 <h1>Starting the API<a class="headerlink" href="#starting-the-api" title="Permalink to this headline">¶</a></h1>
-<p>APIs are started calling the function <a class="reference internal" href="#function:rest-server:start-api" title="rest-server:start-api"><tt class="xref cl cl-function docutils literal"><span class="pre">start-api</span></tt></a></p>
-<dl class="function">
+<p>APIs are started calling the function <a class="reference internal" href="#function:rest-server:start-api" title="rest-server:start-api"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">start-api</span></code></a></p>
+<dl class="cl function">
 <dt id="function:rest-server:start-api">
-<em class="property">function </em> (<tt class="descname">start-api</tt> <em>api</em> <em>address</em> <em>port</em> <em class="lambda_keyword text-muted">&amp;optional</em> (<em>error-mode</em> <em>*error-mode*</em>) <em>configuration-args</em>)<a class="headerlink" href="#function:rest-server:start-api" title="Permalink to this definition">¶</a></dt>
+<em class="property">function </em> (<code class="sig-name descname">start-api</code> <em>api</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>args</em>)<a class="headerlink" href="#function:rest-server:start-api" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start an api at address and port.</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="nv">In</span> <span class="nv">production</span> <span class="nv">mode,</span> <span class="nv">we</span> <span class="nv">bind</span> <span class="k">the</span> <span class="nv">api</span> <span class="nv">directly.</span> <span class="nv">In</span> <span class="nv">development</span> <span class="nv">mode,</span> <span class="nv">we</span> <span class="nv">only</span> <span class="nv">bind</span> <span class="k">the</span> <span class="o">``</span><span class="nv">API</span><span class="o">``</span> <span class="nv">name</span> <span class="nv">in</span> <span class="nv">order</span> <span class="nv">to</span> <span class="nv">be</span> <span class="nv">able</span> <span class="nv">to</span> <span class="nv">make</span> <span class="nv">modifications</span> <span class="nv">to</span> <span class="k">the</span> <span class="nv">api</span>
-</pre></div>
-</div>
+<blockquote>
+<div><p>In production mode, we bind the api directly. In debug mode, we only bind the API name in order to be able to make modifications to the api (definition) in development time</p>
+</div></blockquote>
 </dd></dl>
 
 </div>
 <div class="section" id="accessing-the-api">
 <h1>Accessing the API<a class="headerlink" href="#accessing-the-api" title="Permalink to this headline">¶</a></h1>
-<p>The <a class="reference internal" href="#macro:rest-server:define-api" title="rest-server:define-api"><tt class="xref cl cl-function docutils literal"><span class="pre">define-api</span></tt></a> macro creates a function for accessing the api for each resource operation.</p>
-<p>Before using the generated functions, the api backend needs to be selected via the <a class="reference internal" href="#macro:rest-server:with-api-backend" title="rest-server:with-api-backend"><tt class="xref cl cl-function docutils literal"><span class="pre">with-api-backend</span></tt></a>.</p>
-<dl class="macro">
+<p>The <a class="reference internal" href="#macro:rest-server:define-api" title="rest-server:define-api"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">define-api</span></code></a> macro creates a function for accessing the api for each resource operation.</p>
+<p>Before using the generated functions, the api backend needs to be selected via the <a class="reference internal" href="#macro:rest-server:with-api-backend" title="rest-server:with-api-backend"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">with-api-backend</span></code></a>.</p>
+<dl class="cl macro">
 <dt id="macro:rest-server:with-api-backend">
-<em class="property">macro </em> (<tt class="descname">with-api-backend</tt> <em>backend</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-api-backend" title="Permalink to this definition">¶</a></dt>
+<em class="property">macro </em> (<code class="sig-name descname">with-api-backend</code> <em>backend</em> <em>&amp;body</em> <em>body</em>)<a class="headerlink" href="#macro:rest-server:with-api-backend" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the client resource operation calling backend</p>
 </dd></dl>
 
-<p>For instance, for the api defined above, an <tt class="docutils literal"><span class="pre">get-user</span></tt> and a <tt class="docutils literal"><span class="pre">get-users</span></tt> functions are created, which can be used like this:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">with-api-backend</span> <span class="s">&quot;http://localhost/api&quot;</span>
+<p>For instance, for the api defined above, an <code class="docutils literal notranslate"><span class="pre">get-user</span></code> and a <code class="docutils literal notranslate"><span class="pre">get-users</span></code> functions are created, which can be used like this:</p>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">with-api-backend</span> <span class="s">&quot;http://localhost/api&quot;</span>
    <span class="p">(</span><span class="nv">get-user</span> <span class="mi">22</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -386,7 +422,7 @@ They are specified like this:</p>
     </p>
     <p>
         &copy; Copyright 2014, Mariano Montone.<br/>
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.0.<br/>
     </p>
   </div>
 </footer>

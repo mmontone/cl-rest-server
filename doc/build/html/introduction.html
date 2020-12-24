@@ -1,43 +1,30 @@
 <!DOCTYPE html>
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Introduction &mdash; Common Lisp REST Server 0.2 documentation</title>
-    
-    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/bootswatch-3.1.0/cosmo/bootstrap.min.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>Introduction &#8212; Common Lisp REST Server 0.2 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.2',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
-    <link rel="top" title="Common Lisp REST Server 0.2 documentation" href="index.html" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Install" href="install.html" />
     <link rel="prev" title="Welcome to Common Lisp REST Server’s documentation!" href="index.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -55,7 +42,6 @@
 
         <div class="collapse navbar-collapse nav-collapse">
           <ul class="nav navbar-nav">
-            <li class="divider-vertical"></li>
             
             
               <li class="dropdown globaltoc-container">
@@ -67,11 +53,16 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API definition</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html#accessing-the-api">Accessing the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#api-implementation">API implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#starting-the-api">Starting the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html#accessing-the-api">Accessing the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-configuration.html">API configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbols.html">API</a></li>
 </ul>
 </ul>
 </li>
@@ -98,11 +89,11 @@
               
                 
   <li>
-    <a href="index.html" title="Previous Chapter: Welcome to Common Lisp REST Server’s documentation!"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm">&laquo; Welcome to Commo...</span>
+    <a href="index.html" title="Previous Chapter: Welcome to Common Lisp REST Server’s documentation!"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Welcome to Co...</span>
     </a>
   </li>
   <li>
-    <a href="install.html" title="Next Chapter: Install"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm">Install &raquo;</span>
+    <a href="install.html" title="Next Chapter: Install"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Install &raquo;</span>
     </a>
   </li>
               
@@ -112,7 +103,7 @@
             
               <li class="hidden-sm">
 <div id="sourcelink">
-  <a href="_sources/introduction.txt"
+  <a href="_sources/introduction.rst.txt"
      rel="nofollow">Source</a>
 </div></li>
             
@@ -134,7 +125,7 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12">
+    <div class="body col-md-12 content" role="main">
       
   <div class="section" id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
@@ -142,20 +133,21 @@
 <div class="section" id="features">
 <h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Method matching
+<li><p>Method matching
 - Based on HTTP method (GET, PUT, POST, DELETE)
 - Based on Accept request header
-- URL parsing (argument types)</li>
-<li>Serialization
-- Different serialization types (JSON, XML, S-expressions)</li>
-<li>Error handling
-- Development and production modes</li>
-<li>Validation via schemas</li>
-<li>Annotations for api logging, caching, permission checking, and more.</li>
-<li>Authentication
-- Different methods (token based, oauth)</li>
-<li>Documentation
-- Via Swagger: <a class="reference external" href="http://swagger.wordnik.com">http://swagger.wordnik.com</a></li>
+- URL parsing (argument types)</p></li>
+<li><p>Serialization
+- Different serialization types (JSON, XML, S-expressions)</p></li>
+<li><p>Error handling
+- HTTP error codes
+- Development and production modes</p></li>
+<li><p>Validation via schemas</p></li>
+<li><p>Annotations for api logging, caching, permission checking, and more.</p></li>
+<li><p>Authentication
+- Different methods (token based, oauth)</p></li>
+<li><p>Documentation
+- Via Swagger: <a class="reference external" href="http://swagger.wordnik.com">http://swagger.wordnik.com</a></p></li>
 </ul>
 </div>
 </div>
@@ -173,7 +165,7 @@
     </p>
     <p>
         &copy; Copyright 2014, Mariano Montone.<br/>
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.0.<br/>
     </p>
   </div>
 </footer>

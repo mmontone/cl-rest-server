@@ -1,41 +1,30 @@
 <!DOCTYPE html>
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>API configuration &mdash; Common Lisp REST Server 0.2 documentation</title>
-    
-    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/bootswatch-3.1.0/cosmo/bootstrap.min.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>API configuration &#8212; Common Lisp REST Server 0.2 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.2',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-3.1.0/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
-    <link rel="top" title="Common Lisp REST Server 0.2 documentation" href="index.html" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API documentation" href="documentation.html" />
+    <link rel="prev" title="Error handling" href="error-handling.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
-  </head>
-  <body>
+  </head><body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -53,7 +42,6 @@
 
         <div class="collapse navbar-collapse nav-collapse">
           <ul class="nav navbar-nav">
-            <li class="divider-vertical"></li>
             
             
               <li class="dropdown globaltoc-container">
@@ -64,7 +52,7 @@
      href="index.html">Site <b class="caret"></b></a>
   <ul class="dropdown-menu globaltoc"
       role="menu"
-      aria-labelledby="dLabelGlobalToc"><ul>
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API definition</a></li>
@@ -72,6 +60,8 @@
 <li class="toctree-l1"><a class="reference internal" href="api.html#starting-the-api">Starting the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html#accessing-the-api">Accessing the API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error-handling.html">Error handling</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">API documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="symbols.html">API</a></li>
 </ul>
 </ul>
@@ -102,6 +92,14 @@
             
               
                 
+  <li>
+    <a href="error-handling.html" title="Previous Chapter: Error handling"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Error handling</span>
+    </a>
+  </li>
+  <li>
+    <a href="documentation.html" title="Next Chapter: API documentation"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">API documentation &raquo;</span>
+    </a>
+  </li>
               
             
             
@@ -109,7 +107,7 @@
             
               <li class="hidden-sm">
 <div id="sourcelink">
-  <a href="_sources/api-configuration.txt"
+  <a href="_sources/api-configuration.rst.txt"
      rel="nofollow">Source</a>
 </div></li>
             
@@ -131,14 +129,14 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12">
+    <div class="body col-md-12 content" role="main">
       
   <div class="section" id="api-configuration">
 <h1>API configuration<a class="headerlink" href="#api-configuration" title="Permalink to this headline">¶</a></h1>
-<p>Some aspects of the api can be configured either passing the configuration parameters to the <a class="reference internal" href="api.html#function:rest-server:start-api" title="rest-server:start-api"><tt class="xref cl cl-function docutils literal"><span class="pre">start-api</span></tt></a> function, or via the <a class="reference internal" href="symbols.html#function:rest-server:configure-api" title="rest-server:configure-api"><tt class="xref cl cl-function docutils literal"><span class="pre">configure-api</span></tt></a> function.</p>
-<dl class="function">
+<p>Some aspects of the api can be configured either passing the configuration parameters to the <a class="reference internal" href="api.html#function:rest-server:start-api" title="rest-server:start-api"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">start-api</span></code></a> function, or via the <a class="reference internal" href="#function:rest-server:configure-api" title="rest-server:configure-api"><code class="xref cl cl-function docutils literal notranslate"><span class="pre">configure-api</span></code></a> function.</p>
+<dl class="cl function">
 <dt id="function:rest-server:configure-api">
-<em class="property">function </em> (<tt class="descname">configure-api</tt> <em>api-or-name</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>options</em>)<a class="headerlink" href="#function:rest-server:configure-api" title="Permalink to this definition">¶</a></dt>
+<em class="property">function </em> (<code class="sig-name descname">configure-api</code> <em>api-or-name</em> <em class="lambda_keyword text-muted">&amp;rest</em> <em>options</em>)<a class="headerlink" href="#function:rest-server:configure-api" title="Permalink to this definition">¶</a></dt>
 <dd><p>Configure or reconfigure an already existent api</p>
 </dd></dl>
 
@@ -146,16 +144,16 @@
 <h2>CORS configuration<a class="headerlink" href="#cors-configuration" title="Permalink to this headline">¶</a></h2>
 <p>APIs can be configured to append <a class="reference external" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS">CORS</a> headers to responses.</p>
 <p>Syntax:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">configure-api</span> <span class="nv">api</span> <span class="o">&#39;</span><span class="p">(</span><span class="ss">:cors</span> <span class="k">&amp;rest</span> <span class="nv">options</span><span class="p">))</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">configure-api</span> <span class="nv">api</span> <span class="o">&#39;</span><span class="p">(</span><span class="ss">:cors</span> <span class="k">&amp;rest</span> <span class="nv">options</span><span class="p">))</span>
 </pre></div>
 </div>
 <div class="section" id="options">
 <h3>Options:<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">:enabled</span></tt>: Boolean. CORS enabled when <tt class="docutils literal"><span class="pre">T</span></tt>.</li>
-<li><tt class="docutils literal"><span class="pre">:allow-origin</span></tt>: The &#8220;AllowOrigin&#8221; header. Default: <tt class="docutils literal"><span class="pre">&quot;*&quot;</span></tt></li>
-<li><tt class="docutils literal"><span class="pre">:allow-headers</span></tt>: A list. The &#8220;AllowHeaders&#8221; header.</li>
-<li><tt class="docutils literal"><span class="pre">:allow-methods</span></tt>: A list. The &#8220;AllowMethods&#8221; header. Default: <tt class="docutils literal"><span class="pre">(list</span> <span class="pre">:get</span> <span class="pre">:put</span> <span class="pre">:post</span> <span class="pre">:delete)</span></tt></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:enabled</span></code>: Boolean. CORS enabled when <code class="docutils literal notranslate"><span class="pre">T</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:allow-origin</span></code>: The “AllowOrigin” header. Default: <code class="docutils literal notranslate"><span class="pre">&quot;*&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:allow-headers</span></code>: A list. The “AllowHeaders” header.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:allow-methods</span></code>: A list. The “AllowMethods” header. Default: <code class="docutils literal notranslate"><span class="pre">(list</span> <span class="pre">:get</span> <span class="pre">:put</span> <span class="pre">:post</span> <span class="pre">:delete)</span></code></p></li>
 </ul>
 </div>
 </div>
@@ -163,13 +161,13 @@
 <h2>Logging configuration<a class="headerlink" href="#logging-configuration" title="Permalink to this headline">¶</a></h2>
 <p>Log api requests and responses.</p>
 <p>Syntax:</p>
-<div class="highlight-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nv">configure-api</span> <span class="o">&#39;</span><span class="p">(</span><span class="ss">:logging</span> <span class="k">&amp;rest</span> <span class="nv">options</span><span class="p">))</span>
+<div class="highlight-common-lisp notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nv">configure-api</span> <span class="o">&#39;</span><span class="p">(</span><span class="ss">:logging</span> <span class="k">&amp;rest</span> <span class="nv">options</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Then evaluate :cl:function::<cite>start-api-logging</cite></p>
-<dl class="function">
+<dl class="cl function">
 <dt id="function:rest-server:start-api-logging">
-<em class="property">function </em> (<tt class="descname">start-api-logging</tt>)<a class="headerlink" href="#function:rest-server:start-api-logging" title="Permalink to this definition">¶</a></dt>
+<em class="property">function </em> (<code class="sig-name descname">start-api-logging</code>)<a class="headerlink" href="#function:rest-server:start-api-logging" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -188,7 +186,7 @@
     </p>
     <p>
         &copy; Copyright 2014, Mariano Montone.<br/>
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.0.<br/>
     </p>
   </div>
 </footer>
