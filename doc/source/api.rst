@@ -12,7 +12,7 @@ This is the syntax:
 
 .. code-block:: common-lisp
 		
-   (define-api <api-name> <options-plist>
+   (define-api <api-name> (&rest <superclasses>) <options-plist>
       &rest
       <resources>)
 
@@ -111,7 +111,7 @@ Here is a complete example of an API interface:
 
 .. code-block:: common-lisp
 
-   (define-api api-test
+   (define-api api-test ()
        (:title "Api test"
 	       :documentation "This is an api test")
      (parameters (:produces (:json)

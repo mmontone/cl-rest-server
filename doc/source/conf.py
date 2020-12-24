@@ -37,12 +37,18 @@ extensions.extend(['sphinxcontrib.cldomain',
                    'sphinxcontrib.hyperspec'])
 
 from os.path import join, dirname, realpath
-cl_packages = {"rest-server": join(dirname(realpath(__file__)), "../")}
+
+cl_systems = [{'name': 'rest-server',
+               'path': '/home/marian/src/lisp/cl-rest-server'},
+              {'name': 'generic-serializer',
+               'path': '/home/marian/src/lisp/generic-serializer'},
+              {'name': 'schemata',
+               'path': '/home/marian/src/lisp/schemata'}]
 
 from os.path import expandvars
 cl_quicklisp = expandvars('$HOME/quicklisp/')
 
-cl_lisps = "sbcl"
+cl_lisps = ["sbcl", "ecl"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
