@@ -1,0 +1,74 @@
+* REST SERVER DEMO
+
+** Load the demo
+
+#+BEGIN_SRC lisp :exports code :results pp :session 
+(ql:quickload :rest-server-demo)
+#+END_SRC
+
+** Start the demo api
+
+#+BEGIN_SRC lisp :exports code :results pp :session 
+(rest-server-demo:start-demo-api)
+#+END_SRC
+
+** Access the api via the generated client functions
+
+#+BEGIN_SRC lisp :exports both :results org :session 
+(rs:with-api-backend "http://localhost:9090"
+  (rest-server-demo.client:list-users))
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC org
+((:PAGE . 1) (:NEXT . "http://localhost:9090/users?page=2&expand=")
+ (:PREVIOUS . "http://localhost:9090/users?page=0&expand=") (:RESULTS))
+200
+#+END_SRC
+
+#+BEGIN_SRC lisp :exports both :results org :session 
+(rs:with-api-backend "http://localhost:9090"
+  (rest-server-demo.client:create-user nil))
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC org
+((:ID . 2) (:REALNAME))
+200
+#+END_SRC
+
+#+BEGIN_SRC lisp :exports both :results org :session 
+(rs:with-api-backend "http://localhost:9090"
+  (rest-server-demo.client:create-user '((:realname . "Mariano"))))
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC org
+((:ID . 4) (:REALNAME . "Mariano"))
+200
+#+END_SRC
+
+#+BEGIN_SRC lisp :exports both :results org :session 
+(rs:with-api-backend "http://localhost:9090"
+  (rest-server-demo.client:list-users))
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC org
+((:PAGE . 1) (:NEXT . "http://localhost:9090/users?page=2&expand=")
+ (:PREVIOUS . "http://localhost:9090/users?page=0&expand=")
+ (:RESULTS ((:ID . 4) (:REALNAME . "Mariano"))
+  ((:ID . 3) (:REALNAME . "Mariano")) ((:ID . 2) (:REALNAME))))
+200
+#+END_SRC
+
+#+BEGIN_SRC lisp :exports both :results org :session 
+(rs:with-api-backend "http://localhost:9090"
+  (rest-server-demo.client:fetch-user 3))
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC org
+((:HREF . "http://localhost:9090/users/3") (:ID . 3) (:REALNAME . "Mariano"))
+200
+#+END_SRC
