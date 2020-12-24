@@ -28,9 +28,9 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
   (flet ((predicate-name (arg)
            (intern (format nil "~A-P" arg))))
     `(let ,(loop for arg in args
-              collect `(,arg (cdr (assoc ,(make-keyword arg) ,posted-content)))
-              collect `(,(predicate-name arg)
-                         (assoc ,(make-keyword arg) ,posted-content)))
+                 collect `(,arg (cdr (assoc ,(make-keyword arg) ,posted-content)))
+                 collect `(,(predicate-name arg)
+                           (assoc ,(make-keyword arg) ,posted-content)))
        (declare (ignorable ,@(mapcar #'predicate-name args)))
        ,@body)))
 
@@ -39,9 +39,9 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
 
 (defun call-with-text-content-types (function)
   (let ((drakma:*text-content-types*
-         (append drakma:*text-content-types*
-                 (list (cons "application" "json")
-                       (cons "application" "xml")))))
+          (append drakma:*text-content-types*
+                  (list (cons "application" "json")
+                        (cons "application" "xml")))))
     (funcall function)))
 
 (defgeneric encode-posted-content (content content-type)
@@ -125,10 +125,10 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                        (declare (ignore scanner))
                        vars)))
     (loop for arg in args-in-uri
-       do
-         (assert (member (string arg) (mapcar #'argument-name (required-arguments resource-operation)) :test 'equalp :key 'string)
-                 nil
-                 "Argument ~a not declared in ~a" arg resource-operation)))
+          do
+             (assert (member (string arg) (mapcar #'argument-name (required-arguments resource-operation)) :test 'equalp :key 'string)
+                     nil
+                     "Argument ~a not declared in ~a" arg resource-operation)))
 
   ;; Check the body-schema, if defined (only warn if not defined)
   (when (body-schema resource-operation)
@@ -170,9 +170,9 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
 
 (defmethod find-resource-operation ((api api-definition) operation-name &optional (error-p t))
   (loop for resource being the hash-values of (resources api)
-     when (gethash operation-name (resource-operations resource))
-     do (return-from find-resource-operation
-          (gethash operation-name (resource-operations resource))))
+        when (gethash operation-name (resource-operations resource))
+          do (return-from find-resource-operation
+               (gethash operation-name (resource-operations resource))))
   (when error-p
     (error "resource operation not found ~A" operation-name)))
 
@@ -201,9 +201,9 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
          :accessor argument-type
          :documentation "The argument type")
    (default :initarg :default
-     :accessor argument-default
-     :initform nil
-     :documentation "The argument default value")
+            :accessor argument-default
+            :initform nil
+            :documentation "The argument default value")
    (required-p :initarg :required-p
                :accessor argument-required-p
                :initform t
@@ -265,37 +265,37 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
          (path-regex (remove
                       nil
                       (loop for x in (cl-ppcre:split '(:register (:char-class #\{ #\})) string :with-registers-p t)
-                         with status = :norm
-                         collect
-                           (case status
-                             (:norm
-                              (cond ((string= x "{")
-                                     (setf status :invar)
-                                     nil)
-                                    ((string= x "}")
-                                     (error "Parse error"))
-                                    (t x)))
-                             (:invar
-                              (cond ((string= x "}")
-                                     (setf status :norm)
-                                     nil)
-                                    ((string= x "{")
-                                     (error "Parse error"))
-                                    (t
-                                     (push (funcall *argument-url-name-parser* x)
-                                           vars)
-                                     `(:register (:non-greedy-repetition 1 nil (:inverted-char-class #\/ #\?))))))))))
+                            with status = :norm
+                            collect
+                            (case status
+                              (:norm
+                               (cond ((string= x "{")
+                                      (setf status :invar)
+                                      nil)
+                                     ((string= x "}")
+                                      (error "Parse error"))
+                                     (t x)))
+                              (:invar
+                               (cond ((string= x "}")
+                                      (setf status :norm)
+                                      nil)
+                                     ((string= x "{")
+                                      (error "Parse error"))
+                                     (t
+                                      (push (funcall *argument-url-name-parser* x)
+                                            vars)
+                                      `(:register (:non-greedy-repetition 1 nil (:inverted-char-class #\/ #\?))))))))))
          (scanner
-          `(:sequence
-            :start-anchor
-            (:alternation
-             (:sequence
-              ,@path-regex)
-             (:sequence
-              ,@path-regex
-              #\?
-              (:non-greedy-repetition 0 nil :everything)))
-            :end-anchor)))
+           `(:sequence
+             :start-anchor
+             (:alternation
+              (:sequence
+               ,@path-regex)
+              (:sequence
+               ,@path-regex
+               #\?
+               (:non-greedy-repetition 0 nil :everything)))
+             :end-anchor)))
     (values scanner vars)))
 
 (defun extract-function-arguments (resource-operation request)
@@ -305,21 +305,21 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
         (ppcre:scan-to-strings scanner request-uri)
       (declare (ignore replaced-uri))
       (let ((args (loop for arg across args
-                     when arg
-                     collect (hunchentoot:url-decode arg))))
+                        when arg
+                          collect (hunchentoot:url-decode arg))))
         (let ((required-args
-               (loop
+                (loop
                   for reqarg in (required-arguments resource-operation)
                   for arg in args
                   collect (parse-argument-value arg (argument-type reqarg))))
               (optional-args
-               (loop
+                (loop
                   for (var . string) in (request-uri-parameters request-uri)
                   for optarg = (find-optional-argument (make-keyword var) resource-operation)
                   appending
-                    (list (make-keyword (string (argument-name optarg)))
-                          (parse-argument-value (hunchentoot:url-decode string)
-                                                (argument-type optarg))))))
+                  (list (make-keyword (string (argument-name optarg)))
+                        (parse-argument-value (hunchentoot:url-decode string)
+                                              (argument-type optarg))))))
           (append required-args optional-args))))))
 
 (defmethod execute ((resource-operation-implementation resource-operation-implementation) &rest args)
@@ -332,18 +332,18 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
   (multiple-value-bind (lambda-list special-args)
       (extract-special-arguments args)
     (loop :for special-arg :in special-args
-       :do
-       (case (car special-arg)
-         (:&posted-content (setf lambda-list
-                                 (add-keyword-argument
-                                  (list (list :_posted-content (cdr special-arg)))
-                                  lambda-list)))
-         (:&resource-operation (setf lambda-list (add-keyword-argument
-                                                  (list (list :_resource-operation (cdr special-arg)))
-                                                  lambda-list)))
-         (t (error "Invalid argument: ~A in resource operation implementation: ~A"
-                   (car special-arg)
-                   resop-impl))))
+          :do
+             (case (car special-arg)
+               (:&posted-content (setf lambda-list
+                                       (add-keyword-argument
+                                        (list (list :_posted-content (cdr special-arg)))
+                                        lambda-list)))
+               (:&resource-operation (setf lambda-list (add-keyword-argument
+                                                        (list (list :_resource-operation (cdr special-arg)))
+                                                        lambda-list)))
+               (t (error "Invalid argument: ~A in resource operation implementation: ~A"
+                         (car special-arg)
+                         resop-impl))))
     (when (not (find '&key lambda-list))
       (setf lambda-list (append lambda-list (list '&key))))
     lambda-list))
@@ -364,14 +364,14 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
       `(let* ((api (find-api ',api-name))
               (resource-operation (find-resource-operation api ',name))
               (resource-operation-implementation
-               (make-instance 'resource-operation-implementation
-                              :resource-operation resource-operation
-                              :primary (lambda ,(resop-impl-args args resource-operation)
-                                         ,@body)
-                              :options ',options)))
+                (make-instance 'resource-operation-implementation
+                               :resource-operation resource-operation
+                               :primary (lambda ,(resop-impl-args args resource-operation)
+                                          ,@body)
+                               :options ',options)))
          (let ((decorated-function
-                (process-resource-operation-implementation-options
-                 resource-operation-implementation)))
+                 (process-resource-operation-implementation-options
+                  resource-operation-implementation)))
            (register-resource-operation-implementation decorated-function))))))
 
 (defun validate-resource-operation-implementation-arguments (args resource-operation)
@@ -387,35 +387,35 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
               (mapcar #'argument-name (required-arguments resource-operation))
               required)
       (loop for arg0 in (required-arguments resource-operation)
-         for arg1 in required
-         do
-           (let ((arg0-name (argument-name arg0))
-                 (arg1-name arg1))
-             (ensure (equalp (symbol-name arg0-name)
-                             (symbol-name arg1-name))
-                     "Invalid resource operation implementation args list: ~A <> ~A"
-                     arg0-name arg1-name)))
+            for arg1 in required
+            do
+               (let ((arg0-name (argument-name arg0))
+                     (arg1-name arg1))
+                 (ensure (equalp (symbol-name arg0-name)
+                                 (symbol-name arg1-name))
+                         "Invalid resource operation implementation args list: ~A <> ~A"
+                         arg0-name arg1-name)))
       (let ((optional-args-names
-             (mapcar (alexandria:compose #'string #'caar)
-                     keyword))
+              (mapcar (alexandria:compose #'string #'caar)
+                      keyword))
             (resource-operation-optional-args
-             (mapcar (alexandria:compose #'string #'argument-name)
-                     (optional-arguments resource-operation))))
+              (mapcar (alexandria:compose #'string #'argument-name)
+                      (optional-arguments resource-operation))))
         (let ((invalid-optional-args
-               (set-difference (set-difference optional-args-names
-                                               (list "_POSTED-CONTENT" "_RESOURCE-OPERATION")
+                (set-difference (set-difference optional-args-names
+                                                (list "_POSTED-CONTENT" "_RESOURCE-OPERATION")
 
-                                               :test #'equalp)
-                               resource-operation-optional-args
-                               :test #'equalp)))
+                                                :test #'equalp)
+                                resource-operation-optional-args
+                                :test #'equalp)))
           (ensure (not invalid-optional-args)
                   "Invalid ~A implementation args: ~A"
                   resource-operation
                   invalid-optional-args))
         (let ((missing-optional-args
-               (set-difference resource-operation-optional-args
-                               optional-args-names
-                               :test #'equalp)))
+                (set-difference resource-operation-optional-args
+                                optional-args-names
+                                :test #'equalp)))
           (ensure (not missing-optional-args)
                   "Missing args in ~A implementation: ~A"
                   resource-operation
@@ -429,27 +429,27 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
     (name &rest options)
   "Configure or reconfigure an already existent resource operation implementation"
   (let* ((resource-operation-implementation
-          (find-resource-operation-implementation name)))
+           (find-resource-operation-implementation name)))
     (let ((processed-resource-operation resource-operation-implementation))
       (loop for option in (reverse options)
-         do (destructuring-bind (option-name &rest args) option
-              (setf processed-resource-operation
-                    (apply #'process-resource-operation-implementation-option
-                           option-name
-                           processed-resource-operation
-                           args))))
+            do (destructuring-bind (option-name &rest args) option
+                 (setf processed-resource-operation
+                       (apply #'process-resource-operation-implementation-option
+                              option-name
+                              processed-resource-operation
+                              args))))
       (register-resource-operation-implementation
        processed-resource-operation))))
 
 (defun process-resource-operation-implementation-options (resource-operation-implementation)
   (let ((processed-resource-operation resource-operation-implementation))
     (loop for option in (reverse (options resource-operation-implementation))
-       do (destructuring-bind (option-name &rest args) option
-            (setf processed-resource-operation
-                  (apply #'process-resource-operation-implementation-option
-                         option-name
-                         processed-resource-operation
-                         args))))
+          do (destructuring-bind (option-name &rest args) option
+               (setf processed-resource-operation
+                     (apply #'process-resource-operation-implementation-option
+                            option-name
+                            processed-resource-operation
+                            args))))
     processed-resource-operation))
 
 (defgeneric process-resource-operation-implementation-option
@@ -532,7 +532,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
    (find name (optional-arguments resource-operation)
          :key (alexandria:compose #'make-keyword #'argument-name))
    (schemata:validation-error "Invalid argument: ~A"
-                               name)))
+                              name)))
 
 (defun resource-operation-matches-request-p (resource-operation request)
   (let ((scanner (parse-resource-operation-path (path resource-operation))))
@@ -547,15 +547,15 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
   (:documentation "Print the resource operation url")
   (:method ((resource-operation resource-operation) &rest args)
     (let ((url-noparams
-           (replace-vars-in-url (url-pattern-noparams resource-operation) args))
+            (replace-vars-in-url (url-pattern-noparams resource-operation) args))
           (optional-args
-           (loop
+            (loop
               for key in args by #'cddr
               for value in (cdr args) by #'cddr
               for optional-arg = (find key (optional-arguments resource-operation)
                                        :key (alexandria:compose #'make-keyword #'argument-name))
               when optional-arg
-              collect (format-optional-url-arg optional-arg value))))
+                collect (format-optional-url-arg optional-arg value))))
       (format nil "~A~@[?~{~A~^&~}~]"
               url-noparams
               optional-args))))
@@ -565,7 +565,8 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                           (if (hunchentoot:acceptor-ssl-p hunchentoot:*acceptor*)
                               "https"
                               "http")
-                          (hunchentoot:acceptor-address hunchentoot:*acceptor*)
+                          (or (hunchentoot:acceptor-address hunchentoot:*acceptor*)
+                              "localhost")
                           (hunchentoot:acceptor-port hunchentoot:*acceptor*))))
     (format nil "~A~A"
             base-url
@@ -600,18 +601,18 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
 
 (defun parse-resource-operation-arguments (arguments-spec)
   (loop with required-arguments = '()
-     with optional-arguments ='()
-     with optional = nil
-     for argument in arguments-spec
-     do
-       (if (equalp argument '&optional)
-           (setf optional t)
-           ;; else
-           (if optional
-               (push (parse-optional-resource-operation-argument argument) optional-arguments)
-               (push (parse-resource-operation-argument argument) required-arguments)))
-     finally (return (values (reverse required-arguments)
-                             (reverse optional-arguments)))))
+        with optional-arguments ='()
+        with optional = nil
+        for argument in arguments-spec
+        do
+           (if (equalp argument '&optional)
+               (setf optional t)
+               ;; else
+               (if optional
+                   (push (parse-optional-resource-operation-argument argument) optional-arguments)
+                   (push (parse-resource-operation-argument argument) required-arguments)))
+        finally (return (values (reverse required-arguments)
+                                (reverse optional-arguments)))))
 
 (defun parse-parameter (string)
   (cl-ppcre:register-groups-bind (query-param var)
@@ -647,26 +648,28 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
              ,(append
                (when (member (request-method resource-operation) '(:post :put :patch))
                  (list 'posted-content))
-               (loop for arg in required-args collect
-                    (intern (symbol-name (argument-name arg)) package))
+               (loop for arg in required-args
+                     collect
+                     (intern (symbol-name (argument-name arg)) package))
                (cons '&key
-                     (append
-                      (list '(accept "application/json"))
-                      (list '(additional-headers ()))
-                      (list '(parse-response t))
-                      (list '(encode-request-arguments t))
-                      (list '(error-p *signal-client-function-errors*))
-                      (when (authorizations resource-operation)
-                        (list '(authorization (error "Provide an authorization value"))))
-                      (when optional-args
-                        (loop for arg in optional-args collect
-                             (list (intern (symbol-name (argument-name arg)) package)
-                                   (argument-default arg)
-                                   (intern (format nil "~A-PROVIDED-P"
-                                                   (symbol-name (argument-name arg)))
-                                           package))))
-                      (when (member (request-method resource-operation) '(:post :put :patch))
-                        (list '(content-type "application/json"))))))
+                (append
+                 (list '(accept "application/json"))
+                 (list '(additional-headers ()))
+                 (list '(parse-response t))
+                 (list '(encode-request-arguments t))
+                 (list '(error-p *signal-client-function-errors*))
+                 (when (authorizations resource-operation)
+                   (list '(authorization (error "Provide an authorization value"))))
+                 (when optional-args
+                   (loop for arg in optional-args
+                         collect
+                         (list (intern (symbol-name (argument-name arg)) package)
+                               (argument-default arg)
+                               (intern (format nil "~A-PROVIDED-P"
+                                               (symbol-name (argument-name arg)))
+                                       package))))
+                 (when (member (request-method resource-operation) '(:post :put :patch))
+                   (list '(content-type "application/json"))))))
            ,@(when (api-documentation resource-operation)
                (list (api-documentation resource-operation)))
            (declare (ignorable encode-request-arguments))
@@ -678,12 +681,12 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                                         ,(url-pattern-noparams resource-operation)
                                         (list
                                          ,@(loop for arg in required-args
-                                              collect (make-keyword (argument-name arg))
-                                              collect `(if encode-request-arguments
-                                                           (format-argument-value
-                                                            ,(intern (symbol-name (argument-name arg)) package)
-                                                            (parse-argument-type ',(argument-type-spec (argument-type arg))))
-                                                           ,(intern (symbol-name (argument-name arg)) package))))))))
+                                                 collect (make-keyword (argument-name arg))
+                                                 collect `(if encode-request-arguments
+                                                              (format-argument-value
+                                                               ,(intern (symbol-name (argument-name arg)) package)
+                                                               (parse-argument-type ',(argument-type-spec (argument-type arg))))
+                                                              ,(intern (symbol-name (argument-name arg)) package))))))))
              (log5:log-for (rest-server)  "Request: ~A ~A" ,(request-method resource-operation) ,request-url)
              ,(when (member (request-method resource-operation)
                             '(:post :put :patch))
@@ -704,17 +707,17 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                                      'content-type)
                     :parameters (append
                                  ,@(loop for arg in optional-args
-                                      collect
-                                        `(when ,(intern (format nil "~A-PROVIDED-P" (symbol-name (argument-name arg))) package)
-                                           (list (cons
-                                                  ,(symbol-name (argument-name arg))
-                                                  (if encode-request-arguments
-                                                      (format-argument-value
+                                         collect
+                                         `(when ,(intern (format nil "~A-PROVIDED-P" (symbol-name (argument-name arg))) package)
+                                            (list (cons
+                                                   ,(symbol-name (argument-name arg))
+                                                   (if encode-request-arguments
+                                                       (format-argument-value
+                                                        ,(intern (symbol-name
+                                                                  (argument-name arg)) package)
+                                                        (parse-argument-type ',(argument-type-spec (argument-type arg))))
                                                        ,(intern (symbol-name
-                                                                 (argument-name arg)) package)
-                                                       (parse-argument-type ',(argument-type-spec (argument-type arg))))
-                                                      ,(intern (symbol-name
-                                                                (argument-name arg)) package)))))))
+                                                                 (argument-name arg)) package)))))))
                     :additional-headers (append
                                          (list (cons "Accept" accept)
                                                ,@(when (authorizations resource-operation)
@@ -728,7 +731,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                                     parse-response
                                     error-p))))
          ,@(when export-p
-             `((export ',client-stub-name ,(package-name package))))))))
+             `((export ',client-stub-name ,(package-name (find-package package)))))))))
 
 (defun handle-api-response (response status-code accept parse-response error-p)
   (cond
@@ -760,13 +763,13 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
   (if (functionp format)
       (funcall format response)
       (let ((parsed-accept
-             (string-case:string-case (accept)
-               ("text/xml" :xml)
-               ("application/xml" :xml)
-               ("text/html" :html)
-               ("application/json" :json)
-               ("text/lisp" :sexp)
-               (t (error "Could not parse accept: ~A" accept)))))
+              (string-case:string-case (accept)
+                ("text/xml" :xml)
+                ("application/xml" :xml)
+                ("text/html" :html)
+                ("application/json" :json)
+                ("text/lisp" :sexp)
+                (t (error "Could not parse accept: ~A" accept)))))
         (%parse-api-response response parsed-accept format))))
 
 (defgeneric %parse-api-response (response accept format)

@@ -145,9 +145,8 @@
                         args
                         options))
                      :package
-                     (or (and (getf options :client-package)
-                              (find-package (getf options :client-package)))
-                         *package*)
+                     (or (getf options :client-package)
+                         (package-name *package*))
                      :export-p (getf options :export-client-functions))))))
 
 (defmacro implement-api-resource (api-name name-and-options &body resource-operations-implementations)

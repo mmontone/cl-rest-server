@@ -57,16 +57,15 @@
        (:default-initargs :name ',name ,@options))
      (make-instance ',name)
      (with-api ,name
-       ,@(let ((client-package (or (find-package (getf options :client-package))
-                                   *package*)))
+       ,@(let ((client-package (or (getf options :client-package)
+                                   (package-name *package*))))
            (loop for resource in resources
               collect (destructuring-bind (name resource-options &body operations)
                           resource
                         (let ((resource-options
                                (list* :client-package
-                                      (package-name
-                                       (or (getf options :client-package)
-                                           client-package))
+                                      (or (getf resource-options :client-package)
+                                           client-package)
                                       :export-client-functions
                                       (or (getf resource-options :export-client-functions)
                                           (getf options :export-client-functions))
