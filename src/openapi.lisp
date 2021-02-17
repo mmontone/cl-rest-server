@@ -126,6 +126,7 @@
                    when (member (car operation) '("get" "post" "put" "patch" "delete") :test 'equalp)
                      do
                         (let ((tag (first (-> (cdr operation) "tags"))))
+                          ;; Tags are needed because we need to group operations into resources. rest-server model is based in old Swagger model, that grouped things in resources. But the newer OpenAPI model doesn't.
                           (assert (not (null tag)) nil "Operation ~A is not tagged.
 Please add a tag to the operation in OpenApi spec as an indication of which resource it belongs to.
 As an example, if the operation does something to the application users, then adding a tag \"users\" would be a good choice.
