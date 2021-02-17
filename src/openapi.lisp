@@ -1,7 +1,7 @@
 (defpackage rs.openapi
   (:use :rest-server :cl)
   (:export :define-api-from-spec
-           :define-schemas-from-spec
+   :define-schemas-from-spec
            :export-api-spec))
 
 (in-package :rs.openapi)
@@ -16,11 +16,11 @@
            (= 1
               (length (remove-duplicates set :test 'equalp)))))
     (loop for n downfrom (apply 'min (mapcar 'length strings)) to 1
-       do
-         (when (all-equal (mapcar (lambda (str)
-                                    (subseq str 0 n))
-                                  strings))
-           (return-from common-prefix (subseq (first strings) 0 n))))
+          do
+             (when (all-equal (mapcar (lambda (str)
+                                        (subseq str 0 n))
+                                      strings))
+               (return-from common-prefix (subseq (first strings) 0 n))))
     nil))
 
 (defun -> (&rest args)
@@ -43,18 +43,18 @@
              (apply #'access:accesses spec path)))
     `(rs:define-api ,name ,superclasses
          (:title ,(@ "info" "title")
-                 :documentation ,(@ "info" "description")
-                 ,@options)
+          :documentation ,(@ "info" "description")
+          ,@options)
        ,@(loop for resource in (collect-resources spec)
-            collect (inline-resource-from-v3-spec resource)))))
+               collect (inline-resource-from-v3-spec resource)))))
 
 (defun inline-resource-from-v3-spec (resource)
   `(,(first resource) (:produces (:json)
-                                 :consumes (:json)
-                                 :documentation "TODO"
-                                 :path ,(common-prefix (mapcar (lambda (r) (string (car r))) (cdr resource))))
-     ,@(loop for operation in (cdr resource)
-          collect (inline-operation-from-v3-spec operation))))
+                       :consumes (:json)
+                       :documentation "TODO"
+                       :path ,(common-prefix (mapcar (lambda (r) (string (car r))) (cdr resource))))
+    ,@(loop for operation in (cdr resource)
+            collect (inline-operation-from-v3-spec operation))))
 
 (defun parse-authorization (security-name)
   (intern (format nil "~A-AUTH" (symbolicate security-name))))
@@ -65,14 +65,14 @@
                                                 'caar)
                             (-> args "security"))))
       `(,(symbolicate (-> args "operationId"))
-       (:request-method ,(alexandria:make-keyword (string-upcase method))
-                        :produces (:json)
-                        :consumes (:json)
-                        :path ,(string path)
-                        :authorizations ,security
-                        :documentation ,(-> args "description"))
-       ,(operation-parameters-from-spec operation)))
-  ))
+        (:request-method ,(alexandria:make-keyword (string-upcase method))
+         :produces (:json)
+         :consumes (:json)
+         :path ,(string path)
+         :authorizations ,security
+         :documentation ,(-> args "description"))
+        ,(operation-parameters-from-spec operation)))
+    ))
 
 (defun operation-parameters-from-spec (operation)
   (let ((params (-> (cddr operation) "parameters"))
@@ -84,11 +84,11 @@
                                         (-> param "required"))
                                       params)))
       (loop for param in required-params
-         do (setf result (append result (list (required-param-from-spec param)))))
+            do (setf result (append result (list (required-param-from-spec param)))))
       (when (> (length optional-params) 0)
         (setf result (append result '(&optional)))
         (loop for param in optional-params
-           do (setf result (append result (list (optional-param-from-spec param)))))))
+              do (setf result (append result (list (optional-param-from-spec param)))))))
     result))
 
 (defun parse-value (string type)
@@ -97,15 +97,15 @@
 
 (defun required-param-from-spec (param)
   `(,(symbolicate (-> param "name"))
-     ,(param-type-from-spec param)
-     ,(-> param "description")))
+    ,(param-type-from-spec param)
+    ,(-> param "description")))
 
 (defun optional-param-from-spec (param)
   `(,(symbolicate (-> param "name"))
-     ,(param-type-from-spec param)
-     ,(when (not (null (-> param "default")))
-        (parse-value (-> param "default") (param-type-from-spec param)))
-     ,(-> param "description")))
+    ,(param-type-from-spec param)
+    ,(when (not (null (-> param "default")))
+       (parse-value (-> param "default") (param-type-from-spec param)))
+    ,(-> param "description")))
 
 (defun param-type-from-spec (param)
   (cond
@@ -121,17 +121,21 @@
 (defun collect-resources (spec)
   (let ((resources (make-hash-table :test 'equalp)))
     (loop for path in (alist (-> spec "paths"))
-       do
-         (loop for operation in (alist (cdr path))
-              when (member (car operation) '("get" "post" "put" "patch" "delete") :test 'equalp)
-            do
-              (let ((tag (first (-> (cdr operation) "tags"))))
-                (assert (not (null tag)) nil "Operation ~A is not tagged." (car operation))
-                (let ((tag-symbol (symbolicate tag)))
-                  (if (null (gethash tag-symbol resources))
-                      (setf (gethash tag-symbol resources)
-                            (list (cons (car path) operation)))
-                      (push (cons (car path) operation) (gethash tag-symbol resources)))))))
+          do
+             (loop for operation in (alist (cdr path))
+                   when (member (car operation) '("get" "post" "put" "patch" "delete") :test 'equalp)
+                     do
+                        (let ((tag (first (-> (cdr operation) "tags"))))
+                          (assert (not (null tag)) nil "Operation ~A is not tagged.~%
+Please add a tag to the operation in OpenApi spec as an indication of which resource it belongs to.~%
+As an example, if the operation does something to the application users, then adding a tag \"users\" would be a good choice.~%
+See: https://restful-api-design.readthedocs.io/en/latest/resources.html"
+                                  (car operation))
+                          (let ((tag-symbol (symbolicate tag)))
+                            (if (null (gethash tag-symbol resources))
+                                (setf (gethash tag-symbol resources)
+                                      (list (cons (car path) operation)))
+                                (push (cons (car path) operation) (gethash tag-symbol resources)))))))
     (alexandria:hash-table-alist resources)))
 
 (defmacro define-api-from-spec (name superclasses options filepath)
@@ -146,7 +150,7 @@ IMPORTANT:
 1) All operations in OpenAPI spec need to have a tag, in camel case, that is translated to a REST-SERVER api operation. For example: 'createUser', gets translated to CREATE-USER entry point in REST-SERVER api.
 2) Operations in OpenAPI spec need to be tagged with a name for the resource. This is because REST-SERVER is designed based on an old version of Swagger API that groups operations in resources. But OpenAPI v3 does not group in resources, it just has paths. So, the tagging is needed for the OpenAPI -> REST-SERVER api translation. For example, if you have two paths, /invoice/{id}, and /invoice/{id}/payments, you should tag them both with 'Invoice', so that both operations are created under an INVOICE resource.
 
-Use this together with DEFINE-SCHEMAS-FROM-SPEC 
+Use this together with DEFINE-SCHEMAS-FROM-SPEC
 "
   (let ((spec (read-spec-file filepath)))
     (define-api-from-v3-spec name superclasses options spec)))
@@ -175,13 +179,13 @@ Use this together with DEFINE-SCHEMAS-FROM-SPEC
 (defun api-paths (api)
   (let ((paths (make-hash-table :test 'equalp)))
     (loop for resource being the hash-values of (rs::resources api)
-       do
-         (loop for operation being the hash-values of (rs::resource-operations resource)
-            do
-              (push (list :tag (rs:resource-name resource)
-                          :operation operation)
-                    (gethash (rs::path operation)
-                             paths))))
+          do
+             (loop for operation being the hash-values of (rs::resource-operations resource)
+                   do
+                      (push (list :tag (rs:resource-name resource)
+                                  :operation operation)
+                            (gethash (rs::path operation)
+                                     paths))))
     paths))
 
 (defun render-api-spec (api stream)
@@ -198,40 +202,40 @@ Use this together with DEFINE-SCHEMAS-FROM-SPEC
         (json:as-object-member ("tags")
           (json:with-array ()
             (loop for resource being the hash-values of (rs::resources api)
-               do
-                 (json:as-array-member ()
-                   (json:with-object ()
-                     (@= "name" (string (rs:resource-name resource)))
-                     (@= "description" (rs:resource-documentation resource)))))))
+                  do
+                     (json:as-array-member ()
+                       (json:with-object ()
+                         (@= "name" (string (rs:resource-name resource)))
+                         (@= "description" (rs:resource-documentation resource)))))))
         (json:as-object-member ("paths")
           (json:with-object ()
             (loop for path being the hash-keys of (api-paths api)
-               using (hash-value operations)
-               do (encode-api-path path operations)))
+                    using (hash-value operations)
+                  do (encode-api-path path operations)))
           )))))
 
 (defun encode-api-path (path operations)
   (json:as-object-member (path)
     (json:with-object ()
       (loop for spec in operations do
-           (let ((tag (getf spec :tag))
-                 (operation (getf spec :operation)))
-             (json:as-object-member ((string-downcase (string (rs::request-method operation))))
-               (json:with-object ()
-                 (json:encode-object-member "tags" (list (string tag)))
-                 (json:encode-object-member "summary" (rs::api-documentation operation))
-                 (json:encode-object-member "description" (rs::api-documentation operation))
-                 (json:encode-object-member "operationId" (rs::name operation))
-                 (json:as-object-member ("parameters")
-                   (json:with-array ()
-                     (loop for arg in (rs::required-arguments operation)
+        (let ((tag (getf spec :tag))
+              (operation (getf spec :operation)))
+          (json:as-object-member ((string-downcase (string (rs::request-method operation))))
+            (json:with-object ()
+              (json:encode-object-member "tags" (list (string tag)))
+              (json:encode-object-member "summary" (rs::api-documentation operation))
+              (json:encode-object-member "description" (rs::api-documentation operation))
+              (json:encode-object-member "operationId" (rs::name operation))
+              (json:as-object-member ("parameters")
+                (json:with-array ()
+                  (loop for arg in (rs::required-arguments operation)
                         do (json:as-array-member ()
                              (encode-path-parameter arg :in "path")))
-                     (loop for arg in (rs::optional-arguments operation)
+                  (loop for arg in (rs::optional-arguments operation)
                         do (json:as-array-member ()
                              (encode-path-parameter arg :in "query")))
-                     ))
-                 )))))))
+                  ))
+              )))))))
 
 (defun encode-path-parameter (param &key (in "query"))
   (json:with-object ()
@@ -255,9 +259,9 @@ Use this together with DEFINE-SCHEMAS-FROM-SPEC
 
 (defun parse-schemas-from-v3-spec (spec)
   (loop for (schema-name . schema-def) in (alist (access:accesses spec "components" "schemas"))
-     collect
-       (cons (intern (json::simplified-camel-case-to-lisp schema-name))
-             (schemata.json-schema:schema-from-json-schema schema-def))))
+        collect
+        (cons (intern (json::simplified-camel-case-to-lisp schema-name))
+              (schemata.json-schema:schema-from-json-schema schema-def))))
 
 (defmacro define-schemas-from-spec (filepath)
   "Define REST-SERVER schemas from an OpenAPI spec file.
@@ -270,4 +274,4 @@ Use this together with DEFINE-API-FROM-SPEC"
   (let ((spec (read-spec-file filepath)))
     `(progn
        ,@(loop for (schema-name . schema-def) in (parse-schemas-from-spec spec)
-              collect `(schemata:define-schema ,schema-name ,schema-def)))))
+               collect `(schemata:define-schema ,schema-name ,schema-def)))))
