@@ -126,9 +126,9 @@
                    when (member (car operation) '("get" "post" "put" "patch" "delete") :test 'equalp)
                      do
                         (let ((tag (first (-> (cdr operation) "tags"))))
-                          (assert (not (null tag)) nil "Operation ~A is not tagged.~%
-Please add a tag to the operation in OpenApi spec as an indication of which resource it belongs to.~%
-As an example, if the operation does something to the application users, then adding a tag \"users\" would be a good choice.~%
+                          (assert (not (null tag)) nil "Operation ~A is not tagged.
+Please add a tag to the operation in OpenApi spec as an indication of which resource it belongs to.
+As an example, if the operation does something to the application users, then adding a tag \"users\" would be a good choice.
 See: https://restful-api-design.readthedocs.io/en/latest/resources.html"
                                   (car operation))
                           (let ((tag-symbol (symbolicate tag)))
