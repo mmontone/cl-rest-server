@@ -5,6 +5,12 @@ Common Lisp REST Server
 
 [![Build Status](https://travis-ci.org/mmontone/cl-rest-server.svg?branch=master)](https://travis-ci.org/mmontone/cl-rest-server)
 
+| :zap:   This project's documentation is outdated and cannot be relied on.    |
+|------------------------------------------------------------------------------|
+
+| :zap:   And not everything works. The project needs to be better maintained. |
+|------------------------------------------------------------------------------|
+
 ## Install
 
 The library is available at [Ultralisp](https://ultralisp.org).
