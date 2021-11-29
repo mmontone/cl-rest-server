@@ -162,7 +162,7 @@
   (:documentation "The api class"))
 
 (defgeneric api-http-options (api)
-  (:method api-http-options ((api api-definition))
+  (:method ((api api-definition))
            (setf (hunchentoot:header-out "Server") "Hunchentoot")))
 
 (defgeneric api-dispatch-request (api request)
