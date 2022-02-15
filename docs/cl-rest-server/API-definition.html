@@ -1,0 +1,419 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Common Lisp REST Server 0.2, Feb 15, 2022
+
+Mariano Montone
+
+Copyright (C) 2014, Mariano Montone
+ -->
+<!-- Created by GNU Texinfo 6.7, http://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>API definition (Common Lisp REST Server Documentation)</title>
+
+<meta name="description" content="API definition (Common Lisp REST Server Documentation)">
+<meta name="keywords" content="API definition (Common Lisp REST Server Documentation)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<link href="index.html" rel="start" title="Top">
+<link href="Index.html" rel="index" title="Index">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html" rel="up" title="Top">
+<link href="API-implementation.html" rel="next" title="API implementation">
+<link href="Install.html" rel="prev" title="Install">
+<style type="text/css">
+<!--
+/* Style-sheet to use for manuals (copied from Emacs) */
+
+@import url('../style.css');
+
+/* makeinfo 6.5 converts @quotation to <blockquote>.  Highlight them.  */
+
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+blockquote {
+    font-style: normal;
+    border-left: solid 10px red;
+    padding-left: 2.5%;
+    margin-left: 0px;
+}
+
+/* Increase inter-line spacing to improve readability.  */
+p, pre, li, dt, dd, table, code, address { line-height: 1.5em; }
+
+var { font-style: italic; }
+
+/* Lay out @lisp just like @example.  Copied from what /style.css
+   does for the 'example' class.  */
+div.lisp { padding: .8em 1.2em .4em; }
+pre.lisp { padding: .8em 1.2em; }
+div.lisp, pre.lisp {
+   margin: 1em 0 1em 3% ;
+   -webkit-border-radius: .3em;
+   -moz-border-radius: .3em;
+   border-radius: .3em;
+   border: 1px solid #d4cbb6;
+   background-color: #f2efe4;
+}
+div.lisp > pre.lisp {
+   padding: 0 0 .4em;
+   margin: 0;
+   border: none;
+}
+
+/* makeinfo 6.7 uses <div class="header"> for navigation links above node
+   titles.  Make those links less prominent.  */
+.header {
+    line-height: 2em;
+    font-size: 87.5%;
+    color: #433;
+}
+
+/* In title and node titles, use Fira Sans if available as it is more
+   pleasant and more compact than Helvetica.  */
+.settitle, .top, .chapter, .section, .subsection, .subsubsection {
+    font-family: Fira Sans, sans;
+}
+
+/* ----- coreutils specific styling ----- */
+
+/* layout.css indents "body p" when it should probably only indent "body > p"?
+   In any case, disable indenting of p in these sub elements.  */
+dd p,li p {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* underlined links are distracting, especially within outlined tables.  */
+a { /*add :link for external links*/
+    text-decoration: none; /* don't underline links by default */
+    outline-style: none;   /* don't put dotted box around clicked links */
+}
+a:hover {
+    text-decoration: underline;
+}
+
+body {
+    /* Make sure the body doesn't become to wide: long lines are hard to
+       read.  */
+    max-width: 45em;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<span id="API-definition"></span><div class="header">
+<p>
+Next: <a href="API-implementation.html" accesskey="n" rel="next">API implementation</a>, Previous: <a href="Install.html" accesskey="p" rel="prev">Install</a>, Up: <a href="index.html" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api-doc"></span><span id="g_t7"></span><span id="api-api_002ddefinition"></span><span id="g_t8"></span><span id="api-quicklisp"></span><span id="g_t9"></span><span id="API-definition-1"></span><h2 class="chapter">3 API definition</h2>
+
+
+<p>APIs are defined using the <a href="#a">DEFINE-API</a> macro. APIs contain resources and resources contain api-functions.
+</p>
+<span id="index-define_002dapi-_0028Lisp-macro_0029"></span>
+<span id="api-macro-rest_002dserver-define_002dapi"></span><span id="a"></span><dl>
+<dt id="index-_0028define_002dapiname">Common Lisp Macro: <strong>(define<span class="nolinebreak">-</span><!-- /@w -->apiname</strong> <em>superclasses options &amp;body resources)</em></dt>
+<dd>
+<p>Define an api.
+</p></dd></dl>
+
+<p>This is the syntax:
+</p>
+<div class="example">
+<pre class="example">(define-api &lt;api-name&gt; (&amp;rest &lt;superclasses&gt;) &lt;options-plist&gt;
+   &amp;rest
+   &lt;resources&gt;)
+</pre></div>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#API-options" accesskey="1">API options</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Resources" accesskey="2">Resources</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Resource-operations" accesskey="3">Resource operations</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#API-example" accesskey="4">API example</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+</pre></th></tr></table>
+
+<hr>
+<span id="API-options"></span><div class="header">
+<p>
+Next: <a href="#Resources" accesskey="n" rel="next">Resources</a>, Up: <a href="#API-definition" accesskey="u" rel="up">API definition</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api-api_002doptions"></span><span id="b"></span><span id="API-options-1"></span><h3 class="section">3.1 API options</h3>
+
+
+
+<ul class="no-bullet">
+<li>- <code>:title</code>: The API title. This appears in the generated API documentation
+
+</li><li>- <code>:documentation</code>: A string with the API description. This appears in the generated API documentation.
+</li></ul>
+
+<hr>
+<span id="Resources"></span><div class="header">
+<p>
+Next: <a href="#Resource-operations" accesskey="n" rel="next">Resource operations</a>, Previous: <a href="#API-options" accesskey="p" rel="prev">API options</a>, Up: <a href="#API-definition" accesskey="u" rel="up">API definition</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api-resources"></span><span id="c"></span><span id="Resources-1"></span><h3 class="section">3.2 Resources</h3>
+
+
+<p>Resources have the following syntax:
+</p>
+<div class="example">
+<pre class="example">(&lt;resource-name&gt; &lt;resource-options&gt; &lt;api-functions&gt;)
+</pre></div>
+
+<p>Resources can be added to an already defined API via the :cl:function::<cite>with-api</cite> and <a href="#d">define-api-resource</a> macros
+</p>
+<span id="index-with_002dapi-_0028Lisp-macro_0029"></span>
+<span id="api-macro-rest_002dserver-with_002dapi"></span><span id="e"></span><dl>
+<dt id="index-_0028with_002dapiapi">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->apiapi</strong> <em>&amp;body body)</em></dt>
+<dd>
+
+<dl compact="compact">
+<dt>Execute body under api scope.</dt>
+<dd>
+<p>Example:
+(with-api test-api
+</p>
+<blockquote>
+
+
+<dl compact="compact">
+<dt>(define-resource-operation get-user :get (:url-prefix “users/{id}”)</dt>
+<dd>
+<p>‘((:id :integer))))
+</p></dd>
+</dl>
+</blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<span id="index-define_002dapi_002dresource-_0028Lisp-macro_0029"></span>
+<span id="api-macro-rest_002dserver-define_002dapi_002dresource"></span><span id="d"></span><dl>
+<dt id="index-_0028define_002dapi_002dresourcename">Common Lisp Macro: <strong>(define<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->resourcename</strong> <em>options &amp;body functions)</em></dt>
+<dd>
+<p>Define an api resource.
+</p></dd></dl>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Resource-options" accesskey="1">Resource options</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+</pre></th></tr></table>
+
+<hr>
+<span id="Resource-options"></span><div class="header">
+<p>
+Up: <a href="#Resources" accesskey="u" rel="up">Resources</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api-resource_002doptions"></span><span id="f"></span><span id="Resource-options-1"></span><h4 class="subsection">3.2.1 Resource options</h4>
+
+
+
+<ul class="no-bullet">
+<li>- <code>:produces</code>: A list of content types produced by this resource. The content types can be <code>:json</code>, <code>:html</code>, <code>:xml</code>, <code>:lisp</code>
+
+</li><li>- <code>:consumes</code>: A list of content types consumed by this resource.
+
+</li><li>- <code>:documentation</code>: A string describing the resource. This appears in the generated API documentation.
+
+</li><li>- <code>:path</code>: The resource path. Should start with the <cite>/</cite> character. Ex: <cite>“/users”</cite>
+
+</li><li>- <code>:models</code>: A list of <cite>models</cite> used by the resource
+</li></ul>
+
+<hr>
+<span id="Resource-operations"></span><div class="header">
+<p>
+Next: <a href="#API-example" accesskey="n" rel="next">API example</a>, Previous: <a href="#Resources" accesskey="p" rel="prev">Resources</a>, Up: <a href="#API-definition" accesskey="u" rel="up">API definition</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api-resource_002doperations"></span><span id="g_t10"></span><span id="Resource-operations-1"></span><h3 class="section">3.3 Resource operations</h3>
+
+
+<p>Resources provide a set of operations to access them.
+</p>
+<p>They have the following syntax:
+</p>
+<div class="example">
+<pre class="example">(&lt;resource-operation-name&gt; &lt;resource-operation-options&gt; &lt;resource-operation-arguments&gt;)
+</pre></div>
+
+<p>New operations can be added to an already defined resource via the <a href="#g_t11">with-api-resource</a>
+</p>
+<span id="index-with_002dapi_002dresource-_0028Lisp-macro_0029"></span>
+<span id="api-macro-rest_002dserver-with_002dapi_002dresource"></span><span id="g_t11"></span><dl>
+<dt id="index-_0028with_002dapi_002dresourceresource">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->resourceresource</strong> <em>&amp;body body)</em></dt>
+<dd>
+
+<dl compact="compact">
+<dt>Execute body under resource scope.</dt>
+<dd>
+<p>Example:
+(with-api-resource users
+</p>
+<blockquote>
+
+
+<dl compact="compact">
+<dt>(define-resource-operation get-user :get (:url-prefix “users/{id}”)</dt>
+<dd>
+<p>‘((:id :integer))))
+</p></dd>
+</dl>
+</blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Resource-operation-options" accesskey="1">Resource operation options</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Resource-operation-arguments" accesskey="2">Resource operation arguments</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+</pre></th></tr></table>
+
+<hr>
+<span id="Resource-operation-options"></span><div class="header">
+<p>
+Next: <a href="#Resource-operation-arguments" accesskey="n" rel="next">Resource operation arguments</a>, Up: <a href="#Resource-operations" accesskey="u" rel="up">Resource operations</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api-resource_002doperation_002doptions"></span><span id="g_t12"></span><span id="Resource-operation-options-1"></span><h4 class="subsection">3.3.1 Resource operation options</h4>
+
+
+
+<ul class="no-bullet">
+<li>- <code>:request-method</code>: The HTTP request method
+
+</li><li>- <code>:path</code>: The operation path. Arguments in the operation are enclosed between <code>{}</code>. For example: <code>&quot;/users/{id}&quot;</code>.
+
+</li><li>- <code>:produces</code>: A list of content types produced by the operation. The content types can be <code>:json</code>, <code>:html</code>, <code>:xml</code>, <code>:lisp</code>. This is matched with the HTTP “Accept” header.
+
+</li><li>- <code>:consumes</code>: A list of content types that the operation can consume.
+
+</li><li>- <code>:authorizations</code>: A list with the authorizations required for the operation. Can be one of <code>:token</code>, <code>:oauth</code>, <code>:oauth</code>, or a custom authorization type.
+
+</li><li>- <code>:documentation</code>: A string describing the operation. This appears in the generated API documentation.
+</li></ul>
+
+<hr>
+<span id="Resource-operation-arguments"></span><div class="header">
+<p>
+Previous: <a href="#Resource-operation-options" accesskey="p" rel="prev">Resource operation options</a>, Up: <a href="#Resource-operations" accesskey="u" rel="up">Resource operations</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api-resource_002doperation_002darguments"></span><span id="g_t13"></span><span id="Resource-operation-arguments-1"></span><h4 class="subsection">3.3.2 Resource operation arguments</h4>
+
+
+<p>Arguments lists have the following syntax:
+</p>
+<div class="example">
+<pre class="example">(*&lt;required-arguments&gt; &amp;optional &lt;optional-arguments&gt;)
+</pre></div>
+
+<p>Required arguments are those appearing in the api function path between <code>{}</code>.
+They are specified like this:
+</p>
+<div class="example">
+<pre class="example">(&lt;argument-name&gt; &lt;argument-type&gt; &lt;documentation-string&gt;)
+</pre></div>
+
+<p>Argument type can be one of: <code>string</code>, <code>integer</code>, <code>boolean</code>, <code>list</code>.
+</p>
+<p>Optional arguments are those that can be passed after the <code>?</code> in the url. For instance, the <code>page</code> parameter in this url: <code>/users?page=1</code>. They are listed after the <code>&amp;optional</code> symbol, and have the following syntax:
+</p>
+<div class="example">
+<pre class="example">(&lt;argument-name&gt; &lt;argument-type&gt; &lt;default-value&gt; &lt;documentation-string&gt;)
+</pre></div>
+
+<p>Here is an example of an api function arguments list:
+</p>
+<div class="example">
+<pre class="example">((id :integer &quot;The user id&quot;)
+  &amp;optional (boolean :boolean nil &quot;A boolean parameter&quot;)
+            (integer :integer nil &quot;An integer parameter&quot;)
+            (string :string nil &quot;A string parameter&quot;)
+            (list :list nil &quot;A list parameter&quot;))
+</pre></div>
+
+<hr>
+<span id="API-example"></span><div class="header">
+<p>
+Previous: <a href="#Resource-operations" accesskey="p" rel="prev">Resource operations</a>, Up: <a href="#API-definition" accesskey="u" rel="up">API definition</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api-api_002dexample"></span><span id="g_t14"></span><span id="API-example-1"></span><h3 class="section">3.4 API example</h3>
+
+
+<p>Here is a complete example of an API interface:
+</p>
+<div class="example">
+<pre class="example">(define-api api-test ()
+    (:title &quot;Api test&quot;
+            :documentation &quot;This is an api test&quot;)
+  (parameters (:produces (:json)
+                         :consumes (:json)
+                         :documentation &quot;Parameters test&quot;
+                         :path &quot;/parameters&quot;)
+              (parameters (:produces (:json)
+                                     :consumes (:json)
+                                     :documentation &quot;Parameters test&quot;
+                                     :path &quot;/parameters&quot;)
+                          (&amp;optional (boolean :boolean nil &quot;A boolean parameter&quot;)
+                                     (integer :integer nil &quot;An integer parameter&quot;)
+                                     (string :string nil &quot;A string parameter&quot;)
+                                     (list :list nil &quot;A list parameter&quot;))))
+  (users (:produces (:json :xml)
+                    :consumes (:json)
+                    :documentation &quot;Users operations&quot;
+                    :models (user)
+                    :path &quot;/users&quot;)
+         (get-users (:request-method :get
+                                     :produces (:json)
+                                     :path &quot;/users&quot;
+                                     :documentation &quot;Retrive the users list&quot;)
+                    (&amp;optional (page :integer 1 &quot;The page&quot;)
+                               (expand :list nil &quot;Attributes to expand&quot;)))
+         (get-user (:request-method :get
+                                    :produces (:json)
+                                    :path &quot;/users/{id}&quot;
+                                    :documentation &quot;Retrive an user&quot;)
+                   ((id :integer &quot;The user id&quot;)
+                    &amp;optional
+                    (expand :list nil &quot;Attributes to expand&quot;)))))
+</pre></div>
+
+<hr>
+<div class="header">
+<p>
+Previous: <a href="#Resource-operations" accesskey="p" rel="prev">Resource operations</a>, Up: <a href="#API-definition" accesskey="u" rel="up">API definition</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+
+
+
+</body>
+</html>

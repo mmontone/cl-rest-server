@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Common Lisp REST Server 0.2, Feb 15, 2022
+
+Mariano Montone
+
+Copyright (C) 2014, Mariano Montone
+ -->
+<!-- Created by GNU Texinfo 6.7, http://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>API documentation (Common Lisp REST Server Documentation)</title>
+
+<meta name="description" content="API documentation (Common Lisp REST Server Documentation)">
+<meta name="keywords" content="API documentation (Common Lisp REST Server Documentation)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<link href="index.html" rel="start" title="Top">
+<link href="Index.html" rel="index" title="Index">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html" rel="up" title="Top">
+<link href="API.html" rel="next" title="API">
+<link href="API-configuration.html#Logging-configuration" rel="prev" title="Logging configuration">
+<style type="text/css">
+<!--
+/* Style-sheet to use for manuals (copied from Emacs) */
+
+@import url('../style.css');
+
+/* makeinfo 6.5 converts @quotation to <blockquote>.  Highlight them.  */
+
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+blockquote {
+    font-style: normal;
+    border-left: solid 10px red;
+    padding-left: 2.5%;
+    margin-left: 0px;
+}
+
+/* Increase inter-line spacing to improve readability.  */
+p, pre, li, dt, dd, table, code, address { line-height: 1.5em; }
+
+var { font-style: italic; }
+
+/* Lay out @lisp just like @example.  Copied from what /style.css
+   does for the 'example' class.  */
+div.lisp { padding: .8em 1.2em .4em; }
+pre.lisp { padding: .8em 1.2em; }
+div.lisp, pre.lisp {
+   margin: 1em 0 1em 3% ;
+   -webkit-border-radius: .3em;
+   -moz-border-radius: .3em;
+   border-radius: .3em;
+   border: 1px solid #d4cbb6;
+   background-color: #f2efe4;
+}
+div.lisp > pre.lisp {
+   padding: 0 0 .4em;
+   margin: 0;
+   border: none;
+}
+
+/* makeinfo 6.7 uses <div class="header"> for navigation links above node
+   titles.  Make those links less prominent.  */
+.header {
+    line-height: 2em;
+    font-size: 87.5%;
+    color: #433;
+}
+
+/* In title and node titles, use Fira Sans if available as it is more
+   pleasant and more compact than Helvetica.  */
+.settitle, .top, .chapter, .section, .subsection, .subsubsection {
+    font-family: Fira Sans, sans;
+}
+
+/* ----- coreutils specific styling ----- */
+
+/* layout.css indents "body p" when it should probably only indent "body > p"?
+   In any case, disable indenting of p in these sub elements.  */
+dd p,li p {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* underlined links are distracting, especially within outlined tables.  */
+a { /*add :link for external links*/
+    text-decoration: none; /* don't underline links by default */
+    outline-style: none;   /* don't put dotted box around clicked links */
+}
+a:hover {
+    text-decoration: underline;
+}
+
+body {
+    /* Make sure the body doesn't become to wide: long lines are hard to
+       read.  */
+    max-width: 45em;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<span id="API-documentation"></span><div class="header">
+<p>
+Next: <a href="API.html" accesskey="n" rel="next">API</a>, Previous: <a href="API-configuration.html#API-configuration" accesskey="p" rel="prev">API configuration</a>, Up: <a href="index.html" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="documentation-doc"></span><span id="g_t29"></span><span id="documentation-api_002ddocumentation"></span><span id="g_t2a"></span><span id="API-documentation-1"></span><h2 class="chapter">9 API documentation</h2>
+
+
+<p>There’s an (incomplete) implementation of a Swagger<a id="DOCF3" href="#FOOT3"><sup>3</sup></a> export.
+</p>
+<p>First, configure the api for Swagger:
+</p>
+<div class="example">
+<pre class="example">(define-swagger-resource api)
+</pre></div>
+
+<p>This will enable CORS<a id="DOCF4" href="#FOOT4"><sup>4</sup></a> on the API, as Swagger needs it to make requests.
+</p>
+<p>After this you can download the Swagger documentation tool and point to the api HTTP address.
+</p>
+<div class="footnote">
+<hr>
+<h4 class="footnotes-heading">Footnotes</h4>
+
+<h5><a id="FOOT3" href="#DOCF3">(3)</a></h3>
+<p>https://helloreverb.com/developers/swagger</p>
+<h5><a id="FOOT4" href="#DOCF4">(4)</a></h3>
+<p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS</p>
+</div>
+<hr>
+<div class="header">
+<p>
+Next: <a href="API.html" accesskey="n" rel="next">API</a>, Previous: <a href="API-configuration.html#API-configuration" accesskey="p" rel="prev">API configuration</a>, Up: <a href="index.html" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+
+
+
+</body>
+</html>

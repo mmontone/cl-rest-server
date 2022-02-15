@@ -1,0 +1,555 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Common Lisp REST Server 0.2, Feb 15, 2022
+
+Mariano Montone
+
+Copyright (C) 2014, Mariano Montone
+ -->
+<!-- Created by GNU Texinfo 6.7, http://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>API (Common Lisp REST Server Documentation)</title>
+
+<meta name="description" content="API (Common Lisp REST Server Documentation)">
+<meta name="keywords" content="API (Common Lisp REST Server Documentation)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<link href="index.html" rel="start" title="Top">
+<link href="Index.html" rel="index" title="Index">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html" rel="up" title="Top">
+<link href="Indices-and-tables.html" rel="next" title="Indices and tables">
+<link href="API-documentation.html" rel="prev" title="API documentation">
+<style type="text/css">
+<!--
+/* Style-sheet to use for manuals (copied from Emacs) */
+
+@import url('../style.css');
+
+/* makeinfo 6.5 converts @quotation to <blockquote>.  Highlight them.  */
+
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+blockquote {
+    font-style: normal;
+    border-left: solid 10px red;
+    padding-left: 2.5%;
+    margin-left: 0px;
+}
+
+/* Increase inter-line spacing to improve readability.  */
+p, pre, li, dt, dd, table, code, address { line-height: 1.5em; }
+
+var { font-style: italic; }
+
+/* Lay out @lisp just like @example.  Copied from what /style.css
+   does for the 'example' class.  */
+div.lisp { padding: .8em 1.2em .4em; }
+pre.lisp { padding: .8em 1.2em; }
+div.lisp, pre.lisp {
+   margin: 1em 0 1em 3% ;
+   -webkit-border-radius: .3em;
+   -moz-border-radius: .3em;
+   border-radius: .3em;
+   border: 1px solid #d4cbb6;
+   background-color: #f2efe4;
+}
+div.lisp > pre.lisp {
+   padding: 0 0 .4em;
+   margin: 0;
+   border: none;
+}
+
+/* makeinfo 6.7 uses <div class="header"> for navigation links above node
+   titles.  Make those links less prominent.  */
+.header {
+    line-height: 2em;
+    font-size: 87.5%;
+    color: #433;
+}
+
+/* In title and node titles, use Fira Sans if available as it is more
+   pleasant and more compact than Helvetica.  */
+.settitle, .top, .chapter, .section, .subsection, .subsubsection {
+    font-family: Fira Sans, sans;
+}
+
+/* ----- coreutils specific styling ----- */
+
+/* layout.css indents "body p" when it should probably only indent "body > p"?
+   In any case, disable indenting of p in these sub elements.  */
+dd p,li p {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* underlined links are distracting, especially within outlined tables.  */
+a { /*add :link for external links*/
+    text-decoration: none; /* don't underline links by default */
+    outline-style: none;   /* don't put dotted box around clicked links */
+}
+a:hover {
+    text-decoration: underline;
+}
+
+body {
+    /* Make sure the body doesn't become to wide: long lines are hard to
+       read.  */
+    max-width: 45em;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<span id="API"></span><div class="header">
+<p>
+Next: <a href="Indices-and-tables.html" accesskey="n" rel="next">Indices and tables</a>, Previous: <a href="API-documentation.html" accesskey="p" rel="prev">API documentation</a>, Up: <a href="index.html" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="symbols-doc"></span><span id="g_t2b"></span><span id="symbols-api"></span><span id="g_t2c"></span><span id="API-1"></span><h2 class="chapter">10 API</h2>
+
+
+<p>Rest Server external symbols documentation
+</p>
+<span id="index-configure_002dapi_002dresource-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-configure_002dapi_002dresource"></span><span id="g_t2d"></span><dl>
+<dt id="index-_0028configure_002dapi_002dresourceapi_002dor_002dname">Common Lisp Function: <strong>(configure<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->resourceapi-or-name</strong> <em>resource-name &amp;rest options)</em></dt>
+</dl>
+
+<span id="index-permission_002dchecking-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-permission_002dchecking"></span><span id="g_t2e"></span><dl>
+<dt id="index-_0028permission_002dcheckingargs">Common Lisp Macro: <strong>(permission<span class="nolinebreak">-</span><!-- /@w -->checkingargs</strong> <em>resource-operation-implementation)</em></dt>
+</dl>
+
+<span id="index-accept_002dserializer-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-accept_002dserializer"></span><span id="g_t2f"></span><dl>
+<dt id="index-_0028accept_002dserializer_0029">Common Lisp Function: <strong>(accept<span class="nolinebreak">-</span><!-- /@w -->serializer)</strong></dt>
+</dl>
+
+<span id="index-serialization-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-serialization"></span><span id="g_t30"></span><dl>
+<dt id="index-serialization">Common Lisp Macro: <strong>serialization</strong></dt>
+</dl>
+
+<span id="index-with_002dlist_002dmember-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002dlist_002dmember"></span><span id="g_t31"></span><dl>
+<dt id="index-with_002dlist_002dmember">Common Lisp Macro: <strong>with<span class="nolinebreak">-</span><!-- /@w -->list<span class="nolinebreak">-</span><!-- /@w -->member</strong></dt>
+</dl>
+
+<span id="index-implement_002dresource_002doperation_002dcase-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-implement_002dresource_002doperation_002dcase"></span><span id="g_t32"></span><dl>
+<dt id="index-_0028implement_002dresource_002doperation_002dcasename">Common Lisp Macro: <strong>(implement<span class="nolinebreak">-</span><!-- /@w -->resource<span class="nolinebreak">-</span><!-- /@w -->operation<span class="nolinebreak">-</span><!-- /@w -->casename</strong> <em>accept-content-type args &amp;body body)</em></dt>
+<dd>
+<p>Implement an resource operation case
+</p></dd></dl>
+
+<span id="index-with_002dapi-_0028Lisp-macro_0029-1"></span>
+<span id="symbols-macro-rest_002dserver-with_002dapi"></span><span id="g_t33"></span><dl>
+<dt id="index-_0028with_002dapiapi-1">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->apiapi</strong> <em>&amp;body body)</em></dt>
+<dd>
+
+<dl compact="compact">
+<dt>Execute body under api scope.</dt>
+<dd>
+<p>Example:
+(with-api test-api
+</p>
+<blockquote>
+
+
+<dl compact="compact">
+<dt>(define-resource-operation get-user :get (:url-prefix “users/{id}”)</dt>
+<dd>
+<p>‘((:id :integer))))
+</p></dd>
+</dl>
+</blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<span id="index-with_002dapi_002dbackend-_0028Lisp-macro_0029-1"></span>
+<span id="symbols-macro-rest_002dserver-with_002dapi_002dbackend"></span><span id="g_t34"></span><dl>
+<dt id="index-_0028with_002dapi_002dbackendbackend-1">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->backendbackend</strong> <em>&amp;body body)</em></dt>
+<dd>
+<p>Execute the client resource operation calling backend
+</p></dd></dl>
+
+<span id="index-implement_002dresource_002doperation-_0028Lisp-macro_0029-1"></span>
+<span id="symbols-macro-rest_002dserver-implement_002dresource_002doperation"></span><span id="g_t35"></span><dl>
+<dt id="index-_0028implement_002dresource_002doperationapi_002dname-1">Common Lisp Macro: <strong>(implement<span class="nolinebreak">-</span><!-- /@w -->resource<span class="nolinebreak">-</span><!-- /@w -->operationapi-name</strong> <em>name-and-options args &amp;body body)</em></dt>
+<dd>
+<p>Define an resource operation implementation
+</p></dd></dl>
+
+<span id="index-set_002dreply_002dcontent_002dtype-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-set_002dreply_002dcontent_002dtype"></span><span id="g_t36"></span><dl>
+<dt id="index-_0028set_002dreply_002dcontent_002dtypecontent_002dtype_0029">Common Lisp Function: <strong>(set<span class="nolinebreak">-</span><!-- /@w -->reply<span class="nolinebreak">-</span><!-- /@w -->content<span class="nolinebreak">-</span><!-- /@w -->typecontent-type)</strong></dt>
+</dl>
+
+<span id="index-with_002dserializer_002doutput-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002dserializer_002doutput"></span><span id="g_t37"></span><dl>
+<dt id="index-with_002dserializer_002doutput">Common Lisp Macro: <strong>with<span class="nolinebreak">-</span><!-- /@w -->serializer<span class="nolinebreak">-</span><!-- /@w -->output</strong></dt>
+</dl>
+
+<span id="index-http_002derror-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-http_002derror"></span><span id="g_t38"></span><dl>
+<dt id="index-_0028http_002derror_0029">Common Lisp Function: <strong>(http<span class="nolinebreak">-</span><!-- /@w -->error)</strong></dt>
+</dl>
+
+<span id="index-define_002dschema-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-define_002dschema"></span><span id="g_t39"></span><dl>
+<dt id="index-define_002dschema">Common Lisp Macro: <strong>define<span class="nolinebreak">-</span><!-- /@w -->schema</strong></dt>
+</dl>
+
+<span id="index-disable_002dapi_002dlogging-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-disable_002dapi_002dlogging"></span><span id="g_t3a"></span><dl>
+<dt id="index-_0028disable_002dapi_002dlogging_0029">Common Lisp Function: <strong>(disable<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->logging)</strong></dt>
+</dl>
+
+<span id="index-format_002dabsolute_002dresource_002doperation_002durl-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-format_002dabsolute_002dresource_002doperation_002durl"></span><span id="g_t3b"></span><dl>
+<dt id="index-_0028format_002dabsolute_002dresource_002doperation_002durlresource_002doperation">Common Lisp Function: <strong>(format<span class="nolinebreak">-</span><!-- /@w -->absolute<span class="nolinebreak">-</span><!-- /@w -->resource<span class="nolinebreak">-</span><!-- /@w -->operation<span class="nolinebreak">-</span><!-- /@w -->urlresource-operation</strong> <em>&amp;rest args)</em></dt>
+</dl>
+
+<span id="index-boolean_002dvalue-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-boolean_002dvalue"></span><span id="g_t3c"></span><dl>
+<dt id="index-_0028boolean_002dvalue_0029">Common Lisp Function: <strong>(boolean<span class="nolinebreak">-</span><!-- /@w -->value)</strong></dt>
+</dl>
+
+<span id="index-start_002dapi_002ddocumentation-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-start_002dapi_002ddocumentation"></span><span id="g_t3d"></span><dl>
+<dt id="index-_0028start_002dapi_002ddocumentationapi">Common Lisp Function: <strong>(start<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->documentationapi</strong> <em>address port)</em></dt>
+<dd>
+<p>Start a web documentation application on the given api.
+</p></dd></dl>
+
+<span id="index-list_002dvalue-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-list_002dvalue"></span><span id="g_t3e"></span><dl>
+<dt id="index-_0028list_002dvalue_0029">Common Lisp Function: <strong>(list<span class="nolinebreak">-</span><!-- /@w -->value)</strong></dt>
+</dl>
+
+<span id="index-find_002dschema-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-find_002dschema"></span><span id="g_t3f"></span><dl>
+<dt id="index-_0028find_002dschema_0029">Common Lisp Function: <strong>(find<span class="nolinebreak">-</span><!-- /@w -->schema)</strong></dt>
+</dl>
+
+<span id="index-with_002dxml_002dreply-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002dxml_002dreply"></span><span id="g_t40"></span><dl>
+<dt id="index-_0028with_002dxml_002dreply_0026body">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->xml<span class="nolinebreak">-</span><!-- /@w -->reply&amp;body</strong> <em>body)</em></dt>
+</dl>
+
+<span id="index-self_002dreference-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-self_002dreference"></span><span id="g_t41"></span><dl>
+<dt id="index-_0028self_002dreference_0026rest">Common Lisp Function: <strong>(self<span class="nolinebreak">-</span><!-- /@w -->reference&amp;rest</strong> <em>args)</em></dt>
+</dl>
+
+<span id="index-unserialization-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-unserialization"></span><span id="g_t42"></span><dl>
+<dt id="index-unserialization">Common Lisp Macro: <strong>unserialization</strong></dt>
+</dl>
+
+<span id="index-find_002dapi-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-find_002dapi"></span><span id="g_t43"></span><dl>
+<dt id="index-_0028find_002dapiname">Common Lisp Function: <strong>(find<span class="nolinebreak">-</span><!-- /@w -->apiname</strong> <em>&amp;key (error-p t))</em></dt>
+<dd>
+<p>Find api by name
+</p></dd></dl>
+
+<span id="index-fetch_002dcontent-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-fetch_002dcontent"></span><span id="g_t44"></span><dl>
+<dt id="index-fetch_002dcontent">Common Lisp Macro: <strong>fetch<span class="nolinebreak">-</span><!-- /@w -->content</strong></dt>
+</dl>
+
+<span id="index-serializable_002dclass_002dschema-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-serializable_002dclass_002dschema"></span><span id="g_t45"></span><dl>
+<dt id="index-_0028serializable_002dclass_002dschema_0029">Common Lisp Function: <strong>(serializable<span class="nolinebreak">-</span><!-- /@w -->class<span class="nolinebreak">-</span><!-- /@w -->schema)</strong></dt>
+</dl>
+
+<span id="index-stop_002dapi-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-stop_002dapi"></span><span id="g_t46"></span><dl>
+<dt id="index-_0028stop_002dapiapi_002dacceptor_0029">Common Lisp Function: <strong>(stop<span class="nolinebreak">-</span><!-- /@w -->apiapi-acceptor)</strong></dt>
+</dl>
+
+<span id="index-make_002dresource_002doperation-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-make_002dresource_002doperation"></span><span id="g_t47"></span><dl>
+<dt id="index-_0028make_002dresource_002doperationname">Common Lisp Function: <strong>(make<span class="nolinebreak">-</span><!-- /@w -->resource<span class="nolinebreak">-</span><!-- /@w -->operationname</strong> <em>attributes args options)</em></dt>
+<dd>
+<p>Make an resource operation.
+</p></dd></dl>
+
+<span id="index-configure_002dresource_002doperation_002dimplementation-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-configure_002dresource_002doperation_002dimplementation"></span><span id="g_t48"></span><dl>
+<dt id="index-_0028configure_002dresource_002doperation_002dimplementationname">Common Lisp Function: <strong>(configure<span class="nolinebreak">-</span><!-- /@w -->resource<span class="nolinebreak">-</span><!-- /@w -->operation<span class="nolinebreak">-</span><!-- /@w -->implementationname</strong> <em>&amp;rest options)</em></dt>
+<dd>
+<p>Configure or reconfigure an already existent resource operation implementation
+</p></dd></dl>
+
+<span id="index-configure_002dapi-_0028Lisp-function_0029-1"></span>
+<span id="symbols-function-rest_002dserver-configure_002dapi"></span><span id="g_t49"></span><dl>
+<dt id="index-_0028configure_002dapiapi_002dor_002dname-1">Common Lisp Function: <strong>(configure<span class="nolinebreak">-</span><!-- /@w -->apiapi-or-name</strong> <em>&amp;rest options)</em></dt>
+<dd>
+<p>Configure or reconfigure an already existent api
+</p></dd></dl>
+
+<span id="index-validation_002derror-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-validation_002derror"></span><span id="g_t4a"></span><dl>
+<dt id="index-_0028validation_002derror_0029">Common Lisp Function: <strong>(validation<span class="nolinebreak">-</span><!-- /@w -->error)</strong></dt>
+</dl>
+
+<span id="index-stop_002dapi_002dlogging-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-stop_002dapi_002dlogging"></span><span id="g_t4b"></span><dl>
+<dt id="index-_0028stop_002dapi_002dlogging_0029">Common Lisp Function: <strong>(stop<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->logging)</strong></dt>
+</dl>
+
+<span id="index-elements-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-elements"></span><span id="g_t4c"></span><dl>
+<dt id="index-_0028elements_0029">Common Lisp Function: <strong>(elements)</strong></dt>
+</dl>
+
+<span id="index-logging-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-logging"></span><span id="g_t4d"></span><dl>
+<dt id="index-logging">Common Lisp Macro: <strong>logging</strong></dt>
+</dl>
+
+<span id="index-start_002dapi-_0028Lisp-function_0029-1"></span>
+<span id="symbols-function-rest_002dserver-start_002dapi"></span><span id="g_t4e"></span><dl>
+<dt id="index-_0028start_002dapiapi-1">Common Lisp Function: <strong>(start<span class="nolinebreak">-</span><!-- /@w -->apiapi</strong> <em>&amp;rest args)</em></dt>
+<dd>
+<p>Start an api at address and port.
+</p>
+<blockquote>
+
+<p>In production mode, we bind the api directly. In debug mode, we only bind the API name in order to be able to make modifications to the api (definition) in development time
+</p></blockquote>
+</dd></dl>
+
+<span id="index-set_002dattribute-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-set_002dattribute"></span><span id="g_t4f"></span><dl>
+<dt id="index-_0028set_002dattribute_0029">Common Lisp Function: <strong>(set<span class="nolinebreak">-</span><!-- /@w -->attribute)</strong></dt>
+</dl>
+
+<span id="index-add_002dlist_002dmember-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-add_002dlist_002dmember"></span><span id="g_t50"></span><dl>
+<dt id="index-_0028add_002dlist_002dmember_0029">Common Lisp Function: <strong>(add<span class="nolinebreak">-</span><!-- /@w -->list<span class="nolinebreak">-</span><!-- /@w -->member)</strong></dt>
+</dl>
+
+<span id="index-with_002dattribute-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002dattribute"></span><span id="g_t51"></span><dl>
+<dt id="index-with_002dattribute">Common Lisp Macro: <strong>with<span class="nolinebreak">-</span><!-- /@w -->attribute</strong></dt>
+</dl>
+
+<span id="index-with_002djson_002dreply-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002djson_002dreply"></span><span id="g_t52"></span><dl>
+<dt id="index-_0028with_002djson_002dreply_0026body">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->json<span class="nolinebreak">-</span><!-- /@w -->reply&amp;body</strong> <em>body)</em></dt>
+</dl>
+
+<span id="index-with_002dlist-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002dlist"></span><span id="g_t53"></span><dl>
+<dt id="index-with_002dlist">Common Lisp Macro: <strong>with<span class="nolinebreak">-</span><!-- /@w -->list</strong></dt>
+</dl>
+
+<span id="index-define_002dresource_002doperation-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-define_002dresource_002doperation"></span><span id="g_t54"></span><dl>
+<dt id="index-_0028define_002dresource_002doperationname">Common Lisp Macro: <strong>(define<span class="nolinebreak">-</span><!-- /@w -->resource<span class="nolinebreak">-</span><!-- /@w -->operationname</strong> <em>attributes args &amp;rest options)</em></dt>
+<dd>
+<p>Helper macro to define an resource operation
+</p></dd></dl>
+
+<span id="index-schema-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-schema"></span><span id="g_t55"></span><dl>
+<dt id="index-schema">Common Lisp Macro: <strong>schema</strong></dt>
+</dl>
+
+<span id="index-enable_002dapi_002dlogging-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-enable_002dapi_002dlogging"></span><span id="g_t56"></span><dl>
+<dt id="index-_0028enable_002dapi_002dlogging_0029">Common Lisp Function: <strong>(enable<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->logging)</strong></dt>
+</dl>
+
+<span id="index-define_002dserializable_002dclass-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-define_002dserializable_002dclass"></span><span id="g_t57"></span><dl>
+<dt id="index-define_002dserializable_002dclass">Common Lisp Macro: <strong>define<span class="nolinebreak">-</span><!-- /@w -->serializable<span class="nolinebreak">-</span><!-- /@w -->class</strong></dt>
+</dl>
+
+<span id="index-validation-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-validation"></span><span id="g_t58"></span><dl>
+<dt id="index-validation">Common Lisp Macro: <strong>validation</strong></dt>
+</dl>
+
+<span id="index-error_002dhandling-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-error_002dhandling"></span><span id="g_t59"></span><dl>
+<dt id="index-error_002dhandling">Common Lisp Macro: <strong>error<span class="nolinebreak">-</span><!-- /@w -->handling</strong></dt>
+</dl>
+
+<span id="index-with_002dpermission_002dchecking-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002dpermission_002dchecking"></span><span id="g_t5a"></span><dl>
+<dt id="index-_0028with_002dpermission_002dcheckingcheck">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->permission<span class="nolinebreak">-</span><!-- /@w -->checkingcheck</strong> <em>&amp;body body)</em></dt>
+</dl>
+
+<span id="index-with_002dserializer-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002dserializer"></span><span id="g_t5b"></span><dl>
+<dt id="index-with_002dserializer">Common Lisp Macro: <strong>with<span class="nolinebreak">-</span><!-- /@w -->serializer</strong></dt>
+</dl>
+
+<span id="index-define_002dapi_002dresource-_0028Lisp-macro_0029-1"></span>
+<span id="symbols-macro-rest_002dserver-define_002dapi_002dresource"></span><span id="g_t5c"></span><dl>
+<dt id="index-_0028define_002dapi_002dresourcename-1">Common Lisp Macro: <strong>(define<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->resourcename</strong> <em>options &amp;body functions)</em></dt>
+<dd>
+<p>Define an api resource.
+</p></dd></dl>
+
+<span id="index-start_002dapi_002dlogging-_0028Lisp-function_0029-1"></span>
+<span id="symbols-function-rest_002dserver-start_002dapi_002dlogging"></span><span id="g_t5d"></span><dl>
+<dt id="index-_0028start_002dapi_002dlogging_0029-1">Common Lisp Function: <strong>(start<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->logging)</strong></dt>
+</dl>
+
+<span id="index-define_002dswagger_002dresource-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-define_002dswagger_002dresource"></span><span id="g_t5e"></span><dl>
+<dt id="index-define_002dswagger_002dresource">Common Lisp Macro: <strong>define<span class="nolinebreak">-</span><!-- /@w -->swagger<span class="nolinebreak">-</span><!-- /@w -->resource</strong></dt>
+</dl>
+
+<span id="index-with_002delement-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002delement"></span><span id="g_t5f"></span><dl>
+<dt id="index-with_002delement">Common Lisp Macro: <strong>with<span class="nolinebreak">-</span><!-- /@w -->element</strong></dt>
+</dl>
+
+<span id="index-_002acatch_002derrors_002a-_0028Lisp-variable_0029-1"></span>
+<span id="symbols-variable-rest_002dserver-_002acatch_002derrors_002a"></span><span id="g_t60"></span><dl>
+<dt id="index-_002acatch_002derrors_002a-1">Common Lisp Variable: <strong>*catch<span class="nolinebreak">-</span><!-- /@w -->errors*</strong></dt>
+</dl>
+
+<span id="index-caching-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-caching"></span><span id="g_t61"></span><dl>
+<dt id="index-_0028cachingargs">Common Lisp Macro: <strong>(cachingargs</strong> <em>resource-operation-implementation)</em></dt>
+</dl>
+
+<span id="index-with_002dapi_002dresource-_0028Lisp-macro_0029-1"></span>
+<span id="symbols-macro-rest_002dserver-with_002dapi_002dresource"></span><span id="g_t62"></span><dl>
+<dt id="index-_0028with_002dapi_002dresourceresource-1">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->resourceresource</strong> <em>&amp;body body)</em></dt>
+<dd>
+
+<dl compact="compact">
+<dt>Execute body under resource scope.</dt>
+<dd>
+<p>Example:
+(with-api-resource users
+</p>
+<blockquote>
+
+
+<dl compact="compact">
+<dt>(define-resource-operation get-user :get (:url-prefix “users/{id}”)</dt>
+<dd>
+<p>‘((:id :integer))))
+</p></dd>
+</dl>
+</blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<span id="index-with_002dcontent-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002dcontent"></span><span id="g_t63"></span><dl>
+<dt id="index-_0028with_002dcontent">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->content</strong> <em>(&amp;key (setter)) &amp;body body)</em></dt>
+<dd>
+<p>Macro to build HTTP content to pass in client functions.
+</p>
+<p>Example:
+</p>
+
+<dl compact="compact">
+<dt>(with-api-backend `api-backend'</dt>
+<dd>
+
+<dl compact="compact">
+<dt>(let ((content (with-content ()</dt>
+<dd>
+<p>(:= :name “name”)
+(when some-condition
+</p>
+<blockquote>
+
+<p>(:= :attr 22)))))
+</p></blockquote>
+</dd>
+</dl>
+
+<p>(app.api-client:my-client-function :content content)))
+</p></dd>
+</dl>
+</dd></dl>
+
+<span id="index-with_002dpagination-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002dpagination"></span><span id="g_t64"></span><dl>
+<dt id="index-_0028with_002dpagination">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->pagination</strong> <em>(&amp;rest args &amp;key (page) (object-name) &amp;allow-other-keys) &amp;body body)</em></dt>
+</dl>
+
+<span id="index-define_002dapi-_0028Lisp-macro_0029-1"></span>
+<span id="symbols-macro-rest_002dserver-define_002dapi"></span><span id="g_t65"></span><dl>
+<dt id="index-_0028define_002dapiname-1">Common Lisp Macro: <strong>(define<span class="nolinebreak">-</span><!-- /@w -->apiname</strong> <em>superclasses options &amp;body resources)</em></dt>
+<dd>
+<p>Define an api.
+</p></dd></dl>
+
+<span id="index-element-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-element"></span><span id="g_t66"></span><dl>
+<dt id="index-_0028element_0029">Common Lisp Function: <strong>(element)</strong></dt>
+</dl>
+
+<span id="index-attribute-_0028Lisp-function_0029"></span>
+<span id="symbols-function-rest_002dserver-attribute"></span><span id="g_t67"></span><dl>
+<dt id="index-_0028attribute_0029">Common Lisp Function: <strong>(attribute)</strong></dt>
+</dl>
+
+<span id="index-_002aserver_002dcatch_002derrors_002a-_0028Lisp-variable_0029-1"></span>
+<span id="symbols-variable-rest_002dserver-_002aserver_002dcatch_002derrors_002a"></span><span id="g_t68"></span><dl>
+<dt id="index-_002aserver_002dcatch_002derrors_002a-1">Common Lisp Variable: <strong>*server<span class="nolinebreak">-</span><!-- /@w -->catch<span class="nolinebreak">-</span><!-- /@w -->errors*</strong></dt>
+</dl>
+
+<span id="index-with_002dreply_002dcontent_002dtype-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002dreply_002dcontent_002dtype"></span><span id="g_t69"></span><dl>
+<dt id="index-_0028with_002dreply_002dcontent_002dtype">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->reply<span class="nolinebreak">-</span><!-- /@w -->content<span class="nolinebreak">-</span><!-- /@w -->type</strong> <em>(content-type) &amp;body body)</em></dt>
+</dl>
+
+<span id="index-with_002dposted_002dcontent-_0028Lisp-macro_0029"></span>
+<span id="symbols-macro-rest_002dserver-with_002dposted_002dcontent"></span><span id="g_t6a"></span><dl>
+<dt id="index-_0028with_002dposted_002dcontentargs">Common Lisp Macro: <strong>(with<span class="nolinebreak">-</span><!-- /@w -->posted<span class="nolinebreak">-</span><!-- /@w -->contentargs</strong> <em>posted-content &amp;body body)</em></dt>
+<dd>
+<p>Bind <code>ARGS</code> to <code>POSTED-CONTENT</code>. <code>POSTED-CONTENT</code> is supposed to be an alist.
+Also, argx-P is T<a id="DOCF5" href="#FOOT5"><sup>5</sup></a> iff argx is present in <code>POSTED-CONTENT</code>
+</p></dd></dl>
+
+<div class="footnote">
+<hr>
+<h4 class="footnotes-heading">Footnotes</h4>
+
+<h5><a id="FOOT5" href="#DOCF5">(5)</a></h3>
+<p>http://www.lispworks.com/reference/HyperSpec/Body/a_t.htm</p>
+</div>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Indices-and-tables.html" accesskey="n" rel="next">Indices and tables</a>, Previous: <a href="API-documentation.html" accesskey="p" rel="prev">API documentation</a>, Up: <a href="index.html" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+
+
+
+</body>
+</html>

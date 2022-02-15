@@ -1,0 +1,73 @@
+\entry{(define-apiname}{3}{\code {(define\w {-}apiname}}
+\entry{(with-apiapi}{3}{\code {(with\w {-}apiapi}}
+\entry{(define-api-resourcename}{3}{\code {(define\w {-}api\w {-}resourcename}}
+\entry{(with-api-resourceresource}{4}{\code {(with\w {-}api\w {-}resourceresource}}
+\entry{(implement-resource-operationapi-name}{6}{\code {(implement\w {-}resource\w {-}operationapi-name}}
+\entry{(start-apiapi}{7}{\code {(start\w {-}apiapi}}
+\entry{(with-api-backendbackend}{8}{\code {(with\w {-}api\w {-}backendbackend}}
+\entry{*catch-errors*}{9}{\code {*catch\w {-}errors*}}
+\entry{*server-catch-errors*}{9}{\code {*server\w {-}catch\w {-}errors*}}
+\entry{(configure-apiapi-or-name}{10}{\code {(configure\w {-}apiapi-or-name}}
+\entry{(start-api-logging)}{10}{\code {(start\w {-}api\w {-}logging)}}
+\entry{(configure-api-resourceapi-or-name}{12}{\code {(configure\w {-}api\w {-}resourceapi-or-name}}
+\entry{(permission-checkingargs}{12}{\code {(permission\w {-}checkingargs}}
+\entry{(accept-serializer)}{12}{\code {(accept\w {-}serializer)}}
+\entry{serialization}{12}{\code {serialization}}
+\entry{with-list-member}{12}{\code {with\w {-}list\w {-}member}}
+\entry{(implement-resource-operation-casename}{12}{\code {(implement\w {-}resource\w {-}operation\w {-}casename}}
+\entry{(with-apiapi}{12}{\code {(with\w {-}apiapi}}
+\entry{(with-api-backendbackend}{12}{\code {(with\w {-}api\w {-}backendbackend}}
+\entry{(implement-resource-operationapi-name}{12}{\code {(implement\w {-}resource\w {-}operationapi-name}}
+\entry{(set-reply-content-typecontent-type)}{12}{\code {(set\w {-}reply\w {-}content\w {-}typecontent-type)}}
+\entry{with-serializer-output}{12}{\code {with\w {-}serializer\w {-}output}}
+\entry{(http-error)}{12}{\code {(http\w {-}error)}}
+\entry{define-schema}{12}{\code {define\w {-}schema}}
+\entry{(disable-api-logging)}{12}{\code {(disable\w {-}api\w {-}logging)}}
+\entry{(format-absolute-resource-operation-urlresource-operation}{12}{\code {(format\w {-}absolute\w {-}resource\w {-}operation\w {-}urlresource-operation}}
+\entry{(boolean-value)}{12}{\code {(boolean\w {-}value)}}
+\entry{(start-api-documentationapi}{12}{\code {(start\w {-}api\w {-}documentationapi}}
+\entry{(list-value)}{12}{\code {(list\w {-}value)}}
+\entry{(find-schema)}{12}{\code {(find\w {-}schema)}}
+\entry{(with-xml-reply&body}{12}{\code {(with\w {-}xml\w {-}reply&body}}
+\entry{(self-reference&rest}{13}{\code {(self\w {-}reference&rest}}
+\entry{unserialization}{13}{\code {unserialization}}
+\entry{(find-apiname}{13}{\code {(find\w {-}apiname}}
+\entry{fetch-content}{13}{\code {fetch\w {-}content}}
+\entry{(serializable-class-schema)}{13}{\code {(serializable\w {-}class\w {-}schema)}}
+\entry{(stop-apiapi-acceptor)}{13}{\code {(stop\w {-}apiapi-acceptor)}}
+\entry{(make-resource-operationname}{13}{\code {(make\w {-}resource\w {-}operationname}}
+\entry{(configure-resource-operation-implementationname}{13}{\code {(configure\w {-}resource\w {-}operation\w {-}implementationname}}
+\entry{(configure-apiapi-or-name}{13}{\code {(configure\w {-}apiapi-or-name}}
+\entry{(validation-error)}{13}{\code {(validation\w {-}error)}}
+\entry{(stop-api-logging)}{13}{\code {(stop\w {-}api\w {-}logging)}}
+\entry{(elements)}{13}{\code {(elements)}}
+\entry{logging}{13}{\code {logging}}
+\entry{(start-apiapi}{13}{\code {(start\w {-}apiapi}}
+\entry{(set-attribute)}{13}{\code {(set\w {-}attribute)}}
+\entry{(add-list-member)}{13}{\code {(add\w {-}list\w {-}member)}}
+\entry{with-attribute}{13}{\code {with\w {-}attribute}}
+\entry{(with-json-reply&body}{13}{\code {(with\w {-}json\w {-}reply&body}}
+\entry{with-list}{13}{\code {with\w {-}list}}
+\entry{(define-resource-operationname}{13}{\code {(define\w {-}resource\w {-}operationname}}
+\entry{schema}{13}{\code {schema}}
+\entry{(enable-api-logging)}{13}{\code {(enable\w {-}api\w {-}logging)}}
+\entry{define-serializable-class}{13}{\code {define\w {-}serializable\w {-}class}}
+\entry{validation}{14}{\code {validation}}
+\entry{error-handling}{14}{\code {error\w {-}handling}}
+\entry{(with-permission-checkingcheck}{14}{\code {(with\w {-}permission\w {-}checkingcheck}}
+\entry{with-serializer}{14}{\code {with\w {-}serializer}}
+\entry{(define-api-resourcename}{14}{\code {(define\w {-}api\w {-}resourcename}}
+\entry{(start-api-logging)}{14}{\code {(start\w {-}api\w {-}logging)}}
+\entry{define-swagger-resource}{14}{\code {define\w {-}swagger\w {-}resource}}
+\entry{with-element}{14}{\code {with\w {-}element}}
+\entry{*catch-errors*}{14}{\code {*catch\w {-}errors*}}
+\entry{(cachingargs}{14}{\code {(cachingargs}}
+\entry{(with-api-resourceresource}{14}{\code {(with\w {-}api\w {-}resourceresource}}
+\entry{(with-content}{14}{\code {(with\w {-}content}}
+\entry{(with-pagination}{14}{\code {(with\w {-}pagination}}
+\entry{(define-apiname}{14}{\code {(define\w {-}apiname}}
+\entry{(element)}{14}{\code {(element)}}
+\entry{(attribute)}{14}{\code {(attribute)}}
+\entry{*server-catch-errors*}{14}{\code {*server\w {-}catch\w {-}errors*}}
+\entry{(with-reply-content-type}{14}{\code {(with\w {-}reply\w {-}content\w {-}type}}
+\entry{(with-posted-contentargs}{14}{\code {(with\w {-}posted\w {-}contentargs}}

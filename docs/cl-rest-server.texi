@@ -1,0 +1,1126 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename cl-rest-server.info
+@documentencoding UTF-8
+@settitle Common Lisp REST Server Documentation
+@defindex ge
+@paragraphindent 0
+@exampleindent 4
+@finalout
+@dircategory Miscellaneous
+@direntry
+* Common Lisp REST Server: (cl-rest-server.info). One line description of project.
+@end direntry
+
+@definfoenclose strong,`,'
+@definfoenclose emph,`,'
+@c %**end of header
+
+@copying
+@quotation
+Common Lisp REST Server 0.2, Feb 15, 2022
+
+Mariano Montone
+
+Copyright @copyright{} 2014, Mariano Montone
+@end quotation
+
+@end copying
+
+@titlepage
+@title Common Lisp REST Server Documentation
+@insertcopying
+@end titlepage
+@contents
+
+@c %** start of user preamble
+
+@c %** end of user preamble
+
+@node Top
+@top Common Lisp REST Server Documentation
+@insertcopying
+
+@c %**start of body
+@anchor{index doc}@anchor{0}
+@c Common Lisp REST Server documentation master file, created by
+@c sphinx-quickstart on Tue Sep 23 23:49:02 2014.
+@c You can adapt this file completely to your liking, but it should at least
+@c contain the root `toctree` directive.
+
+Contents:
+
+@menu
+* Introduction:: 
+* Install:: 
+* API definition:: 
+* API implementation:: 
+* Starting the API:: 
+* Accessing the API:: 
+* Error handling:: 
+* API configuration:: 
+* API documentation:: 
+* API:: 
+* Indices and tables:: 
+* Index:: 
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Introduction
+
+* Features:: 
+
+API definition
+
+* API options:: 
+* Resources:: 
+* Resource operations:: 
+* API example:: 
+
+Resources
+
+* Resource options:: 
+
+Resource operations
+
+* Resource operation options:: 
+* Resource operation arguments:: 
+
+API implementation
+
+Error handling
+
+* Global error mode:: 
+
+API configuration
+
+* CORS configuration:: 
+* Logging configuration:: 
+
+CORS configuration
+
+* Options;: Options. 
+
+@end detailmenu
+@end menu
+
+@node Introduction,Install,Top,Top
+@anchor{introduction doc}@anchor{1}@anchor{introduction introduction}@anchor{2}@anchor{introduction welcome-to-common-lisp-rest-server-s-documentation}@anchor{3}
+@chapter Introduction
+
+
+@strong{rest-server} is a Common Lisp library for implementing REST APIs providers
+
+@menu
+* Features:: 
+
+@end menu
+
+@node Features,,,Introduction
+@anchor{introduction features}@anchor{4}
+@section Features
+
+
+
+@itemize *
+
+@item 
+Method matching
+- Based on HTTP method (GET, PUT, POST, DELETE)
+- Based on Accept request header
+- URL parsing (argument types)
+
+@item 
+Serialization
+- Different serialization types (JSON, XML, S-expressions)
+
+@item 
+Error handling
+- HTTP error codes
+- Development and production modes
+
+@item 
+Validation via schemas
+
+@item 
+Annotations for api logging, caching, permission checking, and more.
+
+@item 
+Authentication
+- Different methods (token based, oauth)
+
+@item 
+Documentation
+- Via Swagger: @indicateurl{http://swagger.wordnik.com}
+@end itemize
+
+@node Install,API definition,Introduction,Top
+@anchor{install doc}@anchor{5}@anchor{install install}@anchor{6}
+@chapter Install
+
+
+Download the source code from @indicateurl{https://github.com/mmontone/cl-rest-server} and point @cite{.asd} system definition files from @code{./sbcl/system (ln -s <system definition file path>)} and then evaluate:
+
+@example
+(require :rest-server)
+@end example
+
+from your lisp listener.
+
+You will also need to satisfy these system dependencies:
+
+
+@itemize -
+
+@item 
+@cite{alexandria}
+
+@item 
+@cite{cxml} and @cite{cl-json} for the serialization module
+
+@item 
+@cite{cl-ppcre} for the validation module
+@end itemize
+
+The easiest way of installing those packages is via Quicklisp@footnote{http://www.quicklisp.org}
+
+This library is under the MIT licence.
+
+@node API definition,API implementation,Install,Top
+@anchor{api doc}@anchor{7}@anchor{api api-definition}@anchor{8}@anchor{api quicklisp}@anchor{9}
+@chapter API definition
+
+
+APIs are defined using the @ref{a,,DEFINE-API} macro. APIs contain resources and resources contain api-functions.
+
+@geindex define-api (Lisp macro)
+@anchor{api macro rest-server define-api}@anchor{a}
+@deffn {Common Lisp Macro}  (define@w{-}apiname superclasses options &body resources)
+
+Define an api.
+@end deffn
+
+This is the syntax:
+
+@example
+(define-api <api-name> (&rest <superclasses>) <options-plist>
+   &rest
+   <resources>)
+@end example
+
+@menu
+* API options:: 
+* Resources:: 
+* Resource operations:: 
+* API example:: 
+
+@end menu
+
+@node API options,Resources,,API definition
+@anchor{api api-options}@anchor{b}
+@section API options
+
+
+
+@itemize -
+
+@item 
+@code{:title}: The API title. This appears in the generated API documentation
+
+@item 
+@code{:documentation}: A string with the API description. This appears in the generated API documentation.
+@end itemize
+
+@node Resources,Resource operations,API options,API definition
+@anchor{api resources}@anchor{c}
+@section Resources
+
+
+Resources have the following syntax:
+
+@example
+(<resource-name> <resource-options> <api-functions>)
+@end example
+
+Resources can be added to an already defined API via the :cl:function::@cite{with-api} and @ref{d,,define-api-resource} macros
+
+@geindex with-api (Lisp macro)
+@anchor{api macro rest-server with-api}@anchor{e}
+@deffn {Common Lisp Macro}  (with@w{-}apiapi &body body)
+
+
+@table @asis
+
+@item Execute body under api scope.
+
+Example:
+(with-api test-api
+
+@quotation
+
+
+@table @asis
+
+@item (define-resource-operation get-user :get (:url-prefix “users/@{id@}”)
+
+‘((:id :integer))))
+@end table
+@end quotation
+@end table
+@end deffn
+
+@geindex define-api-resource (Lisp macro)
+@anchor{api macro rest-server define-api-resource}@anchor{d}
+@deffn {Common Lisp Macro}  (define@w{-}api@w{-}resourcename options &body functions)
+
+Define an api resource.
+@end deffn
+
+@menu
+* Resource options:: 
+
+@end menu
+
+@node Resource options,,,Resources
+@anchor{api resource-options}@anchor{f}
+@subsection Resource options
+
+
+
+@itemize -
+
+@item 
+@code{:produces}: A list of content types produced by this resource. The content types can be @code{:json}, @code{:html}, @code{:xml}, @code{:lisp}
+
+@item 
+@code{:consumes}: A list of content types consumed by this resource.
+
+@item 
+@code{:documentation}: A string describing the resource. This appears in the generated API documentation.
+
+@item 
+@code{:path}: The resource path. Should start with the @cite{/} character. Ex: @cite{“/users”}
+
+@item 
+@code{:models}: A list of @cite{models} used by the resource
+@end itemize
+
+@node Resource operations,API example,Resources,API definition
+@anchor{api resource-operations}@anchor{10}
+@section Resource operations
+
+
+Resources provide a set of operations to access them.
+
+They have the following syntax:
+
+@example
+(<resource-operation-name> <resource-operation-options> <resource-operation-arguments>)
+@end example
+
+New operations can be added to an already defined resource via the @ref{11,,with-api-resource}
+
+@geindex with-api-resource (Lisp macro)
+@anchor{api macro rest-server with-api-resource}@anchor{11}
+@deffn {Common Lisp Macro}  (with@w{-}api@w{-}resourceresource &body body)
+
+
+@table @asis
+
+@item Execute body under resource scope.
+
+Example:
+(with-api-resource users
+
+@quotation
+
+
+@table @asis
+
+@item (define-resource-operation get-user :get (:url-prefix “users/@{id@}”)
+
+‘((:id :integer))))
+@end table
+@end quotation
+@end table
+@end deffn
+
+@menu
+* Resource operation options:: 
+* Resource operation arguments:: 
+
+@end menu
+
+@node Resource operation options,Resource operation arguments,,Resource operations
+@anchor{api resource-operation-options}@anchor{12}
+@subsection Resource operation options
+
+
+
+@itemize -
+
+@item 
+@code{:request-method}: The HTTP request method
+
+@item 
+@code{:path}: The operation path. Arguments in the operation are enclosed between @code{@{@}}. For example: @code{"/users/@{id@}"}.
+
+@item 
+@code{:produces}: A list of content types produced by the operation. The content types can be @code{:json}, @code{:html}, @code{:xml}, @code{:lisp}. This is matched with the HTTP “Accept” header.
+
+@item 
+@code{:consumes}: A list of content types that the operation can consume.
+
+@item 
+@code{:authorizations}: A list with the authorizations required for the operation. Can be one of @code{:token}, @code{:oauth}, @code{:oauth}, or a custom authorization type.
+
+@item 
+@code{:documentation}: A string describing the operation. This appears in the generated API documentation.
+@end itemize
+
+@node Resource operation arguments,,Resource operation options,Resource operations
+@anchor{api resource-operation-arguments}@anchor{13}
+@subsection Resource operation arguments
+
+
+Arguments lists have the following syntax:
+
+@example
+(*<required-arguments> &optional <optional-arguments>)
+@end example
+
+Required arguments are those appearing in the api function path between @code{@{@}}.
+They are specified like this:
+
+@example
+(<argument-name> <argument-type> <documentation-string>)
+@end example
+
+Argument type can be one of: @code{string}, @code{integer}, @code{boolean}, @code{list}.
+
+Optional arguments are those that can be passed after the @code{?} in the url. For instance, the @code{page} parameter in this url: @code{/users?page=1}. They are listed after the @code{&optional} symbol, and have the following syntax:
+
+@example
+(<argument-name> <argument-type> <default-value> <documentation-string>)
+@end example
+
+Here is an example of an api function arguments list:
+
+@example
+((id :integer "The user id")
+  &optional (boolean :boolean nil "A boolean parameter")
+            (integer :integer nil "An integer parameter")
+            (string :string nil "A string parameter")
+            (list :list nil "A list parameter"))
+@end example
+
+@node API example,,Resource operations,API definition
+@anchor{api api-example}@anchor{14}
+@section API example
+
+
+Here is a complete example of an API interface:
+
+@example
+(define-api api-test ()
+    (:title "Api test"
+            :documentation "This is an api test")
+  (parameters (:produces (:json)
+                         :consumes (:json)
+                         :documentation "Parameters test"
+                         :path "/parameters")
+              (parameters (:produces (:json)
+                                     :consumes (:json)
+                                     :documentation "Parameters test"
+                                     :path "/parameters")
+                          (&optional (boolean :boolean nil "A boolean parameter")
+                                     (integer :integer nil "An integer parameter")
+                                     (string :string nil "A string parameter")
+                                     (list :list nil "A list parameter"))))
+  (users (:produces (:json :xml)
+                    :consumes (:json)
+                    :documentation "Users operations"
+                    :models (user)
+                    :path "/users")
+         (get-users (:request-method :get
+                                     :produces (:json)
+                                     :path "/users"
+                                     :documentation "Retrive the users list")
+                    (&optional (page :integer 1 "The page")
+                               (expand :list nil "Attributes to expand")))
+         (get-user (:request-method :get
+                                    :produces (:json)
+                                    :path "/users/@{id@}"
+                                    :documentation "Retrive an user")
+                   ((id :integer "The user id")
+                    &optional
+                    (expand :list nil "Attributes to expand")))))
+@end example
+
+@node API implementation,Starting the API,API definition,Top
+@anchor{api api-implementation}@anchor{15}
+@chapter API implementation
+
+
+APIs need to implement its resources operations. This is done via the @ref{16,,implement-resource-operation} macro.
+
+@geindex implement-resource-operation (Lisp macro)
+@anchor{api macro rest-server implement-resource-operation}@anchor{16}
+@deffn {Common Lisp Macro}  (implement@w{-}resource@w{-}operationapi-name name-and-options args &body body)
+
+Define an resource operation implementation
+@end deffn
+
+The required arguments of the resource operation appear as normal arguments in the function, in the order in which they were declared. The optional arguments of a resource operation appear as @cite{&key} arguments of the function. In case the resource operation request method is either @strong{PUT} or @strong{POST}, then a >>`@w{`}<<posted-content` argument should be added to the implementation function as the first argument.
+
+Some examples:
+
+For this operation:
+
+@example
+(get-user (:request-method :get
+                     :produces (:json)
+                     :path "/users/@{id@}"
+                     :documentation "Retrive an user")
+                    ((id :integer "The user id")
+                     &optional
+                     (expand :list nil "Attributes to expand")))
+@end example
+
+The following resource implementation should be defined:
+
+@example
+(implement-resource-operation get-user (id &key expand)
+   (serialize (find-user id) :expand expand))
+@end example
+
+And for this POST operation:
+
+@example
+(create-user (:request-method :post
+                             :consumes (:json)
+                             :path "/users"
+                             :documentation "Create a user"
+                             :body-type user)
+                    ())
+@end example
+
+The @code{posted-content} argument should be included:
+
+@example
+(implement-resource-operation create-user (posted-content)
+   (with-posted-content (name age) posted-content
+       (serialize (model:create-user :name name :age age))))
+@end example
+
+@node Starting the API,Accessing the API,API implementation,Top
+@anchor{api starting-the-api}@anchor{19}
+@chapter Starting the API
+
+
+APIs are started calling the function @ref{1a,,start-api}
+
+@geindex start-api (Lisp function)
+@anchor{api function rest-server start-api}@anchor{1a}
+@deffn {Common Lisp Function}  (start@w{-}apiapi &rest args)
+
+Start an api at address and port.
+
+@quotation
+
+In production mode, we bind the api directly. In debug mode, we only bind the API name in order to be able to make modifications to the api (definition) in development time
+@end quotation
+@end deffn
+
+@node Accessing the API,Error handling,Starting the API,Top
+@anchor{api accessing-the-api}@anchor{1b}
+@chapter Accessing the API
+
+
+The @ref{a,,define-api} macro creates a function for accessing the api for each resource operation.
+
+Before using the generated functions, the api backend needs to be selected via the @ref{1c,,with-api-backend}.
+
+@geindex with-api-backend (Lisp macro)
+@anchor{api macro rest-server with-api-backend}@anchor{1c}
+@deffn {Common Lisp Macro}  (with@w{-}api@w{-}backendbackend &body body)
+
+Execute the client resource operation calling backend
+@end deffn
+
+For instance, for the api defined above, an @code{get-user} and a @code{get-users} functions are created, which can be used like this:
+
+@example
+(with-api-backend "http://localhost/api"
+   (get-user 22))
+@end example
+
+Assuming the api is running on @indicateurl{http://localhost/api}
+
+@node Error handling,API configuration,Accessing the API,Top
+@anchor{error-handling doc}@anchor{1d}@anchor{error-handling error-handling}@anchor{1e}
+@chapter Error handling
+
+
+APIs can be run with different error handling modes. This is controlled via the argument @cite{:catch-errors} in @ref{1a,,start-api}. Default is NIL.
+
+@geindex *catch-errors* (Lisp variable)
+@anchor{error-handling variable rest-server *catch-errors*}@anchor{1f}
+@deffn {Common Lisp Variable} *catch@w{-}errors*
+@end deffn
+
+If T, then the error is serialize and the corresponding HTTP is returned. Otherwise, when an error occurs, the Lisp debugger is entered.
+
+@menu
+* Global error mode:: 
+
+@end menu
+
+@node Global error mode,,,Error handling
+@anchor{error-handling global-error-mode}@anchor{20}
+@section Global error mode
+
+
+To setup a global error handling mode, that has precedence to individual running apis error handling modes, set @ref{21,,*SERVER-CATCH-ERRORS*} variable.
+
+@geindex *server-catch-errors* (Lisp variable)
+@anchor{error-handling variable rest-server *server-catch-errors*}@anchor{21}
+@deffn {Common Lisp Variable} *server@w{-}catch@w{-}errors*
+@end deffn
+
+@node API configuration,API documentation,Error handling,Top
+@anchor{api-configuration doc}@anchor{22}@anchor{api-configuration api-configuration}@anchor{23}
+@chapter API configuration
+
+
+Some aspects of the api can be configured either passing the configuration parameters to the @ref{1a,,start-api} function, or via the @ref{24,,configure-api} function.
+
+@geindex configure-api (Lisp function)
+@anchor{api-configuration function rest-server configure-api}@anchor{24}
+@deffn {Common Lisp Function}  (configure@w{-}apiapi-or-name &rest options)
+
+Configure or reconfigure an already existent api
+@end deffn
+
+@menu
+* CORS configuration:: 
+* Logging configuration:: 
+
+@end menu
+
+@node CORS configuration,Logging configuration,,API configuration
+@anchor{api-configuration cors-configuration}@anchor{25}
+@section CORS configuration
+
+
+APIs can be configured to append CORS@footnote{https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS} headers to responses.
+
+Syntax:
+
+@example
+(configure-api api '(:cors &rest options))
+@end example
+
+@menu
+* Options;: Options. 
+
+@end menu
+
+@node Options,,,CORS configuration
+@anchor{api-configuration options}@anchor{26}
+@subsection Options:
+
+
+
+@itemize -
+
+@item 
+@code{:enabled}: Boolean. CORS enabled when @code{T}.
+
+@item 
+@code{:allow-origin}: The “AllowOrigin” header. Default: @code{"*"}
+
+@item 
+@code{:allow-headers}: A list. The “AllowHeaders” header.
+
+@item 
+@code{:allow-methods}: A list. The “AllowMethods” header. Default: @code{(list :get :put :post :delete)}
+@end itemize
+
+@node Logging configuration,,CORS configuration,API configuration
+@anchor{api-configuration logging-configuration}@anchor{27}
+@section Logging configuration
+
+
+Log api requests and responses.
+
+Syntax:
+
+@example
+(configure-api '(:logging &rest options))
+@end example
+
+Then evaluate :cl:function::@cite{start-api-logging}
+
+@geindex start-api-logging (Lisp function)
+@anchor{api-configuration function rest-server start-api-logging}@anchor{28}
+@deffn {Common Lisp Function}  (start@w{-}api@w{-}logging)
+@end deffn
+
+@node API documentation,API,API configuration,Top
+@anchor{documentation doc}@anchor{29}@anchor{documentation api-documentation}@anchor{2a}
+@chapter API documentation
+
+
+There’s an (incomplete) implementation of a Swagger@footnote{https://helloreverb.com/developers/swagger} export.
+
+First, configure the api for Swagger:
+
+@example
+(define-swagger-resource api)
+@end example
+
+This will enable CORS@footnote{https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS} on the API, as Swagger needs it to make requests.
+
+After this you can download the Swagger documentation tool and point to the api HTTP address.
+
+@node API,Indices and tables,API documentation,Top
+@anchor{symbols doc}@anchor{2b}@anchor{symbols api}@anchor{2c}
+@chapter API
+
+
+Rest Server external symbols documentation
+
+@geindex configure-api-resource (Lisp function)
+@anchor{symbols function rest-server configure-api-resource}@anchor{2d}
+@deffn {Common Lisp Function}  (configure@w{-}api@w{-}resourceapi-or-name resource-name &rest options)
+@end deffn
+
+@geindex permission-checking (Lisp macro)
+@anchor{symbols macro rest-server permission-checking}@anchor{2e}
+@deffn {Common Lisp Macro}  (permission@w{-}checkingargs resource-operation-implementation)
+@end deffn
+
+@geindex accept-serializer (Lisp function)
+@anchor{symbols function rest-server accept-serializer}@anchor{2f}
+@deffn {Common Lisp Function}  (accept@w{-}serializer)
+@end deffn
+
+@geindex serialization (Lisp macro)
+@anchor{symbols macro rest-server serialization}@anchor{30}
+@deffn {Common Lisp Macro} serialization
+@end deffn
+
+@geindex with-list-member (Lisp macro)
+@anchor{symbols macro rest-server with-list-member}@anchor{31}
+@deffn {Common Lisp Macro} with@w{-}list@w{-}member
+@end deffn
+
+@geindex implement-resource-operation-case (Lisp macro)
+@anchor{symbols macro rest-server implement-resource-operation-case}@anchor{32}
+@deffn {Common Lisp Macro}  (implement@w{-}resource@w{-}operation@w{-}casename accept-content-type args &body body)
+
+Implement an resource operation case
+@end deffn
+
+@geindex with-api (Lisp macro)
+@anchor{symbols macro rest-server with-api}@anchor{33}
+@deffn {Common Lisp Macro}  (with@w{-}apiapi &body body)
+
+
+@table @asis
+
+@item Execute body under api scope.
+
+Example:
+(with-api test-api
+
+@quotation
+
+
+@table @asis
+
+@item (define-resource-operation get-user :get (:url-prefix “users/@{id@}”)
+
+‘((:id :integer))))
+@end table
+@end quotation
+@end table
+@end deffn
+
+@geindex with-api-backend (Lisp macro)
+@anchor{symbols macro rest-server with-api-backend}@anchor{34}
+@deffn {Common Lisp Macro}  (with@w{-}api@w{-}backendbackend &body body)
+
+Execute the client resource operation calling backend
+@end deffn
+
+@geindex implement-resource-operation (Lisp macro)
+@anchor{symbols macro rest-server implement-resource-operation}@anchor{35}
+@deffn {Common Lisp Macro}  (implement@w{-}resource@w{-}operationapi-name name-and-options args &body body)
+
+Define an resource operation implementation
+@end deffn
+
+@geindex set-reply-content-type (Lisp function)
+@anchor{symbols function rest-server set-reply-content-type}@anchor{36}
+@deffn {Common Lisp Function}  (set@w{-}reply@w{-}content@w{-}typecontent-type)
+@end deffn
+
+@geindex with-serializer-output (Lisp macro)
+@anchor{symbols macro rest-server with-serializer-output}@anchor{37}
+@deffn {Common Lisp Macro} with@w{-}serializer@w{-}output
+@end deffn
+
+@geindex http-error (Lisp function)
+@anchor{symbols function rest-server http-error}@anchor{38}
+@deffn {Common Lisp Function}  (http@w{-}error)
+@end deffn
+
+@geindex define-schema (Lisp macro)
+@anchor{symbols macro rest-server define-schema}@anchor{39}
+@deffn {Common Lisp Macro} define@w{-}schema
+@end deffn
+
+@geindex disable-api-logging (Lisp function)
+@anchor{symbols function rest-server disable-api-logging}@anchor{3a}
+@deffn {Common Lisp Function}  (disable@w{-}api@w{-}logging)
+@end deffn
+
+@geindex format-absolute-resource-operation-url (Lisp function)
+@anchor{symbols function rest-server format-absolute-resource-operation-url}@anchor{3b}
+@deffn {Common Lisp Function}  (format@w{-}absolute@w{-}resource@w{-}operation@w{-}urlresource-operation &rest args)
+@end deffn
+
+@geindex boolean-value (Lisp function)
+@anchor{symbols function rest-server boolean-value}@anchor{3c}
+@deffn {Common Lisp Function}  (boolean@w{-}value)
+@end deffn
+
+@geindex start-api-documentation (Lisp function)
+@anchor{symbols function rest-server start-api-documentation}@anchor{3d}
+@deffn {Common Lisp Function}  (start@w{-}api@w{-}documentationapi address port)
+
+Start a web documentation application on the given api.
+@end deffn
+
+@geindex list-value (Lisp function)
+@anchor{symbols function rest-server list-value}@anchor{3e}
+@deffn {Common Lisp Function}  (list@w{-}value)
+@end deffn
+
+@geindex find-schema (Lisp function)
+@anchor{symbols function rest-server find-schema}@anchor{3f}
+@deffn {Common Lisp Function}  (find@w{-}schema)
+@end deffn
+
+@geindex with-xml-reply (Lisp macro)
+@anchor{symbols macro rest-server with-xml-reply}@anchor{40}
+@deffn {Common Lisp Macro}  (with@w{-}xml@w{-}reply&body body)
+@end deffn
+
+@geindex self-reference (Lisp function)
+@anchor{symbols function rest-server self-reference}@anchor{41}
+@deffn {Common Lisp Function}  (self@w{-}reference&rest args)
+@end deffn
+
+@geindex unserialization (Lisp macro)
+@anchor{symbols macro rest-server unserialization}@anchor{42}
+@deffn {Common Lisp Macro} unserialization
+@end deffn
+
+@geindex find-api (Lisp function)
+@anchor{symbols function rest-server find-api}@anchor{43}
+@deffn {Common Lisp Function}  (find@w{-}apiname &key (error-p t))
+
+Find api by name
+@end deffn
+
+@geindex fetch-content (Lisp macro)
+@anchor{symbols macro rest-server fetch-content}@anchor{44}
+@deffn {Common Lisp Macro} fetch@w{-}content
+@end deffn
+
+@geindex serializable-class-schema (Lisp function)
+@anchor{symbols function rest-server serializable-class-schema}@anchor{45}
+@deffn {Common Lisp Function}  (serializable@w{-}class@w{-}schema)
+@end deffn
+
+@geindex stop-api (Lisp function)
+@anchor{symbols function rest-server stop-api}@anchor{46}
+@deffn {Common Lisp Function}  (stop@w{-}apiapi-acceptor)
+@end deffn
+
+@geindex make-resource-operation (Lisp function)
+@anchor{symbols function rest-server make-resource-operation}@anchor{47}
+@deffn {Common Lisp Function}  (make@w{-}resource@w{-}operationname attributes args options)
+
+Make an resource operation.
+@end deffn
+
+@geindex configure-resource-operation-implementation (Lisp function)
+@anchor{symbols function rest-server configure-resource-operation-implementation}@anchor{48}
+@deffn {Common Lisp Function}  (configure@w{-}resource@w{-}operation@w{-}implementationname &rest options)
+
+Configure or reconfigure an already existent resource operation implementation
+@end deffn
+
+@geindex configure-api (Lisp function)
+@anchor{symbols function rest-server configure-api}@anchor{49}
+@deffn {Common Lisp Function}  (configure@w{-}apiapi-or-name &rest options)
+
+Configure or reconfigure an already existent api
+@end deffn
+
+@geindex validation-error (Lisp function)
+@anchor{symbols function rest-server validation-error}@anchor{4a}
+@deffn {Common Lisp Function}  (validation@w{-}error)
+@end deffn
+
+@geindex stop-api-logging (Lisp function)
+@anchor{symbols function rest-server stop-api-logging}@anchor{4b}
+@deffn {Common Lisp Function}  (stop@w{-}api@w{-}logging)
+@end deffn
+
+@geindex elements (Lisp function)
+@anchor{symbols function rest-server elements}@anchor{4c}
+@deffn {Common Lisp Function}  (elements)
+@end deffn
+
+@geindex logging (Lisp macro)
+@anchor{symbols macro rest-server logging}@anchor{4d}
+@deffn {Common Lisp Macro} logging
+@end deffn
+
+@geindex start-api (Lisp function)
+@anchor{symbols function rest-server start-api}@anchor{4e}
+@deffn {Common Lisp Function}  (start@w{-}apiapi &rest args)
+
+Start an api at address and port.
+
+@quotation
+
+In production mode, we bind the api directly. In debug mode, we only bind the API name in order to be able to make modifications to the api (definition) in development time
+@end quotation
+@end deffn
+
+@geindex set-attribute (Lisp function)
+@anchor{symbols function rest-server set-attribute}@anchor{4f}
+@deffn {Common Lisp Function}  (set@w{-}attribute)
+@end deffn
+
+@geindex add-list-member (Lisp function)
+@anchor{symbols function rest-server add-list-member}@anchor{50}
+@deffn {Common Lisp Function}  (add@w{-}list@w{-}member)
+@end deffn
+
+@geindex with-attribute (Lisp macro)
+@anchor{symbols macro rest-server with-attribute}@anchor{51}
+@deffn {Common Lisp Macro} with@w{-}attribute
+@end deffn
+
+@geindex with-json-reply (Lisp macro)
+@anchor{symbols macro rest-server with-json-reply}@anchor{52}
+@deffn {Common Lisp Macro}  (with@w{-}json@w{-}reply&body body)
+@end deffn
+
+@geindex with-list (Lisp macro)
+@anchor{symbols macro rest-server with-list}@anchor{53}
+@deffn {Common Lisp Macro} with@w{-}list
+@end deffn
+
+@geindex define-resource-operation (Lisp macro)
+@anchor{symbols macro rest-server define-resource-operation}@anchor{54}
+@deffn {Common Lisp Macro}  (define@w{-}resource@w{-}operationname attributes args &rest options)
+
+Helper macro to define an resource operation
+@end deffn
+
+@geindex schema (Lisp macro)
+@anchor{symbols macro rest-server schema}@anchor{55}
+@deffn {Common Lisp Macro} schema
+@end deffn
+
+@geindex enable-api-logging (Lisp function)
+@anchor{symbols function rest-server enable-api-logging}@anchor{56}
+@deffn {Common Lisp Function}  (enable@w{-}api@w{-}logging)
+@end deffn
+
+@geindex define-serializable-class (Lisp macro)
+@anchor{symbols macro rest-server define-serializable-class}@anchor{57}
+@deffn {Common Lisp Macro} define@w{-}serializable@w{-}class
+@end deffn
+
+@geindex validation (Lisp macro)
+@anchor{symbols macro rest-server validation}@anchor{58}
+@deffn {Common Lisp Macro} validation
+@end deffn
+
+@geindex error-handling (Lisp macro)
+@anchor{symbols macro rest-server error-handling}@anchor{59}
+@deffn {Common Lisp Macro} error@w{-}handling
+@end deffn
+
+@geindex with-permission-checking (Lisp macro)
+@anchor{symbols macro rest-server with-permission-checking}@anchor{5a}
+@deffn {Common Lisp Macro}  (with@w{-}permission@w{-}checkingcheck &body body)
+@end deffn
+
+@geindex with-serializer (Lisp macro)
+@anchor{symbols macro rest-server with-serializer}@anchor{5b}
+@deffn {Common Lisp Macro} with@w{-}serializer
+@end deffn
+
+@geindex define-api-resource (Lisp macro)
+@anchor{symbols macro rest-server define-api-resource}@anchor{5c}
+@deffn {Common Lisp Macro}  (define@w{-}api@w{-}resourcename options &body functions)
+
+Define an api resource.
+@end deffn
+
+@geindex start-api-logging (Lisp function)
+@anchor{symbols function rest-server start-api-logging}@anchor{5d}
+@deffn {Common Lisp Function}  (start@w{-}api@w{-}logging)
+@end deffn
+
+@geindex define-swagger-resource (Lisp macro)
+@anchor{symbols macro rest-server define-swagger-resource}@anchor{5e}
+@deffn {Common Lisp Macro} define@w{-}swagger@w{-}resource
+@end deffn
+
+@geindex with-element (Lisp macro)
+@anchor{symbols macro rest-server with-element}@anchor{5f}
+@deffn {Common Lisp Macro} with@w{-}element
+@end deffn
+
+@geindex *catch-errors* (Lisp variable)
+@anchor{symbols variable rest-server *catch-errors*}@anchor{60}
+@deffn {Common Lisp Variable} *catch@w{-}errors*
+@end deffn
+
+@geindex caching (Lisp macro)
+@anchor{symbols macro rest-server caching}@anchor{61}
+@deffn {Common Lisp Macro}  (cachingargs resource-operation-implementation)
+@end deffn
+
+@geindex with-api-resource (Lisp macro)
+@anchor{symbols macro rest-server with-api-resource}@anchor{62}
+@deffn {Common Lisp Macro}  (with@w{-}api@w{-}resourceresource &body body)
+
+
+@table @asis
+
+@item Execute body under resource scope.
+
+Example:
+(with-api-resource users
+
+@quotation
+
+
+@table @asis
+
+@item (define-resource-operation get-user :get (:url-prefix “users/@{id@}”)
+
+‘((:id :integer))))
+@end table
+@end quotation
+@end table
+@end deffn
+
+@geindex with-content (Lisp macro)
+@anchor{symbols macro rest-server with-content}@anchor{63}
+@deffn {Common Lisp Macro}  (with@w{-}content (&key (setter)) &body body)
+
+Macro to build HTTP content to pass in client functions.
+
+Example:
+
+
+@table @asis
+
+@item (with-api-backend @emph{api-backend}
+
+
+@table @asis
+
+@item (let ((content (with-content ()
+
+(:= :name “name”)
+(when some-condition
+
+@quotation
+
+(:= :attr 22)))))
+@end quotation
+@end table
+
+(app.api-client:my-client-function :content content)))
+@end table
+@end deffn
+
+@geindex with-pagination (Lisp macro)
+@anchor{symbols macro rest-server with-pagination}@anchor{64}
+@deffn {Common Lisp Macro}  (with@w{-}pagination (&rest args &key (page) (object-name) &allow-other-keys) &body body)
+@end deffn
+
+@geindex define-api (Lisp macro)
+@anchor{symbols macro rest-server define-api}@anchor{65}
+@deffn {Common Lisp Macro}  (define@w{-}apiname superclasses options &body resources)
+
+Define an api.
+@end deffn
+
+@geindex element (Lisp function)
+@anchor{symbols function rest-server element}@anchor{66}
+@deffn {Common Lisp Function}  (element)
+@end deffn
+
+@geindex attribute (Lisp function)
+@anchor{symbols function rest-server attribute}@anchor{67}
+@deffn {Common Lisp Function}  (attribute)
+@end deffn
+
+@geindex *server-catch-errors* (Lisp variable)
+@anchor{symbols variable rest-server *server-catch-errors*}@anchor{68}
+@deffn {Common Lisp Variable} *server@w{-}catch@w{-}errors*
+@end deffn
+
+@geindex with-reply-content-type (Lisp macro)
+@anchor{symbols macro rest-server with-reply-content-type}@anchor{69}
+@deffn {Common Lisp Macro}  (with@w{-}reply@w{-}content@w{-}type (content-type) &body body)
+@end deffn
+
+@geindex with-posted-content (Lisp macro)
+@anchor{symbols macro rest-server with-posted-content}@anchor{6a}
+@deffn {Common Lisp Macro}  (with@w{-}posted@w{-}contentargs posted-content &body body)
+
+Bind @code{ARGS} to @code{POSTED-CONTENT}. @code{POSTED-CONTENT} is supposed to be an alist.
+Also, argx-P is T@footnote{http://www.lispworks.com/reference/HyperSpec/Body/a_t.htm} iff argx is present in @code{POSTED-CONTENT}
+@end deffn
+
+@node Indices and tables,Index,API,Top
+@anchor{index indices-and-tables}@anchor{6b}
+@unnumbered Indices and tables
+
+
+
+@itemize *
+
+@item 
+genindex
+
+@item 
+search
+@end itemize
+
+@node Index,,Indices and tables,Top
+@unnumbered Index
+
+
+@printindex ge
+
+
+@c %**end of body
+@bye

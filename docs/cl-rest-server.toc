@@ -1,0 +1,24 @@
+@numchapentry{Introduction}{1}{Introduction}{1}
+@numsecentry{Features}{1.1}{Features}{1}
+@numchapentry{Install}{2}{Install}{2}
+@numchapentry{API definition}{3}{API definition}{3}
+@numsecentry{API options}{3.1}{API options}{3}
+@numsecentry{Resources}{3.2}{Resources}{3}
+@numsubsecentry{Resource options}{3.2.1}{Resource options}{3}
+@numsecentry{Resource operations}{3.3}{Resource operations}{4}
+@numsubsecentry{Resource operation options}{3.3.1}{Resource operation options}{4}
+@numsubsecentry{Resource operation arguments}{3.3.2}{Resource operation arguments}{4}
+@numsecentry{API example}{3.4}{API example}{5}
+@numchapentry{API implementation}{4}{API implementation}{6}
+@numchapentry{Starting the API}{5}{Starting the API}{7}
+@numchapentry{Accessing the API}{6}{Accessing the API}{8}
+@numchapentry{Error handling}{7}{Error handling}{9}
+@numsecentry{Global error mode}{7.1}{Global error mode}{9}
+@numchapentry{API configuration}{8}{API configuration}{10}
+@numsecentry{CORS configuration}{8.1}{CORS configuration}{10}
+@numsubsecentry{Options:}{8.1.1}{Options}{10}
+@numsecentry{Logging configuration}{8.2}{Logging configuration}{10}
+@numchapentry{API documentation}{9}{API documentation}{11}
+@numchapentry{API}{10}{API}{12}
+@unnchapentry{Indices and tables}{10002}{Indices and tables}{15}
+@unnchapentry{Index}{10003}{Index}{16}

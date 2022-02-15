@@ -1,0 +1,285 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Common Lisp REST Server 0.2, Feb 15, 2022
+
+Mariano Montone
+
+Copyright (C) 2014, Mariano Montone
+ -->
+<!-- Created by GNU Texinfo 6.7, http://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Top (Common Lisp REST Server Documentation)</title>
+
+<meta name="description" content="Top (Common Lisp REST Server Documentation)">
+<meta name="keywords" content="Top (Common Lisp REST Server Documentation)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<link href="#Top" rel="start" title="Top">
+<link href="Index.html" rel="index" title="Index">
+<link href="#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Introduction.html#Introduction" rel="next" title="Introduction">
+<style type="text/css">
+<!--
+/* Style-sheet to use for manuals (copied from Emacs) */
+
+@import url('../style.css');
+
+/* makeinfo 6.5 converts @quotation to <blockquote>.  Highlight them.  */
+
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+blockquote {
+    font-style: normal;
+    border-left: solid 10px red;
+    padding-left: 2.5%;
+    margin-left: 0px;
+}
+
+/* Increase inter-line spacing to improve readability.  */
+p, pre, li, dt, dd, table, code, address { line-height: 1.5em; }
+
+var { font-style: italic; }
+
+/* Lay out @lisp just like @example.  Copied from what /style.css
+   does for the 'example' class.  */
+div.lisp { padding: .8em 1.2em .4em; }
+pre.lisp { padding: .8em 1.2em; }
+div.lisp, pre.lisp {
+   margin: 1em 0 1em 3% ;
+   -webkit-border-radius: .3em;
+   -moz-border-radius: .3em;
+   border-radius: .3em;
+   border: 1px solid #d4cbb6;
+   background-color: #f2efe4;
+}
+div.lisp > pre.lisp {
+   padding: 0 0 .4em;
+   margin: 0;
+   border: none;
+}
+
+/* makeinfo 6.7 uses <div class="header"> for navigation links above node
+   titles.  Make those links less prominent.  */
+.header {
+    line-height: 2em;
+    font-size: 87.5%;
+    color: #433;
+}
+
+/* In title and node titles, use Fira Sans if available as it is more
+   pleasant and more compact than Helvetica.  */
+.settitle, .top, .chapter, .section, .subsection, .subsubsection {
+    font-family: Fira Sans, sans;
+}
+
+/* ----- coreutils specific styling ----- */
+
+/* layout.css indents "body p" when it should probably only indent "body > p"?
+   In any case, disable indenting of p in these sub elements.  */
+dd p,li p {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* underlined links are distracting, especially within outlined tables.  */
+a { /*add :link for external links*/
+    text-decoration: none; /* don't underline links by default */
+    outline-style: none;   /* don't put dotted box around clicked links */
+}
+a:hover {
+    text-decoration: underline;
+}
+
+body {
+    /* Make sure the body doesn't become to wide: long lines are hard to
+       read.  */
+    max-width: 45em;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<h1 class="settitle" align="center">Common Lisp REST Server Documentation</h1>
+
+
+
+<span id="SEC_Contents"></span>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a id="toc-Introduction-1" href="Introduction.html#Introduction">1 Introduction</a>
+  <ul class="no-bullet">
+    <li><a id="toc-Features-1" href="Introduction.html#Features">1.1 Features</a></li>
+  </ul></li>
+  <li><a id="toc-Install-1" href="Install.html#Install">2 Install</a></li>
+  <li><a id="toc-API-definition-1" href="API-definition.html#API-definition">3 API definition</a>
+  <ul class="no-bullet">
+    <li><a id="toc-API-options-1" href="API-definition.html#API-options">3.1 API options</a></li>
+    <li><a id="toc-Resources-1" href="API-definition.html#Resources">3.2 Resources</a>
+    <ul class="no-bullet">
+      <li><a id="toc-Resource-options-1" href="API-definition.html#Resource-options">3.2.1 Resource options</a></li>
+    </ul></li>
+    <li><a id="toc-Resource-operations-1" href="API-definition.html#Resource-operations">3.3 Resource operations</a>
+    <ul class="no-bullet">
+      <li><a id="toc-Resource-operation-options-1" href="API-definition.html#Resource-operation-options">3.3.1 Resource operation options</a></li>
+      <li><a id="toc-Resource-operation-arguments-1" href="API-definition.html#Resource-operation-arguments">3.3.2 Resource operation arguments</a></li>
+    </ul></li>
+    <li><a id="toc-API-example-1" href="API-definition.html#API-example">3.4 API example</a></li>
+  </ul></li>
+  <li><a id="toc-API-implementation-1" href="API-implementation.html#API-implementation">4 API implementation</a></li>
+  <li><a id="toc-Starting-the-API-1" href="Starting-the-API.html#Starting-the-API">5 Starting the API</a></li>
+  <li><a id="toc-Accessing-the-API-1" href="Accessing-the-API.html#Accessing-the-API">6 Accessing the API</a></li>
+  <li><a id="toc-Error-handling-1" href="Error-handling.html#Error-handling">7 Error handling</a>
+  <ul class="no-bullet">
+    <li><a id="toc-Global-error-mode-1" href="Error-handling.html#Global-error-mode">7.1 Global error mode</a></li>
+  </ul></li>
+  <li><a id="toc-API-configuration-1" href="API-configuration.html#API-configuration">8 API configuration</a>
+  <ul class="no-bullet">
+    <li><a id="toc-CORS-configuration-1" href="API-configuration.html#CORS-configuration">8.1 CORS configuration</a>
+    <ul class="no-bullet">
+      <li><a id="toc-Options_003a" href="API-configuration.html#Options">8.1.1 Options:</a></li>
+    </ul></li>
+    <li><a id="toc-Logging-configuration-1" href="API-configuration.html#Logging-configuration">8.2 Logging configuration</a></li>
+  </ul></li>
+  <li><a id="toc-API-documentation-1" href="API-documentation.html#API-documentation">9 API documentation</a></li>
+  <li><a id="toc-API-1" href="API.html#API">10 API</a></li>
+  <li><a id="toc-Indices-and-tables-1" href="Indices-and-tables.html#Indices-and-tables">Indices and tables</a></li>
+  <li><a id="toc-Index-1" href="Index.html#Index" rel="index">Index</a></li>
+</ul>
+</div>
+
+
+
+
+<span id="Top"></span><div class="header">
+<p>
+Next: <a href="Introduction.html#Introduction" accesskey="n" rel="next">Introduction</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="Common-Lisp-REST-Server-Documentation"></span><h1 class="top">Common Lisp REST Server Documentation</h1>
+<blockquote>
+<p>Common Lisp REST Server 0.2, Feb 15, 2022
+</p>
+<p>Mariano Montone
+</p>
+<p>Copyright &copy; 2014, Mariano Montone
+</p></blockquote>
+
+
+<span id="index-doc"></span><span id="g_t0"></span>
+<p>Contents:
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="Introduction.html#Introduction" accesskey="1">Introduction</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Install.html" accesskey="2">Install</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="API-definition.html#API-definition" accesskey="3">API definition</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="API-implementation.html" accesskey="4">API implementation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Starting-the-API.html" accesskey="5">Starting the API</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Accessing-the-API.html" accesskey="6">Accessing the API</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Error-handling.html#Error-handling" accesskey="7">Error handling</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="API-configuration.html#API-configuration" accesskey="8">API configuration</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="API-documentation.html" accesskey="9">API documentation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="API.html">API</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Indices-and-tables.html">Indices and tables</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Index.html" rel="index">Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+</pre></th></tr><tr><th colspan="3" align="left" valign="top"><pre class="menu-comment"> &mdash; The Detailed Node Listing &mdash;
+
+Introduction
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Introduction.html#Features">Features</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+API definition
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="API-definition.html#API-options">API options</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="API-definition.html#Resources">Resources</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="API-definition.html#Resource-operations">Resource operations</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="API-definition.html#API-example">API example</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Resources
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="API-definition.html#Resource-options">Resource options</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Resource operations
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="API-definition.html#Resource-operation-options">Resource operation options</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="API-definition.html#Resource-operation-arguments">Resource operation arguments</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+API implementation
+
+Error handling
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Error-handling.html#Global-error-mode">Global error mode</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+API configuration
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="API-configuration.html#CORS-configuration">CORS configuration</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="API-configuration.html#Logging-configuration">Logging configuration</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+CORS configuration
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="API-configuration.html#Options">Options;</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+</pre></th></tr></table>
+
+<hr>
+<div class="header">
+<p>
+Next: <a href="Introduction.html#Introduction" accesskey="n" rel="next">Introduction</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,676 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdfetex 2020.12.8)  15 FEB 2022 17:48
+entering extended mode
+ restricted \write18 enabled.
+ file:line:error style messages enabled.
+ %&-line parsing enabled.
+**\nonstopmode \input ./cl-rest-server.texi
+(./cl-rest-server.texi (/usr/share/texmf/tex/texinfo/texinfo.tex
+Loading texinfo [version 2019-09-20.22]:
+\outerhsize=\dimen16
+\outervsize=\dimen17
+\topandbottommargin=\dimen18
+\bindingoffset=\dimen19
+\normaloffset=\dimen20
+\txipagewidth=\dimen21
+\txipageheight=\dimen22
+\defaultoutput=\toks13
+\headlinebox=\box16
+\footlinebox=\box17
+\savedtopmark=\toks14
+\margin=\insert252
+\EMsimple=\toks15
+\groupbox=\box18
+\groupinvalidhelp=\toks16
+\mil=\dimen23
+\exdentamount=\skip18
+\inmarginspacing=\skip19
+\centerpenalty=\count27
+ pdf,
+\tempnum=\count28
+\lnkcount=\count29
+\filename=\toks17
+\filenamelength=\count30
+\pgn=\count31
+\toksA=\toks18
+\toksB=\toks19
+\toksC=\toks20
+\toksD=\toks21
+\boxA=\box19
+\boxB=\box20
+\countA=\count32
+\nopdfimagehelp=\toks22
+ fonts,
+\textleading=\dimen24
+\sffam=\fam8
+ markup,
+\fontdepth=\count33
+ glyphs,
+\errorbox=\box21
+
+page headings,
+\titlepagetopglue=\skip20
+\titlepagebottomglue=\skip21
+\evenheadline=\toks23
+\oddheadline=\toks24
+\evenfootline=\toks25
+\oddfootline=\toks26
+ tables,
+\tableindent=\dimen25
+\itemindent=\dimen26
+\itemmargin=\dimen27
+\itemmax=\dimen28
+\itemno=\count34
+\multitableparskip=\skip22
+\multitableparindent=\skip23
+\multitablecolspace=\dimen29
+\multitablelinespace=\skip24
+\colcount=\count35
+\everytab=\toks27
+ conditionals,
+\doignorecount=\count36
+ indexing,
+\dummybox=\box22
+\whatsitskip=\skip25
+\whatsitpenalty=\count37
+\entryrightmargin=\dimen30
+\thinshrinkable=\skip26
+\partialpage=\box23
+\doublecolumnhsize=\dimen31
+\balancedcolumns=\box24
+ sectioning,
+\unnumberedno=\count38
+\chapno=\count39
+\secno=\count40
+\subsecno=\count41
+\subsubsecno=\count42
+\appendixno=\count43
+\absseclevel=\count44
+\secbase=\count45
+\chapheadingskip=\skip27
+\secheadingskip=\skip28
+\subsecheadingskip=\skip29
+ toc,
+\tocfile=\write0
+\contentsrightmargin=\skip30
+\savepageno=\count46
+\lastnegativepageno=\count47
+\tocindent=\dimen32
+ environments,
+\lispnarrowing=\skip31
+\envskipamount=\skip32
+\lskip=\skip33
+\rskip=\skip34
+\circthick=\dimen33
+\cartouter=\dimen34
+\cartinner=\dimen35
+\normbskip=\skip35
+\normpskip=\skip36
+\normlskip=\skip37
+\nonfillparindent=\dimen36
+\tabw=\dimen37
+\verbbox=\box25
+
+defuns,
+\defbodyindent=\skip38
+\defargsindent=\skip39
+\deflastargmargin=\skip40
+\defunpenalty=\count48
+\parencount=\count49
+\brackcount=\count50
+ macros,
+\paramno=\count51
+\macname=\toks28
+ cross references,
+\auxfile=\write1
+\savesfregister=\count52
+\toprefbox=\box26
+\printedrefnamebox=\box27
+\infofilenamebox=\box28
+\printedmanualbox=\box29
+ insertions,
+\footnoteno=\count53
+\SAVEfootins=\box30
+\SAVEmargin=\box31
+
+(/usr/share/texlive/texmf-dist/tex/generic/epsf/epsf.tex
+This is `epsf.tex' v2.7.4 <14 February 2011>
+\epsffilein=\read1
+\epsfframemargin=\dimen38
+\epsfframethickness=\dimen39
+\epsfrsize=\dimen40
+\epsftmp=\dimen41
+\epsftsize=\dimen42
+\epsfxsize=\dimen43
+\epsfysize=\dimen44
+\pspoints=\dimen45
+)
+\noepsfhelp=\toks29
+ localization,
+\nolanghelp=\toks30
+\countUTFx=\count54
+\countUTFy=\count55
+\countUTFz=\count56
+ formatting,
+\defaultparindent=\dimen46
+ and turning on texinfo input format.) [1{/var/lib/texmf/fonts/map/pdftex/updma
+p/pdftex.map}]
+(/home/marian/src/lisp/cl-rest-server/doc/cl-rest-server.toc) [-1]
+(/home/marian/src/lisp/cl-rest-server/doc/cl-rest-server.toc)
+(/home/marian/src/lisp/cl-rest-server/doc/cl-rest-server.toc)
+(Common Lisp REST Server Documentation)
+\openout0 = `cl-rest-server.toc'.
+
+
+(/home/marian/src/lisp/cl-rest-server/doc/cl-rest-server.aux)
+\openout1 = `cl-rest-server.aux'.
+
+ Chapter 1
+Chapter 2 [1pdfTeX warning (ext4): destination with the same identifier (name{1
+}) has been already used, duplicate ignored
+
+@onepageout ...kip 24pt @unvbox @footlinebox @fi }
+                                                  }@global @topmarksavedfals...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @footnoteno 
+@supereject ->@par @penalty -20000@footnoteno 
+                                              =0 
+@chapmacro ...@safewhatsit @domark @pchapsepmacro 
+                                                  @let @prevchapterdefs =@cu...
+
+@chapterzzz ...acro {#1}{Ynumbered}{@the @chapno }
+                                                  @global @let @section = @n...
+...
+l.160 @chapter Install
+                      ] Chapter 3pdfTeX warning (ext4): destination with the sa
+me identifier (name{2}) has been already used, duplicate ignored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @footnoteno 
+@supereject ->@par @penalty -20000@footnoteno 
+                                              =0 
+@chapmacro ...@safewhatsit @domark @pchapsepmacro 
+                                                  @let @prevchapterdefs =@cu...
+...
+l.192 @chapter API definition
+                              [2]
+@geindfile=@write2
+\openout2 = `cl-rest-server.ge'.
+
+
+Writing index file cl-rest-server.ge
+@fnindfile=@write3
+\openout3 = `cl-rest-server.fn'.
+
+Writing index file cl-rest-server.fn
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Overfull \hbox (110.31595pt too wide) in paragraph at lines 319--319
+ []@texttt (<resource-operation-name> <resource-operation-options> <resource-op
+eration-arguments>)[] 
+
+@hbox(7.60416+2.43333)x433.62
+.@glue(@leftskip) 43.80011
+.@hbox(0.0+0.0)x0.0
+.@texttt (
+.@texttt <
+.@texttt r
+.etc.
+
+pdfTeX warning (ext4): destination with the same identifier (name{3}) has been 
+already used, duplicate ignored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   N
+l.322 N
+       ew operations can be added to an already defined resource via the @re...
+[3] Warning: unbalanced parentheses in @def...
+Overfull \hbox (24.08563pt too wide) in paragraph at lines 405--405
+ []@texttt (<argument-name> <argument-type> <default-value> <documentation-stri
+ng>)[] 
+
+@hbox(7.60416+2.43333)x433.62
+.@glue(@leftskip) 43.80011
+.@hbox(0.0+0.0)x0.0
+.@texttt (
+.@texttt <
+.@texttt a
+.etc.
+
+pdfTeX warning (ext4): destination with the same identifier (name{4}) has been 
+already used, duplicate ignored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+@aboveenvbreak ...lastpenalty <10000 @penalty 100 
+                                                  @fi @vskip @envskipamount ...
+
+@nonfillstart ->@aboveenvbreak 
+                               @ifdim @hfuzz < 12pt @hfuzz = 12pt @fi @sepsp...
+
+@example ...ample @setnormaldispenv @nonfillstart 
+                                                  @tt @setupmarkupstyle {exa...
+l.425 @example
+               [4]
+Overfull \hbox (75.82382pt too wide) in paragraph at lines 437--437
+ []                          @texttt (&optional (boolean :boolean nil "A boolea
+n parameter")[] 
+
+@hbox(7.60416+2.43333)x433.62
+.@glue(@leftskip) 43.80011
+.@hbox(0.0+0.0)x0.0
+.@penalty 10000
+.@glue 5.74869
+.@penalty 10000
+.etc.
+
+
+Overfull \hbox (81.57251pt too wide) in paragraph at lines 438--438
+ []                                     @texttt (integer :integer nil "An integ
+er parameter")[] 
+
+@hbox(7.60416+2.43333)x433.62
+.@glue(@leftskip) 43.80011
+.@hbox(0.0+0.0)x0.0
+.@penalty 10000
+.@glue 5.74869
+.@penalty 10000
+.etc.
+
+
+Overfull \hbox (58.57776pt too wide) in paragraph at lines 439--439
+ []                                     @texttt (string :string nil "A string p
+arameter")[] 
+
+@hbox(7.60416+2.43333)x433.62
+.@glue(@leftskip) 43.80011
+.@hbox(0.0+0.0)x0.0
+.@penalty 10000
+.@glue 5.74869
+.@penalty 10000
+.etc.
+
+
+Overfull \hbox (41.3317pt too wide) in paragraph at lines 440--440
+ []                                     @texttt (list :list nil "A list paramet
+er"))))[] 
+
+@hbox(7.60416+2.43333)x433.62
+.@glue(@leftskip) 43.80011
+.@hbox(0.0+0.0)x0.0
+.@penalty 10000
+.@glue 5.74869
+.@penalty 10000
+.etc.
+
+
+Overfull \hbox (52.82907pt too wide) in paragraph at lines 449--449
+ []                                     @texttt :documentation "Retrive the use
+rs list")[] 
+
+@hbox(7.60416+0.91246)x433.62
+.@glue(@leftskip) 43.80011
+.@hbox(0.0+0.0)x0.0
+.@penalty 10000
+.@glue 5.74869
+.@penalty 10000
+.etc.
+
+
+Overfull \hbox (35.58301pt too wide) in paragraph at lines 451--451
+ []                               @texttt (expand :list nil "Attributes to expa
+nd")))[] 
+
+@hbox(7.60416+2.43333)x433.62
+.@glue(@leftskip) 43.80011
+.@hbox(0.0+0.0)x0.0
+.@penalty 10000
+.@glue 5.74869
+.@penalty 10000
+.etc.
+
+Chapter 4pdfTeX warning (ext4): destination with the same identifier (name{5}) 
+has been already used, duplicate ignored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @footnoteno 
+@supereject ->@par @penalty -20000@footnoteno 
+                                              =0 
+@chapmacro ...@safewhatsit @domark @pchapsepmacro 
+                                                  @let @prevchapterdefs =@cu...
+...
+l.463 @chapter API implementation
+                                  [5]
+Warning: unbalanced parentheses in @def... Chapter 5pdfTeX warning (ext4): dest
+ination with the same identifier (name{6}) has been already used, duplicate ign
+ored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @footnoteno 
+@supereject ->@par @penalty -20000@footnoteno 
+                                              =0 
+@chapmacro ...@safewhatsit @domark @pchapsepmacro 
+                                                  @let @prevchapterdefs =@cu...
+...
+l.519 @chapter Starting the API
+                                [6] Warning: unbalanced parentheses in @def...
+Chapter 6pdfTeX warning (ext4): destination with the same identifier (name{7}) 
+has been already used, duplicate ignored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @footnoteno 
+@supereject ->@par @penalty -20000@footnoteno 
+                                              =0 
+@chapmacro ...@safewhatsit @domark @pchapsepmacro 
+                                                  @let @prevchapterdefs =@cu...
+...
+l.538 @chapter Accessing the API
+                                 [7]
+Warning: unbalanced parentheses in @def... Chapter 7pdfTeX warning (ext4): dest
+ination with the same identifier (name{8}) has been already used, duplicate ign
+ored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @footnoteno 
+@supereject ->@par @penalty -20000@footnoteno 
+                                              =0 
+@chapmacro ...@safewhatsit @domark @pchapsepmacro 
+                                                  @let @prevchapterdefs =@cu...
+...
+l.563 @chapter Error handling
+                              [8] Chapter 8pdfTeX warning (ext4): destination w
+ith the same identifier (name{9}) has been already used, duplicate ignored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @footnoteno 
+@supereject ->@par @penalty -20000@footnoteno 
+                                              =0 
+@chapmacro ...@safewhatsit @domark @pchapsepmacro 
+                                                  @let @prevchapterdefs =@cu...
+...
+l.594 @chapter API configuration
+                                 [9]
+Warning: unbalanced parentheses in @def... Chapter 9pdfTeX warning (ext4): dest
+ination with the same identifier (name{10}) has been already used, duplicate ig
+nored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @footnoteno 
+@supereject ->@par @penalty -20000@footnoteno 
+                                              =0 
+@chapmacro ...@safewhatsit @domark @pchapsepmacro 
+                                                  @let @prevchapterdefs =@cu...
+...
+l.673 @chapter API documentation
+                                 [10] Chapter 10pdfTeX warning (ext4): destinat
+ion with the same identifier (name{11}) has been already used, duplicate ignore
+d
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @footnoteno 
+@supereject ->@par @penalty -20000@footnoteno 
+                                              =0 
+@chapmacro ...@safewhatsit @domark @pchapsepmacro 
+                                                  @let @prevchapterdefs =@cu...
+...
+l.690 @chapter API
+                   [11] Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Overfull \hbox (5.76736pt too wide) in paragraph at lines 793--793
+[]@deftt (format[]absolute[]resource[]operation[]urlresource- 
+
+@hbox(8.33333+2.73749)x296.62985
+.@hbox(8.2125+2.73749)x0.0, glue set 296.62985fil
+..@glue 0.0 plus 1.0fil
+..@hbox(8.2125+2.73749)x136.99014
+...@kern 18.0
+...@textrm [
+...@textrm C
+...@textrm o
+...@textrm m
+...etc.
+..@kern -433.62
+..@kern 0.0
+.@deftt (
+.@deftt f
+.@deftt o
+.@deftt r
+.etc.
+
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...pdfTeX warning (ext4): destination wi
+th the same identifier (name{12}) has been already used, duplicate ignored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+@startdefun ... @lastpenalty =10002 @penalty 2000 
+                                                  @else @defunpenalty =10002...
+
+@deffn ->@startenvironment @deffn @startdefun 
+                                              @doingtypefnfalse @parseargusi...
+l.835 @deffn
+             {Common Lisp Function}  (find@w{-}apiname &key (error-p t))
+[12] Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Overfull \hbox (5.76736pt too wide) in paragraph at lines 864--864
+[]@deftt (configure[]resource[]operation[]implementationname 
+
+@hbox(8.33333+2.73749)x296.62985
+.@hbox(8.2125+2.73749)x0.0, glue set 296.62985fil
+..@glue 0.0 plus 1.0fil
+..@hbox(8.2125+2.73749)x136.99014
+...@kern 18.0
+...@textrm [
+...@textrm C
+...@textrm o
+...@textrm m
+...etc.
+..@kern -433.62
+..@kern 0.0
+.@deftt (
+.@deftt c
+.@deftt o
+.@deftt n
+.etc.
+
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...pdfTeX warning (ext4): destination wi
+th the same identifier (name{13}) has been already used, duplicate ignored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @vskip 
+@medskip ->@vskip 
+                  @medskipamount 
+@medbreak ...removelastskip @penalty -100@medskip 
+                                                  @fi @fi 
+...
+l.980 @end deffn
+                 [13] Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def...
+Warning: unbalanced parentheses in @def... (Indices and tables)pdfTeX warning (
+ext4): destination with the same identifier (name{14}) has been already used, d
+uplicate ignored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @footnoteno 
+@supereject ->@par @penalty -20000@footnoteno 
+                                              =0 
+@chapmacro ...@safewhatsit @domark @pchapsepmacro 
+                                                  @let @prevchapterdefs =@cu...
+...
+l.1105 @unnumbered Indices and tables
+                                      [14] (Index)pdfTeX warning (ext4): destin
+ation with the same identifier (name{15}) has been already used, duplicate igno
+red
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+<output> ...ark @onepageout {@pagecontents @PAGE }
+                                                  }
+<to be read again> 
+                   @footnoteno 
+@supereject ->@par @penalty -20000@footnoteno 
+                                              =0 
+@chapmacro ...@safewhatsit @domark @pchapsepmacro 
+                                                  @let @prevchapterdefs =@cu...
+...
+l.1119 @unnumbered Index
+                         [15]
+(/home/marian/src/lisp/cl-rest-server/doc/cl-rest-server.ges
+Overfull \hbox (9.45456pt too wide) in paragraph at lines 14--14
+ []@smallrm configure-resource-operation-implementation 
+
+@hbox(6.25+1.75)x170.56085
+.@glue(@leftskip) 9.24994
+.@hbox(0.0+0.0)x-9.24994
+.@smallrm c
+.@smallrm o
+.@smallrm n
+.etc.
+
+
+Overfull \hbox (2.07413pt too wide) in paragraph at lines 32--32
+ []@smallrm format-absolute-resource-operation-url 
+
+@hbox(6.25+1.75)x153.34007
+.@glue(@leftskip) 9.24994
+.@hbox(0.0+0.0)x-9.24994
+.@smallrm f
+.@smallrm o
+.@smallrm r
+.etc.
+
+
+Overfull \hbox (3.20529pt too wide) in paragraph at lines 37--37
+ []@smallrm implement-resource-operation-case 
+
+@hbox(6.25+1.75)x136.24373
+.@glue(@leftskip) 9.24994
+.@hbox(0.0+0.0)x-9.24994
+.@smallrm i
+.@smallrm m
+.@smallrm p
+.etc.
+
+pdfTeX warning (ext4): destination with the same identifier (name{16}) has been
+ already used, duplicate ignored
+<to be read again> 
+                   @unvbox 
+@onepageout ...name{@the @pageno } xyz@fi @unvbox 
+                                                  @headlinebox @pagebody {#1...
+
+@doublecolumnout ...alpage @onepageout @pagesofar 
+                                                  @unvbox @PAGE @penalty @ou...
+<output> {@doublecolumnout 
+                           }
+@finishentry ...parindent by -1em @fi @fi @indent 
+                                                  @unhbox @boxA @finalhyphen...
+l.78 \entry{with-xml-reply (Lisp macro)}{12}
+                                             [16]) [17] ) 
+Here is how much of TeX's memory you used:
+ 4145 strings out of 497099
+ 56299 string characters out of 6206935
+ 96490 words of memory out of 5000000
+ 5013 multiletter control sequences out of 15000+600000
+ 34203 words of font info for 119 fonts, out of 8000000 for 9000
+ 51 hyphenation exceptions out of 8191
+ 14i,7n,17p,480b,616s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/share/texlive/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmb10.pfb></usr/share/texlive/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/font
+s/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/publ
+ic/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsf
+onts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pf
+b></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsl10.pfb></us
+r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/shar
+e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texl
+ive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on cl-rest-server.pdf (19 pages, 192098 bytes).
+PDF statistics:
+ 598 PDF objects out of 1000 (max. 8388607)
+ 555 compressed objects within 6 object streams
+ 236 named destinations out of 1000 (max. 500000)
+ 205 words of extra memory for PDF output out of 10000 (max. 10000000)
+

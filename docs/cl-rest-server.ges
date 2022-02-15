@@ -1,0 +1,78 @@
+\initial {*}
+\entry{*catch-errors* (Lisp variable)}{9, 14}
+\entry{*server-catch-errors* (Lisp variable)}{9, 14}
+\initial {A}
+\entry{accept-serializer (Lisp function)}{12}
+\entry{add-list-member (Lisp function)}{13}
+\entry{attribute (Lisp function)}{14}
+\initial {B}
+\entry{boolean-value (Lisp function)}{12}
+\initial {C}
+\entry{caching (Lisp macro)}{14}
+\entry{configure-api (Lisp function)}{10, 13}
+\entry{configure-api-resource (Lisp function)}{12}
+\entry{configure-resource-operation-implementation (Lisp function)}{13}
+\initial {D}
+\entry{define-api (Lisp macro)}{3, 14}
+\entry{define-api-resource (Lisp macro)}{3, 14}
+\entry{define-resource-operation (Lisp macro)}{13}
+\entry{define-schema (Lisp macro)}{12}
+\entry{define-serializable-class (Lisp macro)}{13}
+\entry{define-swagger-resource (Lisp macro)}{14}
+\entry{disable-api-logging (Lisp function)}{12}
+\initial {E}
+\entry{element (Lisp function)}{14}
+\entry{elements (Lisp function)}{13}
+\entry{enable-api-logging (Lisp function)}{13}
+\entry{error-handling (Lisp macro)}{14}
+\initial {F}
+\entry{fetch-content (Lisp macro)}{13}
+\entry{find-api (Lisp function)}{13}
+\entry{find-schema (Lisp function)}{12}
+\entry{format-absolute-resource-operation-url (Lisp function)}{12}
+\initial {H}
+\entry{http-error (Lisp function)}{12}
+\initial {I}
+\entry{implement-resource-operation (Lisp macro)}{6, 12}
+\entry{implement-resource-operation-case (Lisp macro)}{12}
+\initial {L}
+\entry{list-value (Lisp function)}{12}
+\entry{logging (Lisp macro)}{13}
+\initial {M}
+\entry{make-resource-operation (Lisp function)}{13}
+\initial {P}
+\entry{permission-checking (Lisp macro)}{12}
+\initial {S}
+\entry{schema (Lisp macro)}{13}
+\entry{self-reference (Lisp function)}{13}
+\entry{serializable-class-schema (Lisp function)}{13}
+\entry{serialization (Lisp macro)}{12}
+\entry{set-attribute (Lisp function)}{13}
+\entry{set-reply-content-type (Lisp function)}{12}
+\entry{start-api (Lisp function)}{7, 13}
+\entry{start-api-documentation (Lisp function)}{12}
+\entry{start-api-logging (Lisp function)}{10, 14}
+\entry{stop-api (Lisp function)}{13}
+\entry{stop-api-logging (Lisp function)}{13}
+\initial {U}
+\entry{unserialization (Lisp macro)}{13}
+\initial {V}
+\entry{validation (Lisp macro)}{14}
+\entry{validation-error (Lisp function)}{13}
+\initial {W}
+\entry{with-api (Lisp macro)}{3, 12}
+\entry{with-api-backend (Lisp macro)}{8, 12}
+\entry{with-api-resource (Lisp macro)}{4, 14}
+\entry{with-attribute (Lisp macro)}{13}
+\entry{with-content (Lisp macro)}{14}
+\entry{with-element (Lisp macro)}{14}
+\entry{with-json-reply (Lisp macro)}{13}
+\entry{with-list (Lisp macro)}{13}
+\entry{with-list-member (Lisp macro)}{12}
+\entry{with-pagination (Lisp macro)}{14}
+\entry{with-permission-checking (Lisp macro)}{14}
+\entry{with-posted-content (Lisp macro)}{14}
+\entry{with-reply-content-type (Lisp macro)}{14}
+\entry{with-serializer (Lisp macro)}{14}
+\entry{with-serializer-output (Lisp macro)}{12}
+\entry{with-xml-reply (Lisp macro)}{12}

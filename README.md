@@ -17,9 +17,9 @@ The library is available at [Ultralisp](https://ultralisp.org).
 
 ## Documentation
 
-[HTML](http://mmontone.github.io/cl-rest-server/doc/build/html)
+[HTML](/doc/cl-rest-server)
 
-[PDF](http://mmontone.github.io/cl-rest-server/doc/build/latex/CommonLispRESTServer.pdf)
+[PDF](/doc/cl-rest-server.pdf)
 
 ## Features
 

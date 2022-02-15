@@ -1,0 +1,228 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Common Lisp REST Server 0.2, Feb 15, 2022
+
+Mariano Montone
+
+Copyright (C) 2014, Mariano Montone
+ -->
+<!-- Created by GNU Texinfo 6.7, http://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>API configuration (Common Lisp REST Server Documentation)</title>
+
+<meta name="description" content="API configuration (Common Lisp REST Server Documentation)">
+<meta name="keywords" content="API configuration (Common Lisp REST Server Documentation)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<link href="index.html" rel="start" title="Top">
+<link href="Index.html" rel="index" title="Index">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html" rel="up" title="Top">
+<link href="API-documentation.html" rel="next" title="API documentation">
+<link href="Error-handling.html#Global-error-mode" rel="prev" title="Global error mode">
+<style type="text/css">
+<!--
+/* Style-sheet to use for manuals (copied from Emacs) */
+
+@import url('../style.css');
+
+/* makeinfo 6.5 converts @quotation to <blockquote>.  Highlight them.  */
+
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+blockquote {
+    font-style: normal;
+    border-left: solid 10px red;
+    padding-left: 2.5%;
+    margin-left: 0px;
+}
+
+/* Increase inter-line spacing to improve readability.  */
+p, pre, li, dt, dd, table, code, address { line-height: 1.5em; }
+
+var { font-style: italic; }
+
+/* Lay out @lisp just like @example.  Copied from what /style.css
+   does for the 'example' class.  */
+div.lisp { padding: .8em 1.2em .4em; }
+pre.lisp { padding: .8em 1.2em; }
+div.lisp, pre.lisp {
+   margin: 1em 0 1em 3% ;
+   -webkit-border-radius: .3em;
+   -moz-border-radius: .3em;
+   border-radius: .3em;
+   border: 1px solid #d4cbb6;
+   background-color: #f2efe4;
+}
+div.lisp > pre.lisp {
+   padding: 0 0 .4em;
+   margin: 0;
+   border: none;
+}
+
+/* makeinfo 6.7 uses <div class="header"> for navigation links above node
+   titles.  Make those links less prominent.  */
+.header {
+    line-height: 2em;
+    font-size: 87.5%;
+    color: #433;
+}
+
+/* In title and node titles, use Fira Sans if available as it is more
+   pleasant and more compact than Helvetica.  */
+.settitle, .top, .chapter, .section, .subsection, .subsubsection {
+    font-family: Fira Sans, sans;
+}
+
+/* ----- coreutils specific styling ----- */
+
+/* layout.css indents "body p" when it should probably only indent "body > p"?
+   In any case, disable indenting of p in these sub elements.  */
+dd p,li p {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* underlined links are distracting, especially within outlined tables.  */
+a { /*add :link for external links*/
+    text-decoration: none; /* don't underline links by default */
+    outline-style: none;   /* don't put dotted box around clicked links */
+}
+a:hover {
+    text-decoration: underline;
+}
+
+body {
+    /* Make sure the body doesn't become to wide: long lines are hard to
+       read.  */
+    max-width: 45em;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<span id="API-configuration"></span><div class="header">
+<p>
+Next: <a href="API-documentation.html" accesskey="n" rel="next">API documentation</a>, Previous: <a href="Error-handling.html#Error-handling" accesskey="p" rel="prev">Error handling</a>, Up: <a href="index.html" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api_002dconfiguration-doc"></span><span id="g_t22"></span><span id="api_002dconfiguration-api_002dconfiguration"></span><span id="g_t23"></span><span id="API-configuration-1"></span><h2 class="chapter">8 API configuration</h2>
+
+
+<p>Some aspects of the api can be configured either passing the configuration parameters to the <a href="Starting-the-API.html#g_t1a">start-api</a> function, or via the <a href="#g_t24">configure-api</a> function.
+</p>
+<span id="index-configure_002dapi-_0028Lisp-function_0029"></span>
+<span id="api_002dconfiguration-function-rest_002dserver-configure_002dapi"></span><span id="g_t24"></span><dl>
+<dt id="index-_0028configure_002dapiapi_002dor_002dname">Common Lisp Function: <strong>(configure<span class="nolinebreak">-</span><!-- /@w -->apiapi-or-name</strong> <em>&amp;rest options)</em></dt>
+<dd>
+<p>Configure or reconfigure an already existent api
+</p></dd></dl>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#CORS-configuration" accesskey="1">CORS configuration</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Logging-configuration" accesskey="2">Logging configuration</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+</pre></th></tr></table>
+
+<hr>
+<span id="CORS-configuration"></span><div class="header">
+<p>
+Next: <a href="#Logging-configuration" accesskey="n" rel="next">Logging configuration</a>, Up: <a href="#API-configuration" accesskey="u" rel="up">API configuration</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api_002dconfiguration-cors_002dconfiguration"></span><span id="g_t25"></span><span id="CORS-configuration-1"></span><h3 class="section">8.1 CORS configuration</h3>
+
+
+<p>APIs can be configured to append CORS<a id="DOCF2" href="#FOOT2"><sup>2</sup></a> headers to responses.
+</p>
+<p>Syntax:
+</p>
+<div class="example">
+<pre class="example">(configure-api api '(:cors &amp;rest options))
+</pre></div>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Options" accesskey="1">Options;</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+</pre></th></tr></table>
+
+<hr>
+<span id="Options"></span><div class="header">
+<p>
+Up: <a href="#CORS-configuration" accesskey="u" rel="up">CORS configuration</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api_002dconfiguration-options"></span><span id="g_t26"></span><span id="Options_003a"></span><h4 class="subsection">8.1.1 Options:</h4>
+
+
+
+<ul class="no-bullet">
+<li>- <code>:enabled</code>: Boolean. CORS enabled when <code>T</code>.
+
+</li><li>- <code>:allow-origin</code>: The “AllowOrigin” header. Default: <code>&quot;*&quot;</code>
+
+</li><li>- <code>:allow-headers</code>: A list. The “AllowHeaders” header.
+
+</li><li>- <code>:allow-methods</code>: A list. The “AllowMethods” header. Default: <code>(list :get :put :post :delete)</code>
+</li></ul>
+
+<hr>
+<span id="Logging-configuration"></span><div class="header">
+<p>
+Previous: <a href="#CORS-configuration" accesskey="p" rel="prev">CORS configuration</a>, Up: <a href="#API-configuration" accesskey="u" rel="up">API configuration</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="api_002dconfiguration-logging_002dconfiguration"></span><span id="g_t27"></span><span id="Logging-configuration-1"></span><h3 class="section">8.2 Logging configuration</h3>
+
+
+<p>Log api requests and responses.
+</p>
+<p>Syntax:
+</p>
+<div class="example">
+<pre class="example">(configure-api '(:logging &amp;rest options))
+</pre></div>
+
+<p>Then evaluate :cl:function::<cite>start-api-logging</cite>
+</p>
+<span id="index-start_002dapi_002dlogging-_0028Lisp-function_0029"></span>
+<span id="api_002dconfiguration-function-rest_002dserver-start_002dapi_002dlogging"></span><span id="g_t28"></span><dl>
+<dt id="index-_0028start_002dapi_002dlogging_0029">Common Lisp Function: <strong>(start<span class="nolinebreak">-</span><!-- /@w -->api<span class="nolinebreak">-</span><!-- /@w -->logging)</strong></dt>
+</dl>
+
+<div class="footnote">
+<hr>
+<h4 class="footnotes-heading">Footnotes</h4>
+
+<h5><a id="FOOT2" href="#DOCF2">(2)</a></h3>
+<p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS</p>
+</div>
+<hr>
+<div class="header">
+<p>
+Previous: <a href="#CORS-configuration" accesskey="p" rel="prev">CORS configuration</a>, Up: <a href="#API-configuration" accesskey="u" rel="up">API configuration</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+
+
+
+</body>
+</html>
