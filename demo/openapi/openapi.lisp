@@ -1,3 +1,6 @@
+;; Just load this file, then evaluate (rest-server/demo/open-api:start-petstore-api) for a demo of how OpenAPI support works.
+;; Test with the url: http://localhost:3006/pet/55
+
 (defpackage :rest-server/demo/open-api
   (:use :cl :rest-server :schemata :generic-serializer
 	:rs.openapi)

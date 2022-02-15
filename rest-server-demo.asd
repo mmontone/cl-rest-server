@@ -1,5 +1,4 @@
 (defsystem rest-server-demo
-  :name "rest-server-tests"
   :author "Mariano Montone <marianomontone@gmail.com>"
   :version "0.1"
   :maintainer "Mariano Montone <marianomontone@gmail.com>"
