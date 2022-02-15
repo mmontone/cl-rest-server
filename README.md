@@ -17,9 +17,7 @@ The library is available at [Ultralisp](https://ultralisp.org).
 
 ## Documentation
 
-[HTML](/doc/cl-rest-server)
-
-[PDF](/doc/cl-rest-server.pdf)
+[HTML](http://mmontone.github.io/cl-rest-server/cl-rest-server/)
 
 ## Features
 
