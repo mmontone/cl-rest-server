@@ -64,6 +64,7 @@
     (let ((security (mapcar (alexandria:compose 'parse-authorization
                                                 'caar)
                             (-> args "security"))))
+      (assert (-> args "operationId") nil "Operation id missing for operation: ~a" operation)
       `(,(symbolicate (-> args "operationId"))
         (:request-method ,(alexandria:make-keyword (string-upcase method))
          :produces (:json)
@@ -117,36 +118,14 @@
      :timestamp)
     (t (alexandria:make-keyword (string-upcase (-> param "schema" "type"))))))
 
-
-(defun collect-resources (spec)
-  (let ((resources (make-hash-table :test 'equalp)))
-    (loop for path in (alist (-> spec "paths"))
-          do
-             (loop for operation in (alist (cdr path))
-                   when (member (car operation) '("get" "post" "put" "patch" "delete") :test 'equalp)
-                     do
-                        (let ((tag (first (-> (cdr operation) "tags"))))
-                          ;; Tags are needed because we need to group operations into resources. rest-server model is based in old Swagger model, that grouped things in resources. But the newer OpenAPI model doesn't.
-                          (assert (not (null tag)) nil "Operation ~A is not tagged.
-Please add a tag to the operation in OpenApi spec as an indication of which resource it belongs to.
-As an example, if the operation does something to the application users, then adding a tag \"users\" would be a good choice.
-See: https://restful-api-design.readthedocs.io/en/latest/resources.html"
-                                  (car operation))
-                          (let ((tag-symbol (symbolicate tag)))
-                            (if (null (gethash tag-symbol resources))
-                                (setf (gethash tag-symbol resources)
-                                      (list (cons (car path) operation)))
-                                (push (cons (car path) operation) (gethash tag-symbol resources)))))))
-    (alexandria:hash-table-alist resources)))
-
 (defun collect-resources-by-path (spec)
   (loop for path in (alist (-> spec "paths"))
-	collect
-	(cons (symbolicate (first path))
+        collect
+        (cons (symbolicate (first path))
               (loop for operation in (alist (cdr path))
                     when (member (car operation) '("get" "post" "put" "patch" "delete") :test 'equalp)
-                     collect
-                     (cons (car path) operation)))))
+                      collect
+                      (cons (car path) operation)))))
 
 (defmacro define-api-from-spec (name superclasses options filepath)
   "Defines a REST SERVER api from an OpenAPI version 3 file.
@@ -156,12 +135,9 @@ Use like:
   ()
   #.(asdf:system-relative-pathname :my-project \"api.json\")).
 
-IMPORTANT:
-1) All operations in OpenAPI spec need to have a tag, in camel case, that is translated to a REST-SERVER api operation. For example: 'createUser', gets translated to CREATE-USER entry point in REST-SERVER api.
-2) Operations in OpenAPI spec need to be tagged with a name for the resource. This is because REST-SERVER is designed based on an old version of Swagger API that groups operations in resources. But OpenAPI v3 does not group in resources, it just has paths. So, the tagging is needed for the OpenAPI -> REST-SERVER api translation. For example, if you have two paths, /invoice/{id}, and /invoice/{id}/payments, you should tag them both with 'Invoice', so that both operations are created under an INVOICE resource.
+IMPORTANT: All operations in OpenAPI spec need to have a tag, in camel case, that is translated to a REST-SERVER api operation. For example: 'createUser', gets translated to CREATE-USER entry point in REST-SERVER api.
 
-Use this together with DEFINE-SCHEMAS-FROM-SPEC
-"
+Use this together with DEFINE-SCHEMAS-FROM-SPEC "
   (let ((spec (read-spec-file filepath)))
     (define-api-from-v3-spec name superclasses options spec)))
 
