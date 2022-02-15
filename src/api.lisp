@@ -76,7 +76,9 @@
 (defun start-api (api &rest args)
   "Start an api at address and port.
 
-   In production mode, we bind the api directly. In debug mode, we only bind the API name in order to be able to make modifications to the api (definition) in development time"
+   Returns the Hunchentoot acceptor (can be used to stop the api via STOP-API later).
+
+   In production mode, we bind the api directly. In debug mode, we only bind the API name in order to be able to make modifications to the api (definition) in development time."
   (when (getf args :config)
     (configure-api api (getf args :config)))
   (let ((api (if (not (getf args :prod-mode))
@@ -96,6 +98,7 @@
       api-acceptor)))
 
 (defun stop-api (api-acceptor)
+  "Stops the API-ACCEPTOR."
   (hunchentoot:stop api-acceptor))
 
 ;; Hunchentoot api acceptor
