@@ -50,3 +50,8 @@ The library is available at [Ultralisp](https://ultralisp.org).
 
 * APIs documentation
   - Via Swagger: http://swagger.wordnik.com
+
+## Demo
+
+* [Basic service](/demo)
+* [OpenAPI service](/demo/openapi)
