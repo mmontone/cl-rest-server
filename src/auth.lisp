@@ -48,11 +48,21 @@ Implementations are expected to return an AUTH-RESULT value."))
   "Make an authorization object from the spec"
   (cond
     ((keywordp auth-spec)
-     (make-instance (intern
-                     (format nil "~A-AUTHORIZATION" (symbol-name auth-spec))
-                     :rest-server)))
+     (let* ((class-name
+	     (intern
+              (format nil "~A-AUTHORIZATION" (symbol-name auth-spec))
+              :rest-server))
+	    (class (find-class class-name nil)))
+       (if class
+	   (make-instance class-name)
+	   ;; else
+	   (error "Could not create authorization: ~S. See RS.AUTH::MAKE-AUTHORIZATION ." auth-spec))))
     ((symbolp auth-spec)
-     (make-instance auth-spec))
+     (let ((class (find-class auth-spec nil)))
+       (if class
+	   (make-instance auth-spec)
+	   ;; else
+	   (error "Could not create authorization: ~S. Class does not exist. See RS.AUTH::MAKE-AUTHORIZATION. " auth-spec))))
     ((listp auth-spec)
      (destructuring-bind (auth-type &rest args) auth-spec
        (let ((class-name (ecase (type-of auth-type)
