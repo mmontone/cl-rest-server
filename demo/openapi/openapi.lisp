@@ -1,11 +1,16 @@
-(in-package :rs.openapi)
+(defpackage :rest-server/demo/open-api
+  (:use :cl :rest-server :schemata :generic-serializer
+	:rs.openapi)
+  (:export :start-petstore-api))
+
+(in-package :rest-server/demo/open-api)
 
 (define-schemas-from-spec
     #.(asdf:system-relative-pathname :rest-server
-                                     "test/petstore.v3.json"))
-(define-api-from-spec petstore
+                                     "demo/openapi/petstore.v3.json"))
+(define-api-from-spec petstore () ()
     #.(asdf:system-relative-pathname :rest-server
-                                     "test/petstore.v3.json"))
+                                     "demo/openapi/petstore.v3.json"))
 
 (rs:implement-resource-operation petstore
     get-pet-by-id (pet-id)
