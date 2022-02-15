@@ -45,7 +45,7 @@
          (:title ,(@ "info" "title")
           :documentation ,(@ "info" "description")
           ,@options)
-       ,@(loop for resource in (collect-resources spec)
+       ,@(loop for resource in (collect-resources-by-path spec)
                collect (inline-resource-from-v3-spec resource)))))
 
 (defun inline-resource-from-v3-spec (resource)
@@ -138,6 +138,15 @@ See: https://restful-api-design.readthedocs.io/en/latest/resources.html"
                                       (list (cons (car path) operation)))
                                 (push (cons (car path) operation) (gethash tag-symbol resources)))))))
     (alexandria:hash-table-alist resources)))
+
+(defun collect-resources-by-path (spec)
+  (loop for path in (alist (-> spec "paths"))
+	collect
+	(cons (symbolicate (first path))
+              (loop for operation in (alist (cdr path))
+                    when (member (car operation) '("get" "post" "put" "patch" "delete") :test 'equalp)
+                     collect
+                     (cons (car path) operation)))))
 
 (defmacro define-api-from-spec (name superclasses options filepath)
   "Defines a REST SERVER api from an OpenAPI version 3 file.
