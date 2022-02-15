@@ -131,11 +131,10 @@
   "Defines a REST SERVER api from an OpenAPI version 3 file.
 
 Use like:
+
 (rs.openapi:define-api-from-spec invoice-engine-api (rs:api-docs-mixin)
   ()
-  #.(asdf:system-relative-pathname :my-project \"api.json\")).
-
-IMPORTANT: All operations in OpenAPI spec need to have a tag, in camel case, that is translated to a REST-SERVER api operation. For example: 'createUser', gets translated to CREATE-USER entry point in REST-SERVER api.
+  #.(asdf:system-relative-pathname :my-project \"api.json\"))
 
 Use this together with DEFINE-SCHEMAS-FROM-SPEC "
   (let ((spec (read-spec-file filepath)))
