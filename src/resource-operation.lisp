@@ -367,7 +367,8 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                 (make-instance 'resource-operation-implementation
                                :resource-operation resource-operation
                                :primary (lambda ,(resop-impl-args args resource-operation)
-                                          ,@body)
+					  (block ,name
+                                            ,@body))
                                :options ',options)))
          (let ((decorated-function
                  (process-resource-operation-implementation-options
