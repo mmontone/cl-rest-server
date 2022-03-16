@@ -562,15 +562,25 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
               optional-args))))
 
 (defun format-absolute-resource-operation-url (resource-operation &rest args)
-  (let ((base-url (format nil "~A://~A:~A"
-                          (if (hunchentoot:acceptor-ssl-p hunchentoot:*acceptor*)
-                              "https"
-                              "http")
-                          (or (hunchentoot:acceptor-address hunchentoot:*acceptor*)
-                              "localhost")
-                          (hunchentoot:acceptor-port hunchentoot:*acceptor*))))
-    (format nil "~A~A"
-            base-url
+  "Generate an absolute url to RESOURCE-OPERATION.
+
+Looks at HUNCHENTOOT:*REQUEST* and HUNCHENTOOT:*ACCEPTOR* to infer host and uri scheme. If HUNCHENTOOT:*REQUEST* and HUNCHENTOOT:*ACCEPTOR* are not bound, then \"http\" and \"localhost\" are used as uri scheme and host."
+  (let ((scheme (if (boundp 'hunchentoot:*acceptor*)
+		    (if (hunchentoot:acceptor-ssl-p hunchentoot:*acceptor*)
+                        "https"
+                        "http")
+		    "http"))
+	(host-and-port
+	  (cond
+	    ((boundp 'hunchentoot:*request*)
+	     (hunchentoot:host))
+	    ((boundp 'hunchentoot:*acceptor*)
+	     (format nil "~a:~a"
+		     (hunchentoot:acceptor-address hunchentoot:*acceptor*)
+		     (hunchentoot:acceptor-port hunchentoot:*acceptor*)))
+	    (t "localhost"))))
+    (format nil "~a://~a~a"
+	    scheme host-and-port
             (apply #'format-resource-operation-url
                    resource-operation
                    args))))
