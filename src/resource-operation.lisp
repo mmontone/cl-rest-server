@@ -569,7 +569,9 @@ Looks at HUNCHENTOOT:*REQUEST* and HUNCHENTOOT:*ACCEPTOR* to infer host and uri 
 		    (if (hunchentoot:acceptor-ssl-p hunchentoot:*acceptor*)
                         "https"
                         "http")
-		    "http"))
+		    (progn
+		      (warn "Cannot infer uri scheme. Using \"http\". In REST-SERVER:FORMAT-ABSOLUTE-RESOURCE-OPERATION-URL.")
+		      "http")))
 	(host-and-port
 	  (cond
 	    ((boundp 'hunchentoot:*request*)
@@ -578,7 +580,9 @@ Looks at HUNCHENTOOT:*REQUEST* and HUNCHENTOOT:*ACCEPTOR* to infer host and uri 
 	     (format nil "~a:~a"
 		     (hunchentoot:acceptor-address hunchentoot:*acceptor*)
 		     (hunchentoot:acceptor-port hunchentoot:*acceptor*)))
-	    (t "localhost"))))
+	    (t
+	     (warn "Cannot infer host. Using \"localhost\". In REST-SERVER:FORMAT-ABSOLUTE-RESOURCE-OPERATION-URL.")
+	     "localhost"))))
     (format nil "~a://~a~a"
 	    scheme host-and-port
             (apply #'format-resource-operation-url
