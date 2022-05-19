@@ -229,6 +229,9 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
             :initform (error "Provide the primary function")
             :accessor primary
             :documentation "Primary function")
+   (arguments :initarg :arguments
+	      :accessor arguments
+	      :documentation "Arguments of the resource operation implementation")
    (accept :initarg :accept
            :initform nil
            :accessor accept
@@ -369,6 +372,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
                                :primary (lambda ,(resop-impl-args args resource-operation)
 					  (block ,name
                                             ,@body))
+			       :arguments ',args
                                :options ',options)))
          (let ((decorated-function
                  (process-resource-operation-implementation-options
@@ -420,11 +424,8 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
           (ensure (not missing-optional-args)
                   "Missing args in ~A implementation: ~A"
                   resource-operation
-                  missing-optional-args))
-        (when (member (request-method resource-operation) (list :put :post :patch))
-          (ensure (member :_posted-content (mapcar #'caar keyword))
-                  "&POSTED-CONTENT not found in ~A implementation lambda-list" resource-operation)
-          )))))
+                  missing-optional-args))        
+	))))
 
 (defun configure-resource-operation-implementation
     (name &rest options)
@@ -521,7 +522,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
           (apply function-implementation
                  (append
                   args
-                  (when (member (request-method resource-operation) (list :put :post :patch))
+                  (when (member "&POSTED-CONTENT" (mapcar 'symbol-name (arguments function-implementation)) :test 'string=)
                     (let ((posted-content (get-posted-content request)))
                       (log5:log-for (rest-server) "Posted content: ~A" posted-content)
                       (list :_posted-content (parse-posted-content posted-content))))
