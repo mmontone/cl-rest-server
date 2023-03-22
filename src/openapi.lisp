@@ -1,4 +1,5 @@
-(defpackage rs.openapi
+(defpackage rest-server.openapi
+  (:nicknames :rs.openapi)
   (:use :rest-server :cl)
   (:export :define-api-from-spec
    :define-schemas-from-spec
