@@ -30,8 +30,7 @@
                                 &rest args)
   (let ((posted-content (first args))) ;; Asume the posted content is in the first argument
     (let ((valid-p (schemata:validate-with-schema (validation-schema decoration)
-                                         posted-content
-                                         :format (validation-format decoration))))
+                                                  posted-content)))
       (if (not valid-p)
           (error "The posted content is invalid")
           (call-next-method)))))
@@ -73,8 +72,8 @@
   (let ((posted-content (first args))) ;; Asume the posted content is in the first argument
     (apply #'call-next-method
            (schemata:unserialize-with-schema (unserialization-schema decoration)
-                                    posted-content
-                                    (unserialization-format decoration))
+                                             posted-content
+                                             (unserialization-format decoration))
            (rest args))))
 
 (cl-annot:defannotation unserialization (args resource-operation-implementation)
