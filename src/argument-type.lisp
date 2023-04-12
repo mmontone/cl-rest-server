@@ -34,6 +34,7 @@
             (:parse
              (destructuring-bind (args &body body) (rest option)
                `(defmethod %parse-argument-type ((argument-type (eql ',name)) ,@args)
+		  (declare (ignorable argument-type))
                   ,@body)))
             (:parse-value
              (destructuring-bind (args &body body) (rest option)
@@ -45,14 +46,17 @@
                                        :format-arguments args)
                                (return-from parse-argument-value
                                  (values nil (apply #'format message args))))))
+		    (declare (ignorable #'parse-error))
                     ,@body))))
             (:format-value
              (destructuring-bind (args &body body) (rest option)
                `(defmethod format-argument-value (,@args (argument-type ,name))
+		  (declare (ignorable argument-type))
                   ,@body)))
             (:format-spec
              (destructuring-bind ((argument-type) &body body) (rest option)
                `(defmethod argument-type-spec ((,argument-type ,name))
+		  (declare (ignorable ,argument-type))
                   ,@body)))))
      (pushnew ',name *argument-types*)))
 
