@@ -2,8 +2,12 @@
 ;; Test with the url: http://localhost:3006/pet/55
 
 (defpackage :rest-server/demo/open-api
-  (:use :cl :rest-server :schemata :generic-serializer
-	:rs.openapi)
+  (:use
+   :cl
+   :rest-server
+   :schemata
+   :generic-serializer
+   :rs.openapi)
   (:export :start-petstore-api))
 
 (in-package :rest-server/demo/open-api)
