@@ -364,20 +364,25 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
         (validate-resource-operation-implementation-arguments
          (resop-impl-args args resource-operation)
          resource-operation))
-      `(let* ((api (find-api ',api-name))
-              (resource-operation (find-resource-operation api ',name))
-              (resource-operation-implementation
-                (make-instance 'resource-operation-implementation
-                               :resource-operation resource-operation
-                               :primary (lambda ,(resop-impl-args args resource-operation)
-					  (block ,name
-                                            ,@body))
-			       :arguments ',args
-                               :options ',options)))
-         (let ((decorated-function
-                 (process-resource-operation-implementation-options
-                  resource-operation-implementation)))
-           (register-resource-operation-implementation decorated-function))))))
+      (multiple-value-bind (remaining-forms declarations doc-string)
+	  (alexandria:parse-body body :documentation t)
+	`(let* ((api (find-api ',api-name))
+		(resource-operation (find-resource-operation api ',name))
+		(resource-operation-implementation
+                  (make-instance 'resource-operation-implementation
+				 :resource-operation resource-operation
+				 :primary (lambda ,(resop-impl-args args resource-operation)
+					    ,@(when doc-string
+						(list doc-string))
+					    ,@declarations
+					    (block ,name
+                                              ,@remaining-forms))
+				 :arguments ',args
+				 :options ',options)))
+           (let ((decorated-function
+                   (process-resource-operation-implementation-options
+                    resource-operation-implementation)))
+             (register-resource-operation-implementation decorated-function)))))))
 
 (defun validate-resource-operation-implementation-arguments (args resource-operation)
   (flet ((ensure (thing message &rest args)
