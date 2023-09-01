@@ -7,10 +7,10 @@
 (in-package :api-test)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (define-schema user
-      (:object user
-               ((:id :integer :documentation "The user id")
-                (:realname :string :documentation "The user realname")))))
+  (schemata:define-schema user
+      (schemata:object user
+               ((:id integer :documentation "The user id")
+                (:realname string :documentation "The user realname")))))
 
 (define-api api-test (rs::api-docs-mixin)
     (:title "Api test"
@@ -156,7 +156,6 @@
   (:use :cl
         :rest-server
         :generic-serializer
-        :schemata
         :rest-server.logging
         :rest-server.error
         ))

@@ -3,19 +3,17 @@
    :cl
    :rest-server
    :fiveam
-   :generic-serializer
-   :schemata
-   :rest-server.logging)
+   :rest-server.logging
+   :generic-serializer)
   (:export :run-tests :debug-tests))
 
 (defpackage :api-test
   (:use
    :rest-server
-   :generic-serializer
-   :schemata
    :rest-server.logging
    :rest-server.error
-   :cl))
+   :cl
+   :generic-serializer))
 
 (in-package :rest-server-tests)
 

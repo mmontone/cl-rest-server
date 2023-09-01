@@ -2,7 +2,7 @@
   (:use :cl))
 
 (defpackage rest-server-demo
-  (:use :cl :rest-server :schemata :generic-serializer)
+  (:use :cl :rest-server :generic-serializer)
   (:export :start-demo-api))
 
 (in-package rest-server-demo)
