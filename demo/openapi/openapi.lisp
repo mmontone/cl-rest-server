@@ -5,7 +5,6 @@
   (:use
    :cl
    :rest-server
-   :schemata
    :generic-serializer
    :rs.openapi)
   (:export :start-petstore-api))
