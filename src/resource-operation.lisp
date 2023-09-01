@@ -492,6 +492,9 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
 (defmethod content-type ((decoration resource-operation-implementation-decoration))
   (content-type (decorates decoration)))
 
+(defmethod arguments ((decoration resource-operation-implementation-decoration))
+  (arguments (decorates decoration)))
+
 (defun find-resource-operation-implementation (name &key accept content-type)
   (or (find-if (lambda (roi)
                  (match-resource-operation-implementation
@@ -527,7 +530,7 @@ Also, argx-P is T iff argx is present in POSTED-CONTENT"
           (apply function-implementation
                  (append
                   args
-                  (when (member "&POSTED-CONTENT" (mapcar 'symbol-name (arguments function-implementation)) :test 'string=)
+                  (when (member "&POSTED-CONTENT" (mapcar #'princ-to-string (arguments function-implementation)) :test 'string=)
                     (let ((posted-content (get-posted-content request)))
                       (log5:log-for (rest-server) "Posted content: ~A" posted-content)
                       (list :_posted-content (parse-posted-content posted-content))))
