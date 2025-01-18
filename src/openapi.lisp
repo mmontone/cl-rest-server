@@ -260,4 +260,4 @@ Use this together with DEFINE-API-FROM-SPEC"
   (let ((spec (read-spec-file filepath)))
     `(progn
        ,@(loop for (schema-name . schema) in (parse-schemas-from-spec spec)
-               collect `(schemata:define-schema ,schema-name ,(schemata:schema-spec schema))))))
+               collect `(schemata:defschema ,schema-name ,(schemata:schema-spec schema))))))
